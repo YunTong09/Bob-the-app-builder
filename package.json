@@ -7,7 +7,7 @@
     "build": "next build",
     "lint": "next lint",
     "slack:start": "node --env-file-if-exists=.env.slack.local slack/app.mts",
-    "slack:typecheck": "tsc --noEmit --strict --skipLibCheck --module NodeNext --resolveJsonModule slack/app.mts slack/rewrite.mts"
+    "slack:typecheck": "tsc --noEmit --strict --skipLibCheck --module NodeNext --resolveJsonModule --allowImportingTsExtensions slack/*.mts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.27.3",

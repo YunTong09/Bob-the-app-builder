@@ -9,7 +9,7 @@
 | In Progress Tasks | 0 |
 | Blocked Tasks | 1 · TASK-01 |
 | Current Priority | Unblock the TASK-01 connection test |
-| Next Recommended Task | Develop the TASK-02 handler offline while TASK-01 is pending. Live verification depends on TASK-01. |
+| Next Recommended Task | Develop TASK-02 and TASK-03 in parallel with synthetic inputs. Verify the combined flow in Slack after TASK-01. |
 | Last Updated | 2026-11-21 (Australia/Brisbane) |
 
 `Progress = DONE Tasks / 7 × 100%`. Count tasks once they are implemented and have passed acceptance.
@@ -28,13 +28,13 @@ This phase delivers a **mock demo in a native Slack modal** using Slack Bolt for
 | --- | --- | --- | --- | --- |
 | 1a | TASK-01 · Project Setup & Slack Connection | Existing project | Test app, valid tokens, and Socket Mode | BLOCKED |
 | 1b | TASK-04 · Mock AI Rewrite Service | API Contract and synthetic fixtures | Offline checks of the fixed reply, tone, and evidence | DONE |
-| 2 | TASK-02 · Slack Message Shortcut | Existing Bolt entry point from TASK-01 and a minimal modal | Verified live connection from TASK-01 | TODO |
-| 3 | TASK-03 · Input Modal | Agree on the manager-message field, then build the Block Kit view independently | TASK-02 opens the modal from the selected message | TODO |
+| 2a | TASK-02 · Slack Message Shortcut | Existing Bolt entry point from TASK-01 and a minimal modal | Verified live connection from TASK-01 | TODO |
+| 2b | TASK-03 · Input Modal | Start now with a synthetic manager message | Connect TASK-02 for the live Slack flow | TODO |
 | 4 | TASK-05 · Processing & Result Modal | Use fixtures to build the result view | TASK-03 form submission and TASK-04 mock | TODO |
 | 5 | TASK-06 · Error Handling & Retry | Prepare failure cases | Working form, mock, and result flow from TASK-03, TASK-04, and TASK-05 | TODO |
 | 6 | TASK-07 · Team Testing & Demo Validation | Test workspace and teammate account | TASK-01 through TASK-06 | TODO |
 
-The integration acceptance order is **TASK-01 → TASK-02 → TASK-03 → TASK-05 → TASK-06 → TASK-07**. TASK-04 can be developed and accepted independently ahead of TASK-05 integration. TASK-02 and TASK-04 have no dependency on each other. The TASK-02 handler can be tested with a synthetic payload now. The live shortcut and modal test requires a verified Slack connection.
+TASK-02 and TASK-03 can be developed and tested offline in parallel. The live integration acceptance order is **TASK-01 → TASK-02 → TASK-03 → TASK-05 → TASK-06 → TASK-07**. TASK-04 can be developed and accepted independently ahead of TASK-05 integration. TASK-02 and TASK-04 have no dependency on each other. The TASK-02 handler can be tested with a synthetic payload now. The live shortcut and modal test requires a verified Slack connection.
 
 **Work completed so far**
 
@@ -122,11 +122,11 @@ The integration acceptance order is **TASK-01 → TASK-02 → TASK-03 → TASK-0
 
 **Files:** Slack view path is pending. See `docs/API_CONTRACT.md` for fields and tones.
 
-**Dependencies:** Build the view offline with a synthetic manager message. Acceptance from message selection through form submission requires TASK-02.
+**Dependencies:** The input view has no prerequisite for offline development or testing. Use a synthetic manager message to build and test the form. Live acceptance from message selection through form submission requires TASK-02.
 
 **Verification:** An `rg` review confirmed the tone specification and found no Slack input view in the files reviewed. A live modal submission is pending.
 
-**Blockers:** Full acceptance awaits TASK-02.
+**Blockers:** None for offline development. Live Slack acceptance depends on TASK-02.
 
 **Notes:** Keep the draft within the current interaction and out of logs and modal metadata.
 
