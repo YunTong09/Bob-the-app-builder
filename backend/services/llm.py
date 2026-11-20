@@ -49,7 +49,8 @@ class JsonModel(Protocol):
         max_tokens: int,
     ) -> dict[str, Any]:
         """Return one JSON object matching ``schema``. ``task`` names the call
-        ("analysis", "assessment", "draft") for logging and the mock."""
+        ("analysis", "assessment", "assessment_review", "draft", "draft_review")
+        for logging and the mock."""
         ...
 
 

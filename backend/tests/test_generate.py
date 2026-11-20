@@ -68,6 +68,19 @@ def test_same_owner_context_passed_to_every_service(client, ai):
     assert len(owners) == 1 and next(iter(owners)).owner_id == "owner-a"
 
 
+def test_validator_receives_the_original_drafting_context(client, ai):
+    import_fixture(client)
+    request_body = {**GEN_BODY, "tone": "assertive", "conversationId": "conv_demo"}
+    assert client.post("/api/reply/generate", json=request_body).status_code == 200
+    drafting_context = next(call[1][1] for call in ai.calls if call[0] == "draft")
+    validation_context = next(call[1][2] for call in ai.calls if call[0] == "validate")
+    assert validation_context is drafting_context
+    assert validation_context.manager_message == request_body["managerMessage"]
+    assert validation_context.employee_draft == request_body["employeeDraft"]
+    assert validation_context.tone == "assertive"
+    assert {record.conversation_id for record in validation_context.records} == {"conv_demo"}
+
+
 def test_empty_history_returns_useful_reply_with_warning(client, ai):
     r = client.post("/api/reply/generate", json=GEN_BODY)
     assert r.status_code == 200

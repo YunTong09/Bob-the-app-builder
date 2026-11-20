@@ -78,6 +78,34 @@ R2R_AI_MODE=mock backend/.venv/Scripts/python -m uvicorn backend.api.main:app --
 - To run the API tests against SQLite instead of the in-memory double, set `R2R_TEST_MEMORY_FACTORY=backend.tests.sqlite_factory:make`.
 - Synthetic request and response fixtures are in `backend/fixtures/`.
 
+### Preview and import a Slack test channel
+
+1. Create a Slack app in a test workspace. Add the bot scope `channels:history` for a public channel or `groups:history` for a private channel, then install the app. Reinstall it after changing scopes.
+2. Invite the bot to one test channel containing synthetic messages. Copy its channel ID and use the installed app's `xoxb-` bot token. This history reader does not require an `xapp-` Socket Mode token.
+3. From the project root, set the FastAPI process environment and start the single-user demo in PowerShell:
+
+```powershell
+$slackTokenInput = Read-Host 'Slack bot token' -AsSecureString
+$env:SLACK_BOT_TOKEN = [System.Net.NetworkCredential]::new('', $slackTokenInput).Password
+$env:R2R_SLACK_CHANNEL_ID = 'C0123456789' # Replace with the one allowed test channel
+$env:R2R_AI_MODE = 'mock'
+.\backend\.venv\Scripts\python.exe -m uvicorn backend.api.main:app --host 127.0.0.1 --port 8000
+```
+
+FastAPI reads these environment variables; it does not automatically load `.env.local` or `.env.slack.local`. The `mock` setting avoids needing Claude credentials for this import workflow; the Slack history request still uses the real Slack API.
+
+Keep the server running and open a second PowerShell terminal. Replace the channel ID below with the same allowed channel configured in the server terminal, then request a preview:
+
+```powershell
+$slackPreviewBody = @{ channelId = 'C0123456789'; limit = 20 } | ConvertTo-Json
+$slackPreview = Invoke-RestMethod -Method Post -Uri 'http://127.0.0.1:8000/api/slack/preview' -ContentType 'application/json' -Body $slackPreviewBody
+$slackPreview | ConvertTo-Json -Depth 10
+```
+
+Previewing does not save messages. Review the returned messages and submit only the ones you choose through the existing memory-import operation. The [Slack preview contract](docs/API_CONTRACT.md#slack-channel-preview-single-user-demo-extension) documents request fields, pagination, errors and how selected messages use the existing import operation. Missing metadata stays missing, and messages become searchable only after import.
+
+This backend reader fetches parent channel messages; it does not fetch thread replies or import files, and it cannot read ordinary direct messages between other people using the bot token. It retains the existing direct-loopback demo identity and does not add a login, shared deployment or frontend integration.
+
 ## Environment variables
 
 | Variable | Purpose |

@@ -7,7 +7,7 @@ aliases on the wire.
 from __future__ import annotations
 
 import re
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Annotated, Literal
 
 from pydantic import (
@@ -16,6 +16,7 @@ from pydantic import (
     ConfigDict,
     Field,
     field_validator,
+    model_validator,
 )
 from pydantic.alias_generators import to_camel
 
@@ -31,7 +32,9 @@ ReplyTone = Literal["diplomatic", "neutral", "assertive"]
 
 # RFC 3339 date-time with mandatory timezone (Z or +/-HH:MM).
 _RFC3339 = re.compile(
-    r"^\d{4}-\d{2}-\d{2}[Tt]\d{2}:\d{2}:\d{2}(\.\d+)?([Zz]|[+-]\d{2}:\d{2})$"
+    r"[0-9]{4}-[0-9]{2}-[0-9]{2}[Tt]"
+    r"(?:[01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]"
+    r"(?:\.[0-9]+)?(?:[Zz]|[+-](?:[01][0-9]|2[0-3]):[0-5][0-9])"
 )
 
 
@@ -48,7 +51,9 @@ def _identifier(v: str) -> str:
 
 
 def _rfc3339(v: str) -> str:
-    if not _RFC3339.match(v):
+    # datetime.fromisoformat can normalize invalid components, such as +00:99
+    # (and 24:00 on newer Python versions), so check their ranges first.
+    if not _RFC3339.fullmatch(v):
         raise ValueError("Must be an RFC 3339 date-time with an explicit timezone.")
     try:
         datetime.fromisoformat(v.replace("z", "Z").replace("t", "T").replace("Z", "+00:00"))
@@ -164,6 +169,70 @@ class SearchMemoryResponse(_Response):
 
 class DeleteMemoryResponse(_Response):
     deleted_count: int = Field(ge=0)
+
+
+# ---------------------------------------------------------- Slack preview
+
+
+def _slack_channel(v: str) -> str:
+    if not re.fullmatch(r"[CG][A-Z0-9]{1,127}", v):
+        raise ValueError("Must be a public or private Slack channel ID.")
+    return v
+
+
+def _slack_cursor(v: str) -> str:
+    if not v or any(ord(character) < 33 or ord(character) > 126 for character in v):
+        raise ValueError("Must be a printable ASCII cursor without whitespace.")
+    return v
+
+
+def _slack_bound(v: str) -> str:
+    fraction = re.search(r"\.([0-9]+)(?:[Zz]|[+-][0-9]{2}:[0-9]{2})$", v)
+    if fraction and any(digit != "0" for digit in fraction.group(1)[6:]):
+        raise ValueError("Use at most six meaningful fractional-second digits.")
+    try:
+        when = datetime.fromisoformat(v.replace("z", "Z").replace("t", "T").replace("Z", "+00:00")).astimezone(timezone.utc)
+    except (ValueError, OverflowError):
+        raise ValueError("Must be a representable UTC date-time.") from None
+    if when < datetime(1970, 1, 1, tzinfo=timezone.utc):
+        raise ValueError("Must be on or after the Unix epoch.")
+    return v
+
+
+SlackChannelId = Annotated[str, AfterValidator(_slack_channel)]
+SlackCursor = Annotated[str, Field(min_length=1, max_length=2048), AfterValidator(_slack_cursor)]
+SlackDateBound = Annotated[Timestamp, AfterValidator(_slack_bound)]
+
+
+class SlackPreviewRequest(_Request):
+    channel_id: SlackChannelId
+    oldest: SlackDateBound | None = None
+    latest: SlackDateBound | None = None
+    cursor: SlackCursor | None = None
+    limit: int = Field(default=100, ge=1, le=100)
+
+    @field_validator("oldest", "latest", "cursor", mode="before")
+    @classmethod
+    def _no_explicit_null(cls, v: object) -> object:
+        if v is None:
+            raise ValueError("Omit unknown fields instead of sending null.")
+        return v
+
+    @model_validator(mode="after")
+    def _ordered_window(self) -> SlackPreviewRequest:
+        if self.oldest is not None and self.latest is not None:
+            oldest = datetime.fromisoformat(self.oldest.replace("z", "Z").replace("t", "T").replace("Z", "+00:00"))
+            latest = datetime.fromisoformat(self.latest.replace("z", "Z").replace("t", "T").replace("Z", "+00:00"))
+            if oldest > latest:
+                raise ValueError("oldest must not be later than latest.")
+        return self
+
+
+class SlackPreviewResponse(_Response):
+    messages: list[MemoryMessage] = Field(max_length=100)
+    next_cursor: SlackCursor | None
+    skipped_count: int = Field(ge=0)
+    warnings: list[str]
 
 
 # ---------------------------------------------------------------- errors

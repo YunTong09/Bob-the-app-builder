@@ -40,3 +40,15 @@ class EvidenceValidationError(ModelError):
 
 class ModelTimeoutError(ApplicationError):
     """Claude exceeded the configured timeout (HTTP 504)."""
+
+
+class SlackImportError(ApplicationError):
+    """Safe Slack adapter failure. Codes are mapped to fixed API messages.
+
+    Never put provider bodies, request URLs, tokens or message text here.
+    """
+
+    def __init__(self, code: str, retry_after: int | None = None) -> None:
+        super().__init__(code)
+        self.code = code
+        self.retry_after = retry_after

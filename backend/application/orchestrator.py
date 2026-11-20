@@ -117,19 +117,17 @@ class RageToReplyApp:
         _check_retrieved(records, conversation_id)
 
         assessment = self._s.evidence.assess(owner, analysis=analysis, records=records)
-        draft: ReplyDraft = self._s.drafting.draft(
-            owner,
-            DraftInput(
-                manager_message=manager_message,
-                employee_draft=employee_draft,
-                tone=tone,
-                analysis=analysis,
-                assessment=assessment,
-                records=records,
-            ),
+        draft_input = DraftInput(
+            manager_message=manager_message,
+            employee_draft=employee_draft,
+            tone=tone,
+            analysis=analysis,
+            assessment=assessment,
+            records=records,
         )
+        draft: ReplyDraft = self._s.drafting.draft(owner, draft_input)
         validated: ValidatedReply = self._s.evidence.validate(
-            owner, draft=draft, assessment=assessment, records=records
+            owner, draft=draft, request=draft_input
         )
 
         by_id = {r.id: r for r in records}

@@ -85,11 +85,15 @@ Claude returns structured data validated against Pydantic models. It must preser
 
 **Safety boundary:** Messages imported from a manager or another third party are untrusted source data, not executable instructions. The AI/memory developer implements evidence validation against authorised retrieved records. The integration developer invokes that validator before returning a reply and tests that invalid evidence cannot reach the frontend.
 
+Evidence assessment includes a separate semantic review of each claimed source relationship; finding a real quote alone is insufficient. The final validator receives the same original inputs and authorised records used for drafting and reviews the actual reply for invented facts, changed intent and paraphrased contradictions. Uncited retrieved records may reveal a conflict, but cannot justify additional facts in the reply. Missing or malformed review output fails closed, and an explicit rejection is not retried on the unchanged reply. These reviews are model-assisted checks, not a guarantee of factual accuracy, and add model calls and latency.
+
 ### 3.4 Memory Service
 
 **Owner:** AI/memory developer
 
 The memory layer stores and retrieves only the conversation history the user chooses to import.
+
+The single-user demo can obtain candidate messages through a read-only Slack history adapter. A server-held bot token and one allowlisted channel restrict preview requests. The adapter verifies the Slack workspace and fetches one bounded history page, preserving original content and identifiers while converting timestamps exactly. Preview does not touch SQLite or Claude. Only a subsequent, explicit memory import persists selected messages through the existing service. No Socket Mode process or website login is needed for this extension; the existing loopback-only demo restriction remains in force. The API and error contract is in [API_CONTRACT.md](API_CONTRACT.md#slack-channel-preview-single-user-demo-extension).
 
 **SQLite record fields:**
 
@@ -167,7 +171,7 @@ The authoritative MVP scope and user acceptance criteria are in [PRODUCT_SPEC.md
 
 ## 8. Out of scope for the 18-hour MVP
 
-Follow the six-feature scope, P1 boundaries and non-goals in [PRODUCT_SPEC.md](PRODUCT_SPEC.md). The MVP uses local SQLite FTS5 retrieval; it does not require a vector database or external messaging integration.
+Follow the six-feature scope, P1 boundaries and non-goals in [PRODUCT_SPEC.md](PRODUCT_SPEC.md). The MVP uses local SQLite FTS5 retrieval. The limited Slack channel preview/import extension remains separate from full messaging integration and does not change reply generation or add message sending.
 
 ---
 

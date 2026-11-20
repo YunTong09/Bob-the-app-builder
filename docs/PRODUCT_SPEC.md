@@ -64,6 +64,8 @@ Users supply the manager's original message and their emotional draft before cho
 
 Communication Memory persists only explicitly imported history, including message content, sender, conversation identifier and available timestamps or source information. A basic message list is sufficient for review and deletion. Missing metadata remains blank in the interface and uses the null or omitted representations defined in [API_CONTRACT.md](API_CONTRACT.md).
 
+The restricted single-user demo may also preview one explicitly configured Slack channel, then let the user select messages for import. Previewing does not save history or call Claude. This limited import extension uses the existing memory workflow; it does not add background synchronisation, message sending, thread/file crawling or access to arbitrary private conversations. Its request, response and failure behaviour are defined in [API_CONTRACT.md](API_CONTRACT.md#slack-channel-preview-single-user-demo-extension).
+
 Replies with Receipts extracts factual claims, retrieves relevant history and validates whether source messages support those claims before using them as evidence. Missing or contradictory evidence must be distinguished from supported claims. Communication Preferences must not infer permanent facts about other people.
 
 ---
@@ -118,7 +120,7 @@ Both P1 features must preserve the underlying facts. Do not implement P1 work un
 The hackathon version will not implement:
 
 - Automatic message sending.
-- Full Slack or Gmail integration.
+- Full Slack or Gmail integration; the limited, user-confirmed Slack channel import described above is permitted.
 - Employee performance monitoring.
 - Psychological diagnosis or emotion profiling.
 - Persistent manager profiling.

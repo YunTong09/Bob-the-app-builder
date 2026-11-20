@@ -121,14 +121,14 @@ class StubEvidenceService:
             out.append(ClaimAssessment(claim=claim, status="supported" if ids else "unverified", message_ids=ids))
         return EvidenceAssessment(claims=tuple(out))
 
-    def validate(self, owner: OwnerContext, *, draft: ReplyDraft, assessment: EvidenceAssessment, records: tuple[MemoryRecord, ...]) -> ValidatedReply:
-        known = {r.id for r in records}
+    def validate(self, owner: OwnerContext, *, draft: ReplyDraft, request: DraftInput) -> ValidatedReply:
+        known = {r.id for r in request.records}
         if any(link.message_id not in known for link in draft.evidence):
             raise ModelError("draft references unknown record")
         return ValidatedReply(
             reply=draft.reply,
             evidence=draft.evidence,
-            unverified_claims=tuple(c.claim for c in assessment.claims if c.status != "supported"),
+            unverified_claims=tuple(c.claim for c in request.assessment.claims if c.status != "supported"),
             warnings=draft.warnings,
         )
 

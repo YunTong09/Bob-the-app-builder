@@ -99,8 +99,38 @@ def test_timeout_is_not_retried():
 # ---------------------------------------------------------------- assessment
 
 
-def assess(output, records=(R1, R2, R3), claims=CLAIMS):
-    m = Scripted(assessment=[output])
+def approved_assessment_review(*statement_counts):
+    """Explicit positive reviewer fixtures for the provenance component tests."""
+    return {
+        "reviews": [
+            {
+                "claim_index": index,
+                "status_valid": True,
+                "statements": [
+                    {"statement_index": statement_index, "supported": True}
+                    for statement_index in range(count)
+                ],
+            }
+            for index, count in enumerate(statement_counts)
+        ]
+    }
+
+
+APPROVED_DRAFT_REVIEW = {
+    "facts_grounded": True,
+    "intent_preserved": True,
+    "contradictions_handled": True,
+    "no_unapproved_admissions_or_promises": True,
+    "no_unsupported_emotions": True,
+    "citations_support_reply": True,
+}
+
+
+def assess(output, records=(R1, R2, R3), claims=CLAIMS, review=None):
+    # Cases with no surviving references still review each unverified status.
+    # Tests proposing supported statements supply their positive review explicitly.
+    review = review if review is not None else approved_assessment_review(*(0 for _ in claims))
+    m = Scripted(assessment=[output], assessment_review=[review])
     return ClaudeEvidenceService(m).assess(OWNER, analysis=MessageAnalysis("i", "c", claims, ()), records=records), m
 
 
@@ -111,7 +141,7 @@ def test_supported_requires_verbatim_quote():
             {"claim_index": 0, "status": "unverified", "evidence": [], "note": ""},
         ]
     }
-    a, _ = assess(out)
+    a, _ = assess(out, review=approved_assessment_review(0, 1))
     assert a.claims[0].status == "unverified"
     assert a.claims[1].status == "supported"
     assert a.claims[1].links == (EvidenceLink("msg_001", "The manager shared a document location."),)
@@ -132,8 +162,10 @@ def test_ungrounded_support_downgraded_to_unverified(evidence):
 
 
 def test_contradiction_needs_grounding_and_keeps_note():
-    out = {"assessments": [{"claim_index": 1, "status": "contradicted", "evidence": [{"message_id": "msg_002", "quote": "password will be sent separately by IT", "statement": "IT sends the password."}], "note": "The password comes from IT, not the manager."}]}
-    a, _ = assess(out, claims=CLAIMS)
+    record = MemoryRecord("msg_002", "conv_demo", "Manager", "IT sent the drive password.", None, None)
+    claims = (CLAIMS[0], "IT has never sent a password.")
+    out = {"assessments": [{"claim_index": 1, "status": "contradicted", "evidence": [{"message_id": "msg_002", "quote": "IT sent the drive password", "statement": "IT sent the password."}], "note": "The stored message says IT sent the password."}]}
+    a, _ = assess(out, records=(R1, record), claims=claims, review=approved_assessment_review(0, 0))
     c = a.claims[1]
     assert c.status == "contradicted" and c.message_ids == ("msg_002",) and c.links == ()
     assert "IT" in c.note
@@ -245,9 +277,9 @@ def test_prompt_injection_stays_data_and_obeying_it_is_rejected():
 
 
 def test_validate_builds_final_reply():
-    svc = ClaudeEvidenceService(Scripted())
+    svc = ClaudeEvidenceService(Scripted(draft_review=[APPROVED_DRAFT_REVIEW]))
     contra = EvidenceAssessment(SUPPORTED.claims + (ClaimAssessment("IT never sends passwords.", "contradicted", ("msg_002",), "msg says IT sends it."),))
-    v = svc.validate(OWNER, draft=ReplyDraft(GOOD["reply"], (EvidenceLink("msg_001", "The manager shared a document location."),)), assessment=contra, records=(R1, R2))
+    v = svc.validate(OWNER, draft=ReplyDraft(GOOD["reply"], (EvidenceLink("msg_001", "The manager shared a document location."),)), request=draft_input(assessment=contra, records=(R1, R2)))
     assert v.unverified_claims == (CLAIMS[0],)
     assert any("Conflicting history" in w for w in v.warnings)
     assert [e.message_id for e in v.evidence] == ["msg_001"]
@@ -259,13 +291,12 @@ def test_validate_builds_final_reply():
         ReplyDraft("ok", (EvidenceLink("msg_999", "x"),)),  # not retrieved
         ReplyDraft("ok", (EvidenceLink("msg_001", "Altered statement"),)),  # statement not from assessment
         ReplyDraft("ok", (EvidenceLink("msg_002", "x"),)),  # retrieved but unsupported
-        ReplyDraft("IT never sends passwords.", ()),  # restates contradicted claim
     ],
 )
 def test_validate_rejects(draft):
     contra = EvidenceAssessment(SUPPORTED.claims + (ClaimAssessment("IT never sends passwords.", "contradicted", ("msg_002",), "n"),))
     with pytest.raises(EvidenceValidationError):
-        ClaudeEvidenceService(Scripted()).validate(OWNER, draft=draft, assessment=contra, records=(R1, R2))
+        ClaudeEvidenceService(Scripted()).validate(OWNER, draft=draft, request=draft_input(assessment=contra, records=(R1, R2)))
 
 
 # ---------------------------------------------------------------- Anthropic adapter

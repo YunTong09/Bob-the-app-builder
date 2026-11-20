@@ -14,9 +14,11 @@ from typing import Any, TypeVar
 
 from fastapi import FastAPI, Request
 from fastapi.concurrency import run_in_threadpool
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ValidationError
 
 from backend.application.orchestrator import RageToReplyApp
+from backend.application.errors import SlackImportError
 from backend.application.ports import MemoryRecord, OwnerContext, Services
 from backend.models.wire import (
     MAX_BODY_BYTES,
@@ -30,10 +32,14 @@ from backend.models.wire import (
     GenerateReplyResponse,
     ImportMemoryRequest,
     ImportMemoryResponse,
+    MemoryMessage,
     SearchMemoryResponse,
+    SlackPreviewRequest,
+    SlackPreviewResponse,
     StoredMemoryMessage,
     _identifier,
 )
+from backend.services.slack import SlackHistoryService
 
 from .body_limit import BodyLimitMiddleware
 from .errors import ApiError, install_error_handlers, invalid_json, pydantic_details, validation_error
@@ -104,7 +110,12 @@ def _parse_int(value: str | None, field: str, default: int, lo: int, hi: int | N
         return default
     if not value.isascii() or not value.isdigit():
         raise validation_error([{"field": field, "message": "Must be an integer."}])
-    n = int(value)
+    try:
+        # Leading zeroes do not change the value or need to consume Python's
+        # integer-conversion digit budget. Oversized values are request errors.
+        n = int(value.lstrip("0") or "0")
+    except ValueError:
+        raise validation_error([{"field": field, "message": "Must be an integer."}]) from None
     if n < lo or (hi is not None and n > hi):
         bound = f"between {lo} and {hi}" if hi is not None else f"at least {lo}"
         raise validation_error([{"field": field, "message": f"Must be {bound}."}])
@@ -114,7 +125,11 @@ def _parse_int(value: str | None, field: str, default: int, lo: int, hi: int | N
 # ------------------------------------------------------------------ factory
 
 
-def create_app(services: Services, identity: IdentityResolver) -> FastAPI:
+def create_app(
+    services: Services,
+    identity: IdentityResolver,
+    slack: SlackHistoryService | None = None,
+) -> FastAPI:
     app_service = RageToReplyApp(services)
     app = FastAPI(
         title="Rage-to-Reply API",
@@ -165,6 +180,49 @@ def create_app(services: Services, identity: IdentityResolver) -> FastAPI:
         )
 
     # ---------------------------------------------------------- memory
+    @app.post("/api/slack/preview")
+    async def preview_slack(request: Request) -> JSONResponse:
+        owner_of(request)
+        _reject_query_params(request, set())
+        body = await _parse_body(request, SlackPreviewRequest)
+        if slack is None:
+            raise SlackImportError("SLACK_NOT_CONFIGURED")
+        page = await run_in_threadpool(
+            slack.preview,
+            channel_id=body.channel_id,
+            oldest=body.oldest,
+            latest=body.latest,
+            cursor=body.cursor,
+            limit=body.limit,
+        )
+        # Preview records must be directly importable. Omit optional nulls only
+        # inside messages; keep the top-level nextCursor key when it is null.
+        try:
+            messages = []
+            for record in page.messages:
+                data = {
+                    "id": record.id,
+                    "conversationId": record.conversation_id,
+                    "sender": record.sender,
+                    "content": record.content,
+                }
+                if record.timestamp is not None:
+                    data["timestamp"] = record.timestamp
+                if record.source is not None:
+                    data["source"] = record.source
+                messages.append(MemoryMessage.model_validate(data, by_alias=True, by_name=False))
+            response = SlackPreviewResponse(
+                messages=messages,
+                next_cursor=page.next_cursor,
+                skipped_count=page.skipped_count,
+                warnings=list(page.warnings),
+            )
+        except ValidationError:
+            raise SlackImportError("SLACK_UPSTREAM_ERROR") from None
+        content = response.model_dump(by_alias=True)
+        content["messages"] = [message.model_dump(by_alias=True, exclude_none=True) for message in response.messages]
+        return JSONResponse(content=content)
+
     @app.post("/api/memory/import")
     async def import_memory(request: Request) -> ImportMemoryResponse:
         owner = owner_of(request)

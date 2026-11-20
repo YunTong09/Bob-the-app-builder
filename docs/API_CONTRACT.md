@@ -33,6 +33,7 @@ Apply ownership and any `conversationId` restriction within database queries **b
 | P0 | POST | `/api/memory/import` | `200 ImportMemoryResponse` |
 | P0 | GET | `/api/memory/search` | `200 SearchMemoryResponse` |
 | P0 | DELETE | `/api/memory` | `200 DeleteMemoryResponse` |
+| Demo extension | POST | `/api/slack/preview` | `200 SlackPreviewResponse` |
 | P1, optional | GET | `/api/preferences` | `200 CommunicationPreferences` |
 | P1, optional | PUT | `/api/preferences` | `200 CommunicationPreferences` |
 
@@ -230,6 +231,50 @@ export interface DeleteMemoryResponse {
 
 Return `200` even if history is already empty (`deletedCount: 0`). Deleted history must no longer appear in subsequent search or generation requests.
 
+## Slack channel preview (single-user demo extension)
+
+### POST `/api/slack/preview`
+
+This read-only extension fetches one page from one server-configured Slack channel. It uses the same restricted local demo identity as the existing backend; it adds no website login. The server keeps the bot token and allowlisted channel in `SLACK_BOT_TOKEN` and `R2R_SLACK_CHANNEL_ID`. Missing or invalid configuration disables this operation without preventing the rest of the backend from starting. It does not require Socket Mode or an app-level `xapp-` token.
+
+```ts
+export interface SlackPreviewRequest {
+  channelId: string;
+  oldest?: string;
+  latest?: string;
+  cursor?: string;
+  limit?: number;
+}
+
+export interface SlackPreviewResponse {
+  messages: MemoryMessage[];
+  nextCursor: string | null;
+  skippedCount: number;
+  warnings: string[];
+}
+```
+
+- `channelId` is required, contains 2–128 uppercase letters/digits, starts with `C` or `G`, and must exactly match the server-configured channel. A different channel returns `403 SLACK_CHANNEL_NOT_ALLOWED` before contacting Slack. Request bodies never accept a token or ownership identifier. No query parameters are accepted.
+- `oldest` and `latest` are optional inclusive RFC 3339 boundaries with explicit timezones, representable as UTC dates on or after the Unix epoch. At most six meaningful fractional-second digits are supported; additional trailing zeroes are permitted. If both are supplied, `oldest` must not be later than `latest`. Omitted boundaries use Slack's default history window. Explicit null is rejected.
+- `cursor` is an optional opaque string of 1–2,048 printable ASCII characters without whitespace, returned by the previous preview. Keep channel, boundaries and limit unchanged when requesting another page. Explicit null is rejected.
+- `limit` is an integer from 1–100, default 100. Fetch one Slack page per request; never automatically crawl history, sleep or retry a rate-limited request. Slack may return fewer records than requested. Follow a non-null `nextCursor` even when every message in the current page was skipped.
+- The adapter verifies the workspace through Slack `auth.test`, then calls `conversations.history` with the server-held bot token. It uses fixed HTTPS API URLs, bounded timeouts, no redirects, and a 1 MiB cap per provider response. It does not fetch files, expand threads or resolve display names. This channel-only extension does not provide access to an existing human-to-human DM.
+- Keep original text and actual sender identifiers. Convert valid Slack Unix message timestamps to RFC 3339 UTC without floating-point rounding. Use stable workspace/channel/original-timestamp identifiers for message and conversation IDs, and a source reference containing those known Slack identifiers; do not invent a permalink, sender or date. Returned messages must satisfy the memory import schema. Omit unknown optional metadata rather than returning explicit null inside `messages`; `nextCursor` is always present and may be null.
+- Skip system/unsupported messages, messages without importable text/sender/timestamp, and records exceeding memory field limits. `skippedCount` counts skipped records in this page; fixed warnings explain omissions without echoing message contents. An empty channel returns `200` with `messages: []`. A malformed or unsafe provider response returns a safe error rather than partial success. No preview data is stored, and no Claude call or outgoing Slack message is made.
+- After the user reviews and selects messages, submit the selected `messages` through the existing memory import operation in section 4. Existing batch/body limits, atomic duplicate/conflict handling and ownership apply. Repeating an unchanged import skips duplicates; an edited Slack message retaining the same ID returns the existing `409 MEMORY_ID_CONFLICT` rather than silently overwriting saved history.
+
+Synthetic preview request (the server allowlist must contain `CDEMO123`):
+
+```json
+{
+  "channelId": "CDEMO123",
+  "oldest": "2026-11-01T00:00:00Z",
+  "limit": 20
+}
+```
+
+The frontend presents the preview and retains only the selected records for explicit import. Slack installation needs the appropriate history scope and channel membership; setup is documented in [README.md](../README.md). This extension leaves the existing manual JSON import available.
+
 ## 7. Optional communication preferences (P1)
 
 ### GET and PUT `/api/preferences`
@@ -274,6 +319,15 @@ export interface ApiErrorResponse {
 | 413 | `REQUEST_TOO_LARGE` | Body exceeds 1 MiB. |
 | 415 | `UNSUPPORTED_MEDIA_TYPE` | POST or PUT body is not JSON. |
 | 422 | `VALIDATION_ERROR` | Body fields or query parameters violate this contract. |
+| 403 | `SLACK_CHANNEL_NOT_ALLOWED` | Requested channel differs from the server allowlist. |
+| 403 | `SLACK_PERMISSION_DENIED` | Slack app lacks history permissions or membership. |
+| 404 | `SLACK_CHANNEL_NOT_FOUND` | The configured Slack channel is unavailable. |
+| 429 | `SLACK_RATE_LIMITED` | Slack throttled the request; return a bounded `Retry-After` header. |
+| 502 | `SLACK_AUTH_FAILED` | Slack rejected the configured bot credentials. |
+| 502 | `SLACK_UPSTREAM_ERROR` | Slack returned an unusable response or another upstream error. |
+| 503 | `SLACK_NOT_CONFIGURED` | Slack preview configuration is missing or invalid. |
+| 503 | `SLACK_UNAVAILABLE` | Slack transport or upstream service is unavailable. |
+| 504 | `SLACK_TIMEOUT` | A Slack API request timed out. |
 | 500 | `INTERNAL_ERROR` | Unexpected server error. |
 | 501 | `NOT_IMPLEMENTED` | Optional preferences feature has not been implemented. |
 | 502 | `MODEL_ERROR` | Claude fails or returns unusable output that cannot pass schema/evidence validation. |
@@ -281,6 +335,8 @@ export interface ApiErrorResponse {
 | 504 | `MODEL_TIMEOUT` | Claude exceeds the backend's configured timeout. |
 
 Return field paths such as `messages[0].content` in validation details. Messages must be safe for users and must not echo emotional drafts, API keys, provider responses, stack traces, or other users' identifiers. Normalise FastAPI/Pydantic errors into this envelope instead of returning raw framework errors.
+
+Slack errors use fixed messages, never Slack response bodies or supplied token strings. For `SLACK_RATE_LIMITED`, sanitize `Retry-After` to an integer from 1–3,600 seconds, defaulting to 60 when missing or invalid; the caller retries later. Other preview failures do not masquerade as an empty history page.
 
 ```json
 {

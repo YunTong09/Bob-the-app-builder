@@ -99,7 +99,10 @@ def parse_analysis(data: dict[str, Any]) -> MessageAnalysis:
         raise ModelError("analysis: employee_concern missing")
     concern = " ".join(concern.split())[:MAX_ITEM_CHARS]
 
-    for text in [*requests, *actions, *misunderstandings]:
+    # Every analysis field can reach the reply, warnings or later model calls.
+    # Apply the same attribution boundary to all of them, including claims and
+    # retrieval queries, rather than relying on their intended neutral wording.
+    for text in [concern, *requests, *actions, *missing, *misunderstandings, *claims, *queries]:
         if _EMOTION_CLAIM.search(text):
             raise ModelError("analysis: attributes emotions or motives to the manager")
 

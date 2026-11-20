@@ -16,6 +16,7 @@ import os
 from fastapi import FastAPI
 
 from backend.application.ports import Services
+from backend.services.slack import build_slack_service
 
 from .app import create_app
 from .identity import resolver_from_env
@@ -41,7 +42,7 @@ def _build_services() -> Services:
 
 
 def build_app() -> FastAPI:
-    return create_app(_build_services(), resolver_from_env())
+    return create_app(_build_services(), resolver_from_env(), slack=build_slack_service())
 
 
 app = build_app()

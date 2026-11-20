@@ -21,6 +21,7 @@ from backend.application.errors import (
     ModelError,
     ModelTimeoutError,
     OwnershipError,
+    SlackImportError,
     StorageUnavailableError,
 )
 
@@ -162,6 +163,28 @@ def install_error_handlers(app: FastAPI) -> None:
     async def _storage(_: Request, exc: StorageUnavailableError) -> JSONResponse:
         log.warning("storage unavailable")
         return error_response(503, "SERVICE_UNAVAILABLE", "Conversation history storage is unavailable. Try again later.")
+
+    @app.exception_handler(SlackImportError)
+    async def _slack(_: Request, exc: SlackImportError) -> JSONResponse:
+        failures = {
+            "SLACK_NOT_CONFIGURED": (503, "Configure the Slack bot token and allowed channel on the server."),
+            "SLACK_CHANNEL_NOT_ALLOWED": (403, "Only the server-configured Slack channel can be previewed."),
+            "SLACK_AUTH_FAILED": (502, "Slack rejected the server's bot credentials. Check the app installation and token."),
+            "SLACK_PERMISSION_DENIED": (403, "The Slack app needs channel history permission and channel membership."),
+            "SLACK_CHANNEL_NOT_FOUND": (404, "The configured Slack channel is unavailable."),
+            "SLACK_RATE_LIMITED": (429, "Slack is rate limiting history requests. Retry after the indicated delay."),
+            "SLACK_TIMEOUT": (504, "The Slack request timed out. Try again later."),
+            "SLACK_UNAVAILABLE": (503, "Slack is unavailable. Try again later."),
+            "SLACK_UPSTREAM_ERROR": (502, "Slack returned an unusable response. Try again later."),
+        }
+        code = exc.code if exc.code in failures else "SLACK_UPSTREAM_ERROR"
+        status, message = failures[code]
+        headers = None
+        if code == "SLACK_RATE_LIMITED":
+            delay = exc.retry_after if type(exc.retry_after) is int else 60
+            headers = {"Retry-After": str(max(1, min(3600, delay)))}
+        log.warning("slack preview error: %s", code)
+        return error_response(status, code, message, headers=headers)
 
     @app.exception_handler(ModelTimeoutError)
     async def _timeout(_: Request, exc: ModelTimeoutError) -> JSONResponse:

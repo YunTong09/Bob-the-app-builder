@@ -1,9 +1,9 @@
 """Service interfaces between the application layer (Developer 2) and the
 AI / memory / evidence services (Developer 3).
 
-PROPOSED HANDOFF -- pending Developer 3 sign-off. Changes here must be agreed
-by both owners because the orchestrator and Developer 3's implementations both
-depend on them.
+Shared handoff between application integration and AI/memory services. Changes
+must be coordinated across both owners because the orchestrator and service
+implementations depend on these interfaces.
 
 Rules every implementation must follow:
 
@@ -174,8 +174,8 @@ class ClaimAssessment:
     note: str | None = None  # e.g. explanation of a contradiction
     # Verified support: what each record actually establishes (may be narrower
     # than the claim, e.g. "The manager shared a document location."). Only
-    # links whose quote was found verbatim in the record are kept. Empty for
-    # contradicted claims. (Additive field agreed by Developers 2 and 3.)
+    # links with grounded quotes and a separate source-support review are kept.
+    # Empty for contradicted claims.
     links: tuple["EvidenceLink", ...] = ()
 
 
@@ -229,12 +229,14 @@ class EvidenceService(Protocol):
         owner: OwnerContext,
         *,
         draft: ReplyDraft,
-        assessment: EvidenceAssessment,
-        records: tuple[MemoryRecord, ...],
+        request: DraftInput,
     ) -> ValidatedReply:
-        """Final check before returning a reply. Must reject references to IDs
-        not in ``records`` and links whose record does not support the claim,
-        and must not present contradicted claims as supported. Raise
+        """Final check against the original inputs and authorised history.
+
+        The exact ``DraftInput`` used for drafting is required so invented facts
+        and changes of intent can be checked against the original messages.
+        Must reject references outside ``request.records``, unsupported links
+        and contradicted claims presented as supported. Raise
         ``EvidenceValidationError`` if the draft is unusable (e.g. invented
         references the reply depends on)."""
         ...
