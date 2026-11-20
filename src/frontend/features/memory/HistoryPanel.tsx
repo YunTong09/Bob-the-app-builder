@@ -1,11 +1,15 @@
+import SlackImportPanel from "./SlackImportPanel";
 import { useRef, useState } from "react";
-import { webApi, type HistoryPage } from "@/lib/web-api";
+import type { SearchMemoryResponse } from "@/frontend/api/contract";
+import { deleteAllMemory, importMemory, searchMemory, SYNTHETIC_IMPORT } from "@/frontend/api/replyApi";
 
 const pageSize = 20;
 const maxImportBytes = 1_048_576;
 
 export default function HistoryPanel() {
-  const [page, setPage] = useState<HistoryPage | null>(null);
+  const [query, setQuery] = useState("");
+  const [appliedQuery, setAppliedQuery] = useState("");
+  const [page, setPage] = useState<SearchMemoryResponse | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -30,8 +34,16 @@ export default function HistoryPanel() {
     }
   }
 
-  async function load(offset = 0) {
-    setPage(await webApi<HistoryPage>(`/api/memory/search?limit=${pageSize}&offset=${offset}`));
+  async function load(offset = 0, search = appliedQuery) {
+    setPage(await searchMemory(search, pageSize, offset));
+    setAppliedQuery(search);
+  }
+
+  async function importSample() {
+    const result = await importMemory(SYNTHETIC_IMPORT.messages);
+    setNotice(`Imported ${result.importedCount}. Skipped ${result.skippedCount} existing messages.`);
+    setQuery("");
+    await load(0, "");
   }
 
   async function importHistory() {
@@ -44,22 +56,24 @@ export default function HistoryPanel() {
     } catch {
       throw new Error("The file is not valid JSON.");
     }
-    if (!data || typeof data !== "object" || !("messages" in data) || !Array.isArray(data.messages)) {
+    if (!data || typeof data !== "object" || !("messages" in data) || Object.keys(data).length !== 1 || !Array.isArray(data.messages)) {
       throw new Error('Use a JSON object with a "messages" array.');
     }
-    const result = await webApi<{ importedCount: number; skippedCount: number }>("/api/memory/import", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: contents,
-    });
+    const result = await importMemory(data.messages);
     setFile(null);
     if (fileInput.current) fileInput.current.value = "";
     setNotice(`Imported ${result.importedCount}. Skipped ${result.skippedCount} existing messages.`);
-    await load();
+    setQuery("");
+    await load(0, "");
+  }
+
+  function reviewHistory() {
+    setQuery("");
+    void run(() => load(0, ""));
   }
 
   async function deleteHistory() {
-    const result = await webApi<{ deletedCount: number }>("/api/memory", { method: "DELETE" });
+    const result = await deleteAllMemory();
     setPage({ messages: [], total: 0, limit: pageSize, offset: 0 });
     setConfirmDelete(false);
     setNotice(`Deleted ${result.deletedCount} saved messages.`);
@@ -69,6 +83,7 @@ export default function HistoryPanel() {
     <section className="panel history-panel" aria-labelledby="history-heading">
       <h2 id="history-heading">Conversation history</h2>
       <p className="small-text">Import past messages you’re allowed to use as supporting context.</p>
+      <SlackImportPanel onReviewHistory={reviewHistory} />
       <div className="history-controls">
         <div className="form-field">
           <label htmlFor="history-file">Conversation history JSON</label>
@@ -76,18 +91,32 @@ export default function HistoryPanel() {
             disabled={busy} onChange={(event) => setFile(event.target.files?.[0] ?? null)} />
         </div>
         <button type="button" className="secondary-button" disabled={!file || busy} onClick={() => void run(importHistory)}>Import history</button>
-        <button type="button" className="secondary-button" disabled={busy} onClick={() => void run(() => load())}>Review history</button>
+        <button type="button" className="secondary-button" disabled={busy} onClick={reviewHistory}>Review history</button>
         <button type="button" className="secondary-button" disabled={busy || !page?.total} onClick={() => setConfirmDelete(true)}>Delete history</button>
       </div>
+      <div>
+        <button type="button" className="secondary-button" disabled={busy} onClick={() => void run(importSample)}>Import sample history</button>
+      </div>
+      <form className="history-controls" onSubmit={(event) => {
+        event.preventDefault();
+        void run(() => load(0, query.trim()));
+      }}>
+        <div className="form-field">
+          <label htmlFor="history-search">Search saved messages</label>
+          <input id="history-search" type="search" value={query} onChange={(event) => setQuery(event.target.value)} disabled={busy} />
+        </div>
+        <button type="submit" className="secondary-button" disabled={busy}>Search</button>
+      </form>
       {confirmDelete && (
         <div className="history-confirm">
+          <span className="status-label status-label-warning">Warning</span>
           <p>Delete all imported messages?</p>
           <button type="button" className="secondary-button" disabled={busy} onClick={() => setConfirmDelete(false)}>Cancel</button>
           <button type="button" className="secondary-button" disabled={busy} onClick={() => void run(deleteHistory)}>Confirm deletion</button>
         </div>
       )}
       <p className="small-text" role="status">{busy ? "Updating history…" : notice}</p>
-      {error && <p className="error-message" role="alert">{error}</p>}
+      {error && <p className="error-message" role="alert"><span className="status-label status-label-error">Error</span>{error}</p>}
       {page && (
         <>
           {page.messages.length === 0 ? <p className="small-text">No saved messages on this page.</p> : (

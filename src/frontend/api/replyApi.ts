@@ -7,15 +7,17 @@ import {
   ImportMemoryResponse,
   MemoryMessage,
   SearchMemoryResponse,
+  SlackPreviewRequest,
+  SlackPreviewResponse,
   StoredMemoryMessage,
 } from "./contract";
 
 // Frontend API client for docs/API_CONTRACT.md.
 // Mock mode (default) serves the contract's synthetic fixtures so the UI works without the backend.
-// Set NEXT_PUBLIC_R2R_MOCK=false and NEXT_PUBLIC_API_BASE_URL (default http://127.0.0.1:8000) to use FastAPI.
+// Set NEXT_PUBLIC_R2R_MOCK=false and NEXT_PUBLIC_API_BASE_URL to use FastAPI.
 
 const USE_MOCK = process.env.NEXT_PUBLIC_R2R_MOCK !== "false";
-const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://127.0.0.1:8000";
+const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL?.trim().replace(/\/+$/, "");
 
 export class ApiError extends Error {
   constructor(public status: number, public code: string, message: string) {
@@ -26,10 +28,14 @@ export class ApiError extends Error {
 export const isMockMode = USE_MOCK;
 
 async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
+  if (!BASE_URL) {
+    throw new ApiError(0, "API_NOT_CONFIGURED", "The reply service URL is not configured.");
+  }
   let response: Response;
   try {
     response = await fetch(`${BASE_URL}${path}`, {
       method,
+      cache: "no-store",
       headers: body === undefined ? undefined : { "Content-Type": "application/json" },
       body: body === undefined ? undefined : JSON.stringify(body),
     });
@@ -93,6 +99,19 @@ export async function generateReply(req: GenerateReplyRequest): Promise<Generate
   await delay(600);
   if (/\bFAIL\b/.test(req.employeeDraft)) throw new ApiError(502, "MODEL_ERROR", "The reply module failed.");
   return mockGenerate(req);
+}
+
+export async function previewSlack(req: SlackPreviewRequest): Promise<SlackPreviewResponse> {
+  if (!USE_MOCK) return request("POST", "/api/slack/preview", req);
+  if (req.channelId !== "CDEMO123") {
+    throw new ApiError(403, "SLACK_CHANNEL_NOT_ALLOWED", "Use CDEMO123 to preview synthetic Slack messages.");
+  }
+  const messages = SYNTHETIC_IMPORT.messages.map((message) => ({
+    ...message,
+    id: `slack-demo-${message.id}`,
+    conversationId: "slack-demo-CDEMO123",
+  }));
+  return { messages, nextCursor: null, skippedCount: 0, warnings: [] };
 }
 
 export async function importMemory(messages: MemoryMessage[]): Promise<ImportMemoryResponse> {

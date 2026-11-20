@@ -29,8 +29,10 @@ Expected structure:
 
 ```text
 rage-to-reply/
-├── frontend/
-│   └── src/
+├── src/
+│   ├── app/
+│   └── frontend/
+│       └── features/
 ├── backend/
 │   ├── api/
 │   ├── services/
@@ -66,7 +68,7 @@ Owns:
 - Visual animations.
 - Frontend API client, request handling and presentation of API results/errors.
 
-Primary modification scope: `frontend/`
+Primary modification scope: `src/frontend/` and the browser routes in `src/app/`.
 
 ### Developer 2 — Application Integration
 

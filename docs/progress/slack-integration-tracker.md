@@ -2,6 +2,8 @@
 
 > Historical record of the Slack modal prototype. For active Web App milestones, see [Web deployment and integration milestones](../ARCHITECTURE.md#8-web-deployment-and-integration-milestones). The dashboard below records Slack prototype progress.
 
+> Active Web App work is tracked in the [Web App integration tracker](web-app-integration.md).
+
 ## Progress Dashboard
 
 | Metric | Value |

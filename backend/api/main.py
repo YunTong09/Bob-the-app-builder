@@ -12,8 +12,11 @@ Service selection (R2R_SERVICES):
 from __future__ import annotations
 
 import os
+import re
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from backend.application.ports import Services
 from backend.services.slack import build_slack_service
@@ -42,7 +45,20 @@ def _build_services() -> Services:
 
 
 def build_app() -> FastAPI:
-    return create_app(_build_services(), resolver_from_env(), slack=build_slack_service())
+    web_origin = os.environ.get("R2R_WEB_ORIGIN", "").strip()
+    if web_origin and not re.fullmatch(r"http://(?:127\.0\.0\.1|localhost):[1-9][0-9]{0,4}", web_origin):
+        raise RuntimeError("R2R_WEB_ORIGIN must be an explicit HTTP loopback origin with a port.")
+
+    app = create_app(_build_services(), resolver_from_env(), slack=build_slack_service())
+    if web_origin:
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=[web_origin],
+            allow_methods=["GET", "POST", "PUT", "DELETE"],
+            allow_headers=["Content-Type"],
+        )
+        app.add_middleware(TrustedHostMiddleware, allowed_hosts=["127.0.0.1", "localhost"])
+    return app
 
 
 app = build_app()
