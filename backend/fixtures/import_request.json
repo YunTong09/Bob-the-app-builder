@@ -1,0 +1,18 @@
+{
+  "messages": [
+    {
+      "id": "msg_001",
+      "conversationId": "conv_demo",
+      "sender": "Manager",
+      "content": "I've uploaded the documents to the shared drive.",
+      "timestamp": "2026-11-18T10:30:00+10:00",
+      "source": "Synthetic demo conversation"
+    },
+    {
+      "id": "msg_002",
+      "conversationId": "conv_demo",
+      "sender": "Employee",
+      "content": "Thanks, I'll take a look at the shared drive documents this afternoon."
+    }
+  ]
+}

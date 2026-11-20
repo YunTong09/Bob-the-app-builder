@@ -1,0 +1,21 @@
+{
+  "reply": "Hi, the document link is asking for a password that I don't currently have. Could you please share it so I can access the documents?",
+  "managerIntent": "The manager is asking why the documents have not been accessed.",
+  "employeeConcern": "The employee reports being unable to access the protected link.",
+  "evidence": [
+    {
+      "messageId": "msg_001",
+      "content": "I've uploaded the documents to the shared drive.",
+      "sender": "Manager",
+      "timestamp": "2026-11-18T10:30:00+10:00",
+      "supportedClaim": "The manager shared a document location.",
+      "source": "Synthetic demo conversation"
+    }
+  ],
+  "unverifiedClaims": [
+    "The employee reports that opening the link requires a password."
+  ],
+  "warnings": [
+    "The retrieved message confirms the document location, but does not establish whether a password was supplied elsewhere."
+  ]
+}

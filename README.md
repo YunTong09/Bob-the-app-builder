@@ -43,6 +43,41 @@ npm run build
 
 Set `USE_MOCK=false` and provide `ANTHROPIC_API_KEY` to use Claude. `ANTHROPIC_MODEL` is required for the real API path and is never hardcoded in application code.
 
+## FastAPI backend (P0 API, in progress)
+
+`backend/` implements the P0 routes in [API_CONTRACT.md](docs/API_CONTRACT.md) with FastAPI and Pydantic, a SQLite + FTS5 memory store and Claude-based analysis, evidence assessment and drafting. The Next.js prototype above is unchanged.
+
+```bash
+python -m venv backend/.venv
+backend/.venv/Scripts/python -m pip install -r backend/requirements-dev.txt   # Windows
+# backend/.venv/bin/python -m pip install -r backend/requirements-dev.txt     # macOS/Linux
+
+# Tests (Claude mocked)
+backend/.venv/Scripts/python -m pytest backend
+
+# Local demo server with Claude, loopback only
+ANTHROPIC_API_KEY=... ANTHROPIC_MODEL=claude-opus-5-5 backend/.venv/Scripts/python -m uvicorn backend.api.main:app --host 127.0.0.1 --port 8000
+
+# Explicit mock mode: real SQLite and validator, canned "[Mock reply]" output, no API calls
+R2R_AI_MODE=mock backend/.venv/Scripts/python -m uvicorn backend.api.main:app --host 127.0.0.1 --port 8000
+```
+
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `ANTHROPIC_MODEL` | none (required for Claude) | Model ID, e.g. `claude-opus-5-5` |
+| `ANTHROPIC_API_KEY` | none | Claude credentials; server-side only |
+| `R2R_AI_MODE` | `claude` | `mock` for the explicit local mock; never used as a fallback |
+| `R2R_DB_PATH` | `backend/data/rage_to_reply.sqlite3` | SQLite file |
+| `R2R_MODEL_TIMEOUT_SECONDS` | `30` | Per-request Claude timeout (`504 MODEL_TIMEOUT`) |
+| `R2R_MODEL_EFFORT` | `medium` | Claude effort level |
+| `R2R_REFUSAL_FALLBACK` | `default` | Server-side refusal fallback; `off` to disable |
+| `R2R_SERVICES` | `real` | `stub` uses the in-memory development doubles |
+
+- The only identity mode is a single-user demo owner. It accepts direct loopback connections only and rejects proxied requests. Do not bind it to `0.0.0.0` or put it behind a shared proxy. Any other `R2R_IDENTITY_MODE` refuses to start until authentication is agreed.
+- Startup fails if `ANTHROPIC_MODEL` is missing in Claude mode; it never falls back to mock replies. The service interfaces are in `backend/application/ports.py`.
+- To run the API tests against SQLite instead of the in-memory double, set `R2R_TEST_MEMORY_FACTORY=backend.tests.sqlite_factory:make`.
+- Synthetic request and response fixtures are in `backend/fixtures/`.
+
 ## Environment variables
 
 | Variable | Purpose |

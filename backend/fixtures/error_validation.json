@@ -1,0 +1,12 @@
+{
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Check the required fields.",
+    "details": [
+      {
+        "field": "employeeDraft",
+        "message": "Must contain a non-whitespace character."
+      }
+    ]
+  }
+}
