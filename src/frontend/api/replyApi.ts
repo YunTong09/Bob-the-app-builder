@@ -7,6 +7,8 @@ import {
   ImportMemoryResponse,
   MemoryMessage,
   SearchMemoryResponse,
+  SlackPreviewRequest,
+  SlackPreviewResponse,
   StoredMemoryMessage,
 } from "./contract";
 
@@ -97,6 +99,19 @@ export async function generateReply(req: GenerateReplyRequest): Promise<Generate
   await delay(600);
   if (/\bFAIL\b/.test(req.employeeDraft)) throw new ApiError(502, "MODEL_ERROR", "The reply module failed.");
   return mockGenerate(req);
+}
+
+export async function previewSlack(req: SlackPreviewRequest): Promise<SlackPreviewResponse> {
+  if (!USE_MOCK) return request("POST", "/api/slack/preview", req);
+  if (req.channelId !== "CDEMO123") {
+    throw new ApiError(403, "SLACK_CHANNEL_NOT_ALLOWED", "Use CDEMO123 to preview synthetic Slack messages.");
+  }
+  const messages = SYNTHETIC_IMPORT.messages.map((message) => ({
+    ...message,
+    id: `slack-demo-${message.id}`,
+    conversationId: "slack-demo-CDEMO123",
+  }));
+  return { messages, nextCursor: null, skippedCount: 0, warnings: [] };
 }
 
 export async function importMemory(messages: MemoryMessage[]): Promise<ImportMemoryResponse> {

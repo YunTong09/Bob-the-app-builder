@@ -1,3 +1,4 @@
+import SlackImportPanel from "./SlackImportPanel";
 import { useRef, useState } from "react";
 import type { SearchMemoryResponse } from "@/frontend/api/contract";
 import { deleteAllMemory, importMemory, searchMemory } from "@/frontend/api/replyApi";
@@ -66,6 +67,7 @@ export default function HistoryPanel() {
     <section className="panel history-panel" aria-labelledby="history-heading">
       <h2 id="history-heading">Conversation history</h2>
       <p className="small-text">Import past messages you’re allowed to use as supporting context.</p>
+      <SlackImportPanel onReviewHistory={() => void run(() => load())} />
       <div className="history-controls">
         <div className="form-field">
           <label htmlFor="history-file">Conversation history JSON</label>
