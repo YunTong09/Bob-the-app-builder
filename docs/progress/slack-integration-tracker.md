@@ -1,250 +1,263 @@
 # Rage-to-Reply Slack Integration Tracker
 
+> Historical record of the Slack modal prototype. For active Web App milestones, see [Web deployment and integration milestones](../ARCHITECTURE.md#8-web-deployment-and-integration-milestones). The dashboard below records Slack prototype progress.
+
 ## Progress Dashboard
 
 | Metric | Value |
 | --- | --- |
-| Overall Progress | **0%** (0 / 7) |
-| Completed Tasks | 0 |
-| In Progress Tasks | 0 |
+| Overall Progress | **14.3%** (1 / 7) |
+| Completed Tasks | 1 · TASK-04 |
+| In Progress Tasks | 1 · TASK-05 |
 | Blocked Tasks | 1 · TASK-01 |
-| Current Priority | 取得測試 workspace 的 Slack 憑證並完成 Socket Mode 連線驗收 |
-| Next Recommended Task | TASK-01 · 完成真實連線驗收，通過後再開始 TASK-02 |
-| Last Updated | 2026-11-21（Australia/Brisbane） |
+| Current Priority | Unblock the TASK-01 connection test |
+| Next Recommended Task | Develop TASK-02 and TASK-03 in parallel with synthetic inputs. Verify the combined flow in Slack after TASK-01. |
+| Last Updated | 2026-11-21 (Australia/Brisbane) |
 
-`Progress = DONE Tasks / 7 × 100%`。只有實作完成且通過驗收的任務才計入。
+`Progress = DONE Tasks / 7 × 100%`. Count tasks once they are implemented and have passed acceptance.
 
-## 目標與現況
+## Goal and Current State
 
-本階段交付 **Slack 原生 Modal Mock Demo**。使用 Slack Bolt for JavaScript 搭配 TypeScript、Socket Mode、Message Shortcut 與 Block Kit。流程為 **Slack Message → Message Shortcut → Input Modal → Mock Rewrite → Result Modal**。Mock 不依賴真實 Claude API、Memory Database，也不自動發送 Slack 訊息。結果在 Modal 內呈現。Slack Composer 原地改寫屬於後續整合。
+This phase delivers a **mock demo in a native Slack modal** using Slack Bolt for JavaScript with TypeScript, Socket Mode, a Message Shortcut, and Block Kit. The flow is **Slack Message → Message Shortcut → Input Modal → Mock Rewrite → Result Modal**. The demo shows its result in the modal and runs without a live Claude API, a memory database, or automatic Slack posting. Rewriting directly in Slack's composer is a later integration.
 
-- 初次盤點時，本機 `main` 為 `4fc1fcd`，工作目錄乾淨，落後當時已取得的 `origin/main` 一筆。之後 `main` 與 `origin/main` 已同在 `4ac176e`。工作目錄有 Next.js 網頁原型和 `src/lib/mock.ts`。TASK-01 已新增 Slack Bolt 啟動入口，Modal handlers 由後續任務實作。
-- `origin/main` 的 `4ac176e` 新增 Python/FastAPI 後端。`backend/api/app.py` 定義 `POST /api/reply/generate`，另有 mock model 和 API fixtures。已查閱 Git 中的原始碼並確認後端檔案現已在工作目錄，API 尚未執行或接入 Slack。此階段以既有網頁 mock 和 Python fixtures 為重用來源，由 Slack 的 mock adapter 回應，後續再切換到 Python API。
-- 參考 [API Contract](../API_CONTRACT.md)、[Architecture](../ARCHITECTURE.md)、[Product Spec](../PRODUCT_SPEC.md) 與 [Frontend Contract](../FRONTEND_CONTRACT.md)。此追蹤表描述獨立的 Slack Mock Demo 範圍，現有產品與 API 規格由各自文件維護。
+- At the initial review, local `main` was at `4fc1fcd` with a clean working tree, one commit behind the fetched `origin/main`. Both refs later reached `4ac176e`. The repo contains a Next.js prototype and `src/lib/mock.ts`. TASK-01 added the Slack Bolt entry point. Modal handlers are tracked in later tasks.
+- Commit `4ac176e` added a Python/FastAPI backend. `backend/api/app.py` defines `POST /api/reply/generate`, and the backend includes a mock model and API fixtures. The source was reviewed in Git and the backend files were confirmed in the working tree. The API has yet to be run or connected to Slack. The web mock and Python fixtures provide reference material for this phase. Slack uses the mock adapter, with the Python API planned for later.
+- See the [API Contract](../API_CONTRACT.md), [Architecture](../ARCHITECTURE.md), [Product Spec](../PRODUCT_SPEC.md), and [Frontend Contract](../FRONTEND_CONTRACT.md). The tracker covers the Slack mock demo. The linked documents own their respective requirements.
 
-## 任務追蹤表
+## Dependency Order and Current Progress
 
-| ID | Task | Status |
-| --- | --- | --- |
-| TASK-01 | Project Setup & Slack Connection | BLOCKED |
-| TASK-02 | Slack Message Shortcut | TODO |
-| TASK-03 | Input Modal | TODO |
-| TASK-04 | Mock AI Rewrite Service | TODO |
-| TASK-05 | Processing & Result Modal | TODO |
-| TASK-06 | Error Handling & Retry | TODO |
-| TASK-07 | Team Testing & Demo Validation | TODO |
+| Integration Stage | Task | Needed to Start | Needed for Full Acceptance | Status |
+| --- | --- | --- | --- | --- |
+| 1a | TASK-01 · Project Setup & Slack Connection | Existing project | Test app, valid tokens, and Socket Mode | BLOCKED |
+| 1b | TASK-04 · Mock AI Rewrite Service | API Contract and synthetic fixtures | Offline checks of the fixed reply, tone, and evidence | DONE |
+| 2a | TASK-02 · Slack Message Shortcut | Existing Bolt entry point from TASK-01 and a minimal modal | Verified live connection from TASK-01 | TODO |
+| 2b | TASK-03 · Input Modal | Start now with a synthetic manager message | Connect TASK-02 for the live Slack flow | TODO |
+| 3 | TASK-05 · Processing & Result Modal | Processing and result views implemented with the TASK-04 mock | TASK-03 form submission and live Slack verification | IN PROGRESS |
+| 4 | TASK-06 · Error Handling & Retry | Prepare failure cases | Working form, mock, and result flow from TASK-03, TASK-04, and TASK-05 | TODO |
+| 5 | TASK-07 · Team Testing & Demo Validation | Test workspace and teammate account | TASK-01 through TASK-06 | TODO |
 
-### TASK-01：Project Setup & Slack Connection
+TASK-02 and TASK-03 can be developed and tested offline in parallel. The live integration acceptance order is **TASK-01 → TASK-02 → TASK-03 → TASK-05 → TASK-06 → TASK-07**. TASK-04 can be developed and accepted independently ahead of TASK-05 integration. TASK-02 and TASK-04 have no dependency on each other. The TASK-02 handler can be tested with a synthetic payload now. The live shortcut and modal test requires a verified Slack connection.
+
+**Work completed so far**
+
+- TASK-01 added `slack/app.mts` and the Socket Mode start and type-check commands. Git ignores the local credentials file. The Slack type check and offline checks for missing and malformed credentials passed. Live connection verification is pending.
+- TASK-04 reuses a synthetic Python API response fixture and passed offline acceptance.
+
+### TASK-01 · Project Setup & Slack Connection
 
 **Status:** BLOCKED
 
-**Objective:** 建立可連到測試 workspace 的 TypeScript Slack Bolt 入口。
+**Objective:** Establish a TypeScript Slack Bolt entry point that can connect to a test workspace.
 
 **Implementation Checklist:**
 
-- [x] 檢查現有專案、依賴與 Git 基線。
-- [x] 建立 Bolt TypeScript 入口、啟動與型別檢查指令。
-- [x] 啟用程式端 Socket Mode，定義環境變數並確認本機憑證檔受 Git 忽略。
-- [ ] 在 Slack 端確認測試 App 已安裝、Socket Mode 已開啟並提供有效憑證。
-- [ ] 驗證測試 workspace 的真實連線並記錄去除敏感資訊的結果。
+- [x] Review the existing project, dependencies, and Git baseline.
+- [x] Add the Bolt TypeScript entry point and commands for startup and type checking.
+- [x] Enable Socket Mode in the app, define the environment variables, and confirm Git ignores local credentials.
+- [ ] Confirm the test app is installed, Socket Mode is enabled in Slack, and valid credentials are available.
+- [ ] Verify a live test workspace connection and record the result with credentials redacted.
 
 **Acceptance Criteria:**
 
-- 使用測試 App 啟動後成功建立 Socket Mode 連線。
-- 缺少必要環境變數時快速失敗，且輸出不含 token。
+- Starting the test app establishes a Socket Mode connection.
+- Missing environment variables cause startup to fail promptly, with token values excluded from output.
 
-**Files:** 新增 `slack/app.mts`，修改 `package.json`、`package-lock.json`、`.env.example` 與本追蹤文件。
+**Files:** Added `slack/app.mts` and updated `package.json`, `package-lock.json`, `.env.example`, and this tracker.
 
-**Dependencies:** 無前置任務。真實驗收需要已安裝至測試 workspace 的 Slack App。
+**Dependencies:** Live acceptance requires a Slack app installed in a test workspace.
 
 **Verification:**
 
-- 在 Node.js 24 執行 `npm run slack:typecheck` 與 `node --check slack/app.mts`，皆通過。`npm ls @slack/bolt --depth=0` 確認安裝版為 5.1.0。
-- 以空白及格式錯誤的測試值執行 `npm run slack:start`，入口載入 Bolt 後皆以狀態碼 1 結束，只提示環境變數名稱。
-- `git check-ignore -v .env.slack.local` 確認既有 Git ignore 規則涵蓋該檔。
-- 根目錄的全專案 `tsc --noEmit --incremental false` 等待期間未回傳結果，已中止。Slack 專用檢查已完成。
-- 未執行真實 Socket Mode 連線測試。
+- `npm run slack:typecheck` and `node --check slack/app.mts` passed on Node.js 24. `npm ls @slack/bolt --depth=0` reported Bolt 5.1.0.
+- With empty or malformed test values, `npm run slack:start` loaded Bolt, printed the required variable names, and exited with code 1.
+- `git check-ignore -v .env.slack.local` confirmed the local credentials file is ignored.
+- The root-project `tsc --noEmit --incremental false` check was stopped before it returned a result. The Slack-specific check completed.
+- The live Socket Mode test is pending.
 
-**Blockers:** 目前執行環境及本機環境檔未提供 `SLACK_BOT_TOKEN` 與 `SLACK_APP_TOKEN`。Slack App 是否已安裝以及 Slack 端 Socket Mode 設定仍待確認。
+**Blockers:** `SLACK_BOT_TOKEN` and `SLACK_APP_TOKEN` were unavailable in the environment and local env file at verification time. Installation and Socket Mode settings in Slack remain unconfirmed.
 
-**Notes:** 使用 Node.js 24 直接執行 TypeScript 入口，沿用根目錄的 npm 套件，可獨立於網頁和 Python 執行。將已安裝至測試 workspace 的 App 的 bot token 與具 `connections:write` 的 app-level token 設在執行環境，或填入 Git 忽略的 `.env.slack.local`，再從專案根目錄執行 `npm run slack:start`。入口先等待 Bolt 驗證 bot token，再等待 Socket Mode 啟動。 [Slack Socket Mode 設定](https://docs.slack.dev/tools/bolt-js/concepts/socket-mode/)
+**Notes:** Node.js 24 runs the TypeScript entry point using the root npm dependencies. The process runs independently of the web UI and Python. Set the test app's bot token and app-level token with `connections:write` in the environment or the Git-ignored `.env.slack.local`, then run `npm run slack:start` from the project root. The entry point waits for bot token verification before starting Socket Mode. [Slack Socket Mode setup](https://docs.slack.dev/tools/bolt-js/concepts/socket-mode/)
 
-### TASK-02：Slack Message Shortcut
-
-**Status:** TODO
-
-**Objective:** 從指定 Slack 訊息開啟對應的 Rage-to-Reply Modal。
-
-**Implementation Checklist:**
-
-- [ ] 設定 Message Shortcut 與穩定的 callback ID。
-- [ ] 取得選取訊息文字與必要的 workspace、使用者、對話和訊息識別資訊。
-- [ ] 及時確認互動並用 trigger ID 開啟 Modal。
-
-**Acceptance Criteria:**
-
-- 使用者從指定訊息的選單啟動時，Modal 開啟且主管訊息與選取內容一致。
-- 互動在 Slack 的 3 秒期限內確認，選取訊息不會被自動發送或儲存為 Memory。
-
-**Files:** 尚無 Slack handler 或 manifest。現有 `docs/FRONTEND_CONTRACT.md` 提供原流程參考。
-
-**Dependencies:** TASK-01。可先用最小 Modal 驗證入口，再由 TASK-03 補齊表單。
-
-**Verification:** 已用 `rg` 搜尋 Slack 互動相關程式，未見 Shortcut handler。尚未測試 Slack 互動。
-
-**Blockers:** 無已確認阻礙，等待 TASK-01。
-
-**Notes:** 以本次明確選取的訊息作為上下文。
-
-### TASK-03：Input Modal
+### TASK-02 · Slack Message Shortcut
 
 **Status:** TODO
 
-**Objective:** 在 Slack 原生 Modal 收集草稿與語氣。
+**Objective:** Open the Rage-to-Reply modal from a specific Slack message.
 
 **Implementation Checklist:**
 
-- [ ] 用 Block Kit 顯示選取的主管訊息與多行草稿欄位。
-- [ ] 提供 Diplomatic、Neutral、Assertive 與 Rewrite。
-- [ ] 驗證空白輸入、長度與允許的語氣值。
+- [ ] Configure a Message Shortcut with a stable callback ID.
+- [ ] Read the selected message and the necessary workspace, user, conversation, and message identifiers.
+- [ ] Acknowledge the interaction promptly and open the modal with the trigger ID.
 
 **Acceptance Criteria:**
 
-- 提交有效輸入時可取得原主管訊息、草稿與所選語氣。
-- 空白或不合法輸入顯示欄位錯誤並保留輸入。
+- Starting the shortcut from a message menu opens the modal with the exact selected message.
+- Acknowledge within Slack's three-second window. The selected message stays in the interaction and is excluded from automatic posting and memory storage.
 
-**Files:** Slack view 路徑待定。欄位與語氣參考 `docs/API_CONTRACT.md`。
+**Files:** Slack handler and manifest paths are pending. See `docs/FRONTEND_CONTRACT.md` for the original flow.
 
-**Dependencies:** TASK-02。
+**Dependencies:** Development can use the TASK-01 Bolt entry point and a synthetic payload. Live acceptance requires TASK-01's verified connection. A minimal modal is enough for the shortcut test. TASK-03 adds the full form.
 
-**Verification:** 已用 `rg` 比對程式碼和 API Contract，語氣已有規格，未見 Slack 輸入 view。尚未提交實際 Modal。
+**Verification:** An `rg` search found no shortcut handler in the files reviewed. Slack interaction testing is pending.
 
-**Blockers:** 無已確認阻礙，等待 TASK-02。
+**Blockers:** Live acceptance awaits TASK-01.
 
-**Notes:** 草稿輸入留在本次操作，避免寫入日誌或 Modal metadata。
+**Notes:** Use only the explicitly selected message as context.
 
-### TASK-04：Mock AI Rewrite Service
+### TASK-03 · Input Modal
 
 **Status:** TODO
 
-**Objective:** 提供可獨立呼叫且可日後替換成 Python API 的固定 mock 回覆。
+**Objective:** Collect the draft and tone in a native Slack modal.
 
 **Implementation Checklist:**
 
-- [ ] 在 Slack 呼叫處定義可切換的 Rewrite Service 介面。
-- [ ] 重用合成案例，回傳固定的回覆及一筆確實支持主張的合成佐證。
-- [ ] 支援離線測試，並提供可控制的失敗案例供 TASK-06 使用。
+- [ ] Show the selected manager message and a multiline draft field using Block Kit.
+- [ ] Provide Diplomatic, Neutral, and Assertive options plus a Rewrite action.
+- [ ] Validate blank input, length, and allowed tone values.
 
 **Acceptance Criteria:**
 
-- 同一測試輸入回傳固定結果，並保留呼叫時選擇的語氣供 UI 顯示。
-- 無 Claude key、Python server 或 Memory DB 時仍可取得 mock 結果。
+- A valid submission yields the original manager message, draft, and selected tone.
+- Invalid or blank input shows an inline error and preserves the user's input.
 
-**Files:** 現有 `src/lib/mock.ts`、`src/lib/schema.ts`、`docs/API_CONTRACT.md`。`origin/main` 有 `backend/services/mock.py` 和 `backend/fixtures/generate_response.json`。Slack adapter 路徑待定。
+**Files:** Slack view path is pending. See `docs/API_CONTRACT.md` for fields and tones.
 
-**Dependencies:** 已有 API Contract 提供介面參考。可與 TASK-01 至 TASK-03 平行開發。
+**Dependencies:** The input view has no prerequisite for offline development or testing. Use a synthetic manager message to build and test the form. Live acceptance from message selection through form submission requires TASK-02.
 
-**Verification:** 已審閱現有 TypeScript mock 與 Git 中的 Python mock 和 fixture。未見 Slack 專用 adapter，未執行服務測試。
+**Verification:** An `rg` review confirmed the tone specification and found no Slack input view in the files reviewed. A live modal submission is pending.
 
-**Blockers:** 無已確認阻礙。
+**Blockers:** None for offline development. Live Slack acceptance depends on TASK-02.
 
-**Notes:** 舊網頁 mock 已存在，其 `relatedMemories` 不代表已驗證的 evidence。Slack 任務只追蹤新的介面與驗收。
+**Notes:** Keep the draft within the current interaction and out of logs and modal metadata.
 
-### TASK-05：Processing & Result Modal
+### TASK-04 · Mock AI Rewrite Service
+
+**Status:** DONE
+
+**Objective:** Provide a deterministic standalone mock with an interface that can later use the Python API.
+
+**Implementation Checklist:**
+
+- [x] Define a replaceable rewrite service interface for Slack callers.
+- [x] Reuse a synthetic case that returns a fixed rewrite and one evidence item that supports its associated claim.
+- [x] Support offline testing and a controllable failure for TASK-06.
+
+**Acceptance Criteria:**
+
+- The same test input returns a fixed result. The selected tone remains available to the UI.
+- The mock works without a Claude key, Python server, or memory database.
+
+**Files:** Added `slack/rewrite.mts`, updated `package.json` and this tracker, and reused `backend/fixtures/generate_response.json`.
+
+**Dependencies:** The API Contract and synthetic fixtures are sufficient for independent development and offline acceptance. TASK-05 integrates the service.
+
+**Verification:** `npm run slack:typecheck` passed. Offline assertions using `env -i PATH="$PATH" node --input-type=module` confirmed that all three tone requests produce the fixed result, the input retains the tone, each call returns independent data, the response includes one synthetic evidence item for the shared-document claim, and forced failure works.
+
+**Blockers:** None identified.
+
+**Notes:** The mock reply text is fixed. TASK-05 retains the selected tone from the request. The response follows the API Contract. Slack modal integration and live API acceptance remain pending.
+
+### TASK-05 · Processing & Result Modal
+
+**Status:** IN PROGRESS
+
+**Objective:** Show processing and the rewrite result in sequence in the same modal.
+
+**Implementation Checklist:**
+
+- [x] Acknowledge the submission and switch the modal to a processing state.
+- [x] Update the same modal with the professional reply, selected tone, and one synthetic evidence item.
+- [x] Connect the service to the view states and keep the reply and evidence in distinct sections.
+- [ ] Wire the flow to the TASK-03 submission handler and verify it in Slack.
+
+**Acceptance Criteria:**
+
+- A deliberately delayed mock displays the processing state, followed by the reply, correct tone, and evidence in the same modal.
+- The interaction stays in the modal without posting to Slack or writing to the original composer.
+
+**Files:** `slack/rewrite-modal.mts` uses the TASK-04 mock in `slack/rewrite.mts`.
+
+**Dependencies:** Build the result view with a fixture. Full acceptance requires the TASK-03 submission flow and the TASK-04 mock adapter.
+
+**Verification:** Prior offline checks passed for delayed mock processing, same-view updates, and all three tone labels. The Slack type check passed in a temporary copy. Live testing is pending.
+
+**Blockers:** Full acceptance awaits TASK-03 submission wiring and a verified Slack connection.
+
+**Notes:** The web prototype's Copy reply button is outside this demo flow.
+
+### TASK-06 · Error Handling & Retry
 
 **Status:** TODO
 
-**Objective:** 依序在同一個 Modal 顯示處理中與改寫結果。
+**Objective:** Recover from rewrite failures and handle repeated or cancelled interactions.
 
 **Implementation Checklist:**
 
-- [ ] 提交後先確認互動並切換至處理中。
-- [ ] Mock 完成後更新同一個 Modal，顯示專業回覆、語氣和一筆合成佐證。
-- [ ] 將服務與畫面狀態串接並維持回覆和佐證分區。
+- [ ] Handle blank input and mock service failures.
+- [ ] Provide Retry and preserve the draft and tone.
+- [ ] Prevent repeated submissions from launching duplicate rewrites.
+- [ ] Handle closure and cancellation, and ignore late results for cancelled interactions.
 
 **Acceptance Criteria:**
 
-- 故意延遲 mock 時能看到處理中，完成後在同一個 Modal 看到回覆、正確語氣和佐證。
-- 全程不發佈 Slack 訊息，也不需要自動寫入原 Composer。
+- Blank input skips the service. After a simulated failure, the user can retry with the original draft and tone.
+- Repeated submission triggers one rewrite. A result arriving after cancellation leaves the modal untouched.
 
-**Files:** Slack views 和 handlers 路徑待定。網頁呈現參考 `src/app/page.tsx` 和 `src/components/ComparePanel.tsx`。
+**Files:** Slack handler, view, and test file paths are pending. See `src/app/page.tsx` for the web prototype's error state.
 
-**Dependencies:** TASK-03、TASK-04。
+**Dependencies:** TASK-03, TASK-04, and TASK-05.
 
-**Verification:** 已檢查網頁原型結果入口與 Slack 相關檔案清單。尚未測試 Slack Modal 更新流程。
+**Verification:** Reviewed the web error state and found no Slack retry or cancellation flow in the files reviewed. Failure and duplicate-submission tests are pending.
 
-**Blockers:** 無已確認阻礙，等待輸入 Modal 和 mock adapter。
+**Blockers:** Full acceptance awaits the Slack result flow.
 
-**Notes:** 舊網頁的 Copy reply 不屬於本 Demo 流程。
+**Notes:** Keep retry state within the interaction. On cancellation, clean up or expire short-lived state. Keep raw drafts out of logs.
 
-### TASK-06：Error Handling & Retry
+### TASK-07 · Team Testing & Demo Validation
 
 **Status:** TODO
 
-**Objective:** 讓使用者能從改寫失敗恢復，並正確處理重複操作和關閉。
+**Objective:** Have a teammate complete the Slack demo in a test workspace within two minutes.
 
 **Implementation Checklist:**
 
-- [ ] 涵蓋空白輸入與 mock 失敗。
-- [ ] 提供 Retry，保留草稿和語氣。
-- [ ] 防止同一操作重複發起改寫。
-- [ ] 處理關閉、取消，並忽略已取消的延遲結果。
+- [ ] Prepare the installed app, synthetic manager message, and scenarios in the test workspace.
+- [ ] Ask at least one teammate to complete the full flow using their own Slack account.
+- [ ] Time the demo, test at least one retry, and record the outcome and known limitations.
 
 **Acceptance Criteria:**
 
-- 空白輸入不呼叫服務。模擬失敗後能重試，且草稿與語氣保留。
-- 重複提交只觸發一次改寫。取消後的結果不會更新 Modal。
+- A teammate opens the shortcut from the specified message and sees the private mock result, tone, and evidence within two minutes.
+- The test record identifies the mock scope, pending live API verification, and which installation was tested.
 
-**Files:** Slack handlers、views 和測試檔路徑待定。網頁錯誤處理可在 `src/app/page.tsx` 查閱。
+**Files:** This tracker. Test script and other test record paths are pending.
 
-**Dependencies:** TASK-03、TASK-04、TASK-05。
+**Dependencies:** TASK-01 through TASK-06.
 
-**Verification:** 已查閱網頁錯誤狀態，未見 Slack 專用重試或取消流程。尚未執行失敗與重複提交測試。
+**Verification:** Team testing and timing in Slack are pending.
 
-**Blockers:** 無已確認阻礙，等待 Slack 結果流程。
+**Blockers:** The test workspace and teammate participation remain unconfirmed.
 
-**Notes:** 重試狀態限於本次操作。取消後可清理或讓短效狀態過期，日誌不記錄原始草稿。
+**Notes:** Acceptance in one test workspace covers that installation only.
 
-### TASK-07：Team Testing & Demo Validation
+## AI Update Rules
 
-**Status:** TODO
-
-**Objective:** 由另一名隊友在測試 workspace 完成兩分鐘內的 Slack Demo。
-
-**Implementation Checklist:**
-
-- [ ] 在測試 workspace 準備已安裝 App、合成主管訊息與測試案例。
-- [ ] 由至少一名隊友使用自己的 Slack 帳號跑完整流程。
-- [ ] 計時並測試至少一次重試，記錄結果、已知限制與是否通過。
-
-**Acceptance Criteria:**
-
-- 另一位隊友在兩分鐘內從指定訊息取得私人 mock 結果，畫面顯示語氣與佐證。
-- 有可追溯的測試紀錄，並清楚標示 mock 範圍、未驗證的真實 API 與安裝範圍。
-
-**Files:** 本追蹤文件。測試腳本或其他測試紀錄路徑待定。
-
-**Dependencies:** TASK-01 至 TASK-06。
-
-**Verification:** 尚未執行 Slack 團隊測試或計時。
-
-**Blockers:** 無已確認阻礙。測試 workspace 和隊友參與仍待確認。
-
-**Notes:** 同一測試 workspace 的驗收不涵蓋跨 workspace 安裝。
-
-## AI 自動更新規則
-
-1. 開始 Slack Integration 工作前讀取本文件，確認 Dashboard、任務與依賴。
-2. 沿用已驗收的實作，避免重複開發或覆蓋隊友修改。
-3. 完成工作後執行相關測試，更新任務狀態、Checklist、涉及檔案和實際指令。明列未驗證部分。
-4. 狀態只使用 `TODO`、`IN PROGRESS`、`BLOCKED`、`DONE`。只有通過驗收才能標記 `DONE`。有確定阻礙時標記 `BLOCKED` 並說明原因，正常任務依賴留在 Dependencies。
-5. 更新 Dashboard 的計數、日期與下一個建議任務，再補一筆 Change Log。
-6. 未執行的測試不可記為通過。Mock 驗收與真實 API 整合分開記錄。
-7. 只修改本次任務涉及的內容。文件與日誌不得記錄 API key、Slack token 或其他敏感資訊。
+1. Read this tracker before starting Slack integration work. Review the dashboard, task status, and dependencies.
+2. Reuse work that has passed acceptance. Preserve teammate changes.
+3. After making changes, run the relevant tests and update status, checklists, files, and the actual commands and results. Identify any pending verification.
+4. Use only `TODO`, `IN PROGRESS`, `BLOCKED`, and `DONE`. Mark a task `DONE` only after its acceptance criteria pass. Record concrete blockers under **Blockers** and ordinary prerequisites under **Dependencies**.
+5. Update the dashboard counts, date, and next recommended task, then add a Change Log entry.
+6. Record a test as passed only if it ran successfully. Track mock acceptance and live API integration separately.
+7. Keep changes within the task scope and keep API keys, Slack tokens, and other secrets out of documentation and logs.
 
 ## Change Log
 
-| 日期 | Task ID | 變更摘要 | 驗證結果 | Git Commit |
+| Date | Task ID | Summary | Verification | Git Commit |
 | --- | --- | --- | --- | --- |
-| 2026-11-21 | TASK-01 至 TASK-07 | 建立基線與七項任務。TASK-01 完成 repo 盤點，確認遠端已有 FastAPI 程式碼。 | 以 `git status --short --branch`、`git ls-files`、`git diff --name-status HEAD..origin/main`、`git show origin/main:backend/api/app.py` 和程式碼搜尋完成唯讀盤點。尚無功能測試。 | 追蹤文件尚未提交。查閱基線為 `4fc1fcd`、`4ac176e`。 |
-| 2026-11-21 | TASK-01 | 新增 TypeScript Slack Bolt 入口、Socket Mode 啟動指令和環境變數範例。 | TypeScript 檢查與無憑證啟動檢查通過，確認本機憑證檔受 Git 忽略。缺少憑證，未測試真實連線。 | 尚未提交。 |
+| 2026-11-21 | TASK-01 through TASK-07 | Created the baseline and seven tasks. Reviewed the repo and confirmed FastAPI source on `origin/main`. | Read-only review using `git status --short --branch`, `git ls-files`, `git diff --name-status HEAD..origin/main`, `git show origin/main:backend/api/app.py`, and source searches. Functional testing was pending. | Tracker was uncommitted at the time. Reviewed `4fc1fcd` and `4ac176e`. |
+| 2026-11-21 | TASK-01 | Added the TypeScript Slack Bolt entry point, Socket Mode startup command, and env examples. | Type and missing-credential checks passed. Git ignores local credentials. The live test was pending for lack of credentials. | Uncommitted at the time. |
+| 2026-11-21 | TASK-01 through TASK-07 | Reordered the overview by integration dependencies, identified work that can run in parallel, and recorded completed work. | Compared the tracker with local commit `84a0fd0`. Documentation update based on existing verification records. | Uncommitted at the time. |
+| 2026-11-21 | TASK-04 | Added the standalone rewrite interface, fixture-based mock, and controllable failure mode. | Slack type check and offline assertions passed. Modal and live API integration remained pending. | Uncommitted at the time. |
+| 2026-11-21 | TASK-03, TASK-05 | Clarified stage numbering and restored TASK-05 progress from the committed modal implementation. | Compared the tracker against commit `d41995e` and the prior offline verification record. | Uncommitted. |

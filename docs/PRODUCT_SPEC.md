@@ -5,7 +5,7 @@ This document defines product behaviour, feature priorities and MVP acceptance c
 ## 1. Project Overview
 
 **Project Name:** Rage-to-Reply  
-**Type:** AI-powered workplace communication assistant  
+**Type:** Browser-based AI workplace communication assistant  
 **Development Context:** 18-hour hackathon  
 **Team Size:** 3 developers
 
@@ -72,7 +72,7 @@ Replies with Receipts extracts factual claims, retrieves relevant history and va
 
 ## 4. Main User Workflow
 
-1. User opens the application.
+1. User opens the Web App in their browser.
 2. User enters the manager's original message.
 3. User enters their unfiltered response.
 4. User selects a desired tone.
@@ -83,7 +83,7 @@ Replies with Receipts extracts factual claims, retrieves relevant history and va
 9. AI generates a professional response.
 10. The application displays the reply, evidence and uncertainty warnings.
 11. User edits the response or selects a tone and generates again from the input form.
-12. User manually copies the final response.
+12. User reviews the final edited response in the web workspace.
 
 **The application must never automatically send messages.**
 
@@ -103,7 +103,7 @@ The hackathon MVP must demonstrate:
 - Evidence-supported reply generation.
 - Display of supporting evidence separately from the reply, with source references where available.
 - Missing timestamps and sources left blank, and no default saving of emotional drafts.
-- Copy-to-clipboard functionality.
+- Editable reply preview in the browser.
 - Basic error handling.
 
 ### P1 Scope
@@ -120,6 +120,7 @@ Both P1 features must preserve the underlying facts. Do not implement P1 work un
 The hackathon version will not implement:
 
 - Automatic message sending.
+- Desktop installers, system permissions, browser extensions and integrations with external messaging tools.
 - Full Slack or Gmail integration; the limited, user-confirmed Slack channel import described above is permitted.
 - Employee performance monitoring.
 - Psychological diagnosis or emotion profiling.
@@ -141,9 +142,9 @@ The MVP is successful when a user can:
 5. See real supporting evidence separately from the reply, with source references where available and no fabricated messages, dates or evidence.
 6. Distinguish verified evidence from unverified or contradicted claims.
 7. Select another tone and generate again from the same input form without changing the facts.
-8. Copy the response for personal review and use.
+8. Review and edit the reply in the browser.
 
-The complete workflow should function without requiring manual intervention by a developer.
+The hosted workflow should open from a browser URL and work without requiring users to install a runtime or start the backend. A shared release requires authenticated sessions and verified data isolation. An isolated local demo is tracked separately from hosted acceptance.
 
 When P1 is implemented, users must also be able to adjust tone beside a generated reply without changing facts, and explicitly save or change their own tone, response length, formality and directness preferences.
 
