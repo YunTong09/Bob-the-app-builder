@@ -51,32 +51,44 @@ npm run lint
 npm run build
 ```
 
-Set `USE_MOCK=false` and provide `ANTHROPIC_API_KEY` to use Claude. `ANTHROPIC_MODEL` is required for the real API path and is never hardcoded in application code.
+The browser's root `.env.local` is for public frontend settings such as `NEXT_PUBLIC_R2R_MOCK` and `NEXT_PUBLIC_API_BASE_URL`. Configure Claude separately in `backend/.env` as described below. Never put API keys or Slack tokens in a `NEXT_PUBLIC_` variable.
 
 ## FastAPI backend (P0 API, in progress)
 
 `backend/` implements the P0 routes in [API_CONTRACT.md](docs/API_CONTRACT.md) with FastAPI and Pydantic, a SQLite + FTS5 memory store and Claude-based analysis, evidence assessment and drafting. Both browser pages can use the local routes through the shared frontend API client.
 
-```bash
+Windows setup, from the project root:
+
+```powershell
 python -m venv backend/.venv
-backend/.venv/Scripts/python -m pip install -r backend/requirements-dev.txt   # Windows
-# backend/.venv/bin/python -m pip install -r backend/requirements-dev.txt     # macOS/Linux
-
-# Tests (Claude mocked)
-backend/.venv/Scripts/python -m pytest backend
-
-# Local demo server with Claude, loopback only
-ANTHROPIC_API_KEY=... ANTHROPIC_MODEL=claude-opus-5-5 backend/.venv/Scripts/python -m uvicorn backend.api.main:app --host 127.0.0.1 --port 8000
-
-# Explicit mock mode: real SQLite and validator, canned "[Mock reply]" output, no API calls
-R2R_AI_MODE=mock backend/.venv/Scripts/python -m uvicorn backend.api.main:app --host 127.0.0.1 --port 8000
+.\backend\.venv\Scripts\python.exe -m pip install -r backend/requirements-dev.txt
+if (-not (Test-Path -LiteralPath backend/.env)) { Copy-Item -LiteralPath backend/.env.example -Destination backend/.env }
 ```
+
+Create the virtual environment, install dependencies and copy the template once. Fill in `ANTHROPIC_API_KEY` and `ANTHROPIC_MODEL` in the local, Git-ignored `backend/.env`, and keep `R2R_AI_MODE=claude` for real replies. The [backend environment template](backend/.env.example) sets `R2R_WEB_ORIGIN=http://127.0.0.1:3000` for the local browser demo.
+
+FastAPI automatically loads **only `backend/.env`**. Values already set in the process environment take precedence. Restart the backend after changing configuration. The root `.env.local` and Socket Mode's `.env.slack.local` are separate files.
+
+Start the loopback-only backend:
+
+```powershell
+.\backend\.venv\Scripts\python.exe -m uvicorn backend.api.main:app --host 127.0.0.1 --port 8000
+```
+
+For explicit mock replies, set `R2R_AI_MODE=mock` in `backend/.env` or set `$env:R2R_AI_MODE="mock"` before starting the backend. This still uses SQLite and the validator and makes no Claude calls. Tests mock Claude:
+
+```powershell
+.\backend\.venv\Scripts\python.exe -m pytest backend
+```
+
+On macOS/Linux, use `backend/.venv/bin/python` for the Python commands.
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
-| `ANTHROPIC_MODEL` | none (required for Claude) | Model ID, e.g. `claude-opus-5-5` |
+| `ANTHROPIC_MODEL` | none (required for Claude) | Model ID supported by your Anthropic account |
 | `ANTHROPIC_API_KEY` | none | Claude credentials; server-side only |
 | `R2R_AI_MODE` | `claude` | `mock` for the explicit local mock; never used as a fallback |
+| `R2R_WEB_ORIGIN` | unset; local template uses `http://127.0.0.1:3000` | Exact browser origin permitted for the local HTTP demo |
 | `R2R_DB_PATH` | `backend/data/rage_to_reply.sqlite3` | SQLite file |
 | `R2R_MODEL_TIMEOUT_SECONDS` | `30` | Per-request Claude timeout (`504 MODEL_TIMEOUT`) |
 | `R2R_MODEL_EFFORT` | `medium` | Claude effort level |
@@ -102,7 +114,7 @@ $env:R2R_AI_MODE = 'mock'
 .\backend\.venv\Scripts\python.exe -m uvicorn backend.api.main:app --host 127.0.0.1 --port 8000
 ```
 
-FastAPI reads these environment variables; it does not automatically load `.env.local` or `.env.slack.local`. The `mock` setting avoids needing Claude credentials for this import workflow; the Slack history request still uses the real Slack API.
+These process environment values override `backend/.env`. You may instead save the optional `SLACK_BOT_TOKEN` and `R2R_SLACK_CHANNEL_ID` in `backend/.env` and restart FastAPI. Socket Mode's `npm run slack:start` continues to use `.env.slack.local` separately. The `mock` setting avoids needing Claude credentials for this import workflow; the Slack history request still uses the real Slack API.
 
 Keep the server running and open a second PowerShell terminal. Replace the channel ID below with the same allowed channel configured in the server terminal, then request a preview:
 
@@ -116,13 +128,14 @@ Previewing does not save messages. Review the returned messages and submit only 
 
 This backend reader fetches parent channel messages; it does not fetch thread replies or import files, and it cannot read ordinary direct messages between other people using the bot token. It retains the existing direct-loopback demo identity and does not add a login, shared deployment or frontend integration.
 
-## Environment variables
+## Browser environment variables
 
 | Variable | Purpose |
 | --- | --- |
-| `ANTHROPIC_API_KEY` | Claude API key. If absent, the mock path is used. |
-| `ANTHROPIC_MODEL` | Model name passed to Anthropic. |
-| `USE_MOCK` | Set to `true` for local canned responses. |
+| `NEXT_PUBLIC_R2R_MOCK` | Browser mock is enabled unless set to `false`. |
+| `NEXT_PUBLIC_API_BASE_URL` | Required in HTTP mode; use `http://127.0.0.1:8000` for the local backend. |
+
+For real backend replies, set `NEXT_PUBLIC_R2R_MOCK=false` and `NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:8000` in the project-root `.env.local`, then restart or rebuild Next.js. Open the browser at `http://127.0.0.1:3000` to match the backend template's allowed origin. Keep backend credentials in `backend/.env`; frontend public variables are visible to browser users.
 
 ## API contract
 

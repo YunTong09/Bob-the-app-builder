@@ -20,6 +20,7 @@ from fastapi.testclient import TestClient
 
 from backend.api.app import create_app
 from backend.api.errors import ApiError
+from backend import config
 from backend.application.ports import (
     DraftInput,
     EvidenceAssessment,
@@ -34,6 +35,12 @@ from backend.devstubs import InMemoryMemoryService
 
 FIXTURES = Path(__file__).resolve().parent.parent / "fixtures"
 OWNER_HEADER = "X-Test-Owner"
+
+
+@pytest.fixture(autouse=True)
+def isolate_local_backend_env(monkeypatch, tmp_path_factory):
+    """Unit/integration tests must never load a developer's real credentials."""
+    monkeypatch.setattr(config, "DEFAULT_ENV_FILE", tmp_path_factory.getbasetemp() / "absent-backend.env")
 
 
 def load_fixture(name: str) -> Any:

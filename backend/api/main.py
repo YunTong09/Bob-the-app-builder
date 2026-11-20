@@ -19,6 +19,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from backend.application.ports import Services
+from backend.config import load_backend_env
 from backend.services.slack import build_slack_service
 
 from .app import create_app
@@ -45,6 +46,7 @@ def _build_services() -> Services:
 
 
 def build_app() -> FastAPI:
+    load_backend_env()
     web_origin = os.environ.get("R2R_WEB_ORIGIN", "").strip()
     if web_origin and not re.fullmatch(r"http://(?:127\.0\.0\.1|localhost):[1-9][0-9]{0,4}", web_origin):
         raise RuntimeError("R2R_WEB_ORIGIN must be an explicit HTTP loopback origin with a port.")
