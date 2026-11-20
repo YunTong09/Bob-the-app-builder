@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 
 const pages = [
   { href: "/", label: "Workspace" },
-  { href: "/assistant", label: "Assistant" },
+  { href: "/assistant", label: "Tutorial" },
 ];
 
 export default function SiteNav() {

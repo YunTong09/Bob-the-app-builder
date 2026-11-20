@@ -39,11 +39,11 @@ a { color: var(--focus); text-decoration: underline; }
 .theme-control { display: flex; align-items: center; gap: 8px; margin-inline-start: auto; }
 .theme-control select { width: auto; padding: 4px 8px; }
 
-.page-shell { margin: auto; max-width: 1120px; padding: 32px 24px; }
-.page-header { margin-bottom: 24px; }
+.page-shell { box-sizing: border-box; margin-inline: auto; max-width: 728px; padding: 32px 24px; }
+.page-header { margin-bottom: 24px; text-align: center; }
 .page-header h1 { margin: 0; font-size: clamp(2rem, 5vw, 3rem); font-weight: 750; letter-spacing: -.04em; }
 .page-header p { margin-top: 4px; color: var(--muted); }
-.workspace-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: 24px; }
+.workspace-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; }
 .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; }
 .workspace-panel, .history-panel { display: grid; gap: 16px; min-width: 0; }
 .history-panel { margin-top: 24px; }
@@ -92,7 +92,7 @@ button.primary-button:disabled, button.secondary-button:disabled, .r2r button.bt
 @media (max-width: 760px) {
   .page-shell, .panel { padding: 16px; }
   .site-nav-inner { padding-inline: 16px; }
-  .workspace-grid { grid-template-columns: 1fr; gap: 16px; }
+  .workspace-grid { gap: 16px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -100,11 +100,12 @@ button.primary-button:disabled, button.secondary-button:disabled, .r2r button.bt
 }
 
 .mode-switch { margin: 0 0 16px; padding: 0; border: 0; }
-.mode-switch legend { margin-bottom: 8px; font-size: 14px; font-weight: 650; }
+.mode-switch legend { margin: 0 auto 8px; font-size: 14px; font-weight: 650; }
 .mode-options {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   width: min(100%, 420px);
+  margin-inline: auto;
   padding: 4px;
   border: 1px solid var(--border);
   border-radius: 12px;
@@ -128,39 +129,33 @@ button.primary-button:disabled, button.secondary-button:disabled, .r2r button.bt
 @media (prefers-reduced-motion: reduce) {
   .mode-options label { transition: none; }
 }
-.history-disclosure { margin-bottom: 16px; }
-.history-disclosure > summary {
+.workspace-actions {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.workspace-dialog {
+  box-sizing: border-box;
+  width: min(640px, calc(100% - 32px));
+  max-height: calc(100dvh - 32px);
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--background);
+  color: var(--text);
+  overflow: auto;
+}
+.workspace-dialog::backdrop { background: rgb(0 0 0 / 45%); }
+.workspace-dialog > header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 12px 16px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: var(--surface);
-  color: var(--text);
-  list-style: none;
-  cursor: pointer;
+  margin-bottom: 12px;
 }
-.history-disclosure > summary::-webkit-details-marker { display: none; }
-.history-disclosure > summary:hover { background: var(--background); }
-.history-disclosure-copy { display: grid; gap: 4px; }
-.history-disclosure-copy > span { color: var(--muted); font-size: 14px; }
-.history-disclosure-indicator {
-  display: grid;
-  place-items: center;
-  flex: 0 0 32px;
-  min-height: 32px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--surface);
-  color: var(--focus);
-  font-weight: 700;
-}
-.history-disclosure-indicator::before { content: "+"; }
-.history-disclosure[open] .history-disclosure-indicator::before { content: "−"; }
-.history-disclosure > .panel { margin-top: 8px; }
-.workspace-grid-single { grid-template-columns: minmax(0, 680px); }
+.workspace-dialog > header h2 { margin: 0; font-size: 20px; }
+.workspace-dialog .history-panel { margin-top: 0; }
 .preferences-panel { display: grid; gap: 12px; }
 .pref-grid { display: grid; gap: 12px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .pref-item { display: grid; gap: 4px; }

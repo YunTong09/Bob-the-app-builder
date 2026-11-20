@@ -1,91 +1,29 @@
-"use client";
+import Link from "next/link";
 
-import { useState, type KeyboardEvent } from "react";
-import MemoryPanel from "@/frontend/features/memory/MemoryPanel";
-import PreferencesPanel from "@/frontend/features/preferences/PreferencesPanel";
-import ReplyPanel from "@/frontend/features/reply/ReplyPanel";
-import { isMockMode } from "@/frontend/api/replyApi";
-import "@/frontend/styles/assistant.css";
-
-// Synthetic chat shown on the left to stand in for the desktop chat app (Slack) in the sketches.
-const CHAT_MANAGER_MESSAGE = "Why haven't you accessed the document yet?";
-
-type Tab = "reply" | "memory" | "preferences";
-const TABS: { id: Tab; label: string }[] = [
-  { id: "reply", label: "Reply" },
-  { id: "memory", label: "Memory" },
-  { id: "preferences", label: "Preferences" },
-];
-
-export default function AssistantPage() {
-  const [tab, setTab] = useState<Tab>("reply");
-
-  function navigateTabs(event: KeyboardEvent<HTMLButtonElement>, index: number) {
-    const offsets: Record<string, number> = {
-      ArrowLeft: (index + TABS.length - 1) % TABS.length,
-      ArrowRight: (index + 1) % TABS.length,
-      Home: 0,
-      End: TABS.length - 1,
-    };
-    if (!Object.hasOwn(offsets, event.key)) return;
-    event.preventDefault();
-    const next = TABS[offsets[event.key]].id;
-    setTab(next);
-    document.getElementById(`tab-${next}`)?.focus();
-  }
-
+export default function TutorialPage() {
   return (
-    <div className="r2r">
-      <div className="r2r-layout">
-        <section className="slack-mock" aria-label="Chat app preview (synthetic)">
-          <aside className="slack-sidebar">
-            <p className="slack-title">Slack</p>
-            <p className="slack-user">Dave</p>
-          </aside>
-          <div className="slack-main">
-            <p className="slack-message"><strong>Dave:</strong> {CHAT_MANAGER_MESSAGE}</p>
-            <div className="slack-composer">
-              <label htmlFor="slack-composer-input">Message</label>
-              <textarea id="slack-composer-input" disabled placeholder="The assistant never sends for you — you stay in control." />
-              <button type="button" className="btn btn-secondary" disabled>Send</button>
-            </div>
-          </div>
+    <main className="page-shell">
+      <header className="page-header">
+        <h1>Tutorial</h1>
+        <p>Write a professional reply and check what your history supports.</p>
+      </header>
+      <div className="workspace-grid">
+        <section className="panel workspace-panel" aria-labelledby="tutorial-start">
+          <h2 id="tutorial-start">Try it in the Workspace</h2>
+          <ol className="text-list">
+            <li>Choose <strong>Rewrite with Evidence</strong>. Enter the work message and your draft, or select <strong>Use sample inputs</strong> on a blank form.</li>
+            <li>Optionally open <strong>History</strong> to import sample messages, upload a JSON file, or preview Slack messages and confirm which ones to import.</li>
+            <li>Pick Diplomatic, Neutral, or Assertive and choose <strong>Generate reply</strong>.</li>
+            <li>Review the AI interpretation, supporting evidence, unverified claims, and warnings. Edit the suggested reply, or change the tone and regenerate.</li>
+          </ol>
+          <div><Link href="/">Open Workspace</Link></div>
         </section>
-
-        <main className="popup" aria-label="Rage-to-Reply assistant">
-          <header className="popup-header">
-            <h1>Rage-to-Reply</h1>
-            {isMockMode && <span className="badge">mock data</span>}
-          </header>
-          <div role="tablist" aria-label="Sections" className="tabs">
-            {TABS.map((t, index) => (
-              <button
-                key={t.id}
-                role="tab"
-                id={`tab-${t.id}`}
-                aria-selected={tab === t.id}
-                aria-controls={`panel-${t.id}`}
-                tabIndex={tab === t.id ? 0 : -1}
-                className="tab"
-                onClick={() => setTab(t.id)}
-                onKeyDown={(event) => navigateTabs(event, index)}
-              >
-                {t.label}
-              </button>
-            ))}
-          </div>
-          {/* All panels stay mounted so typed input survives tab switches. */}
-          <div role="tabpanel" id="panel-reply" aria-labelledby="tab-reply" hidden={tab !== "reply"}>
-            <ReplyPanel initialManagerMessage={CHAT_MANAGER_MESSAGE} />
-          </div>
-          <div role="tabpanel" id="panel-memory" aria-labelledby="tab-memory" hidden={tab !== "memory"}>
-            <MemoryPanel />
-          </div>
-          <div role="tabpanel" id="panel-preferences" aria-labelledby="tab-preferences" hidden={tab !== "preferences"}>
-            <PreferencesPanel />
-          </div>
-        </main>
+        <section className="panel workspace-panel" aria-labelledby="tutorial-history">
+          <h2 id="tutorial-history">Manage history and preferences</h2>
+          <p>Use <strong>History</strong> to search saved messages or confirm deletion of all imported messages. Use <strong>Settings</strong> to change your default tone.</p>
+          <p>Your draft stays out of conversation history. Review the final text in the Workspace before using it.</p>
+        </section>
       </div>
-    </div>
+    </main>
   );
 }

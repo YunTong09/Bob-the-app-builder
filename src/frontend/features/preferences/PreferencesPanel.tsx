@@ -16,7 +16,7 @@ const FIELDS: { key: keyof CommunicationPreferences; label: string; options: str
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 const storageKey = "rage-to-reply.preferences";
 
-function readLocalPreferences(): CommunicationPreferences {
+export function readLocalPreferences(): CommunicationPreferences {
   try {
     const saved = JSON.parse(localStorage.getItem(storageKey) ?? "null");
     if (saved && FIELDS.every(({ key, options }) => options.includes(saved[key]))) return saved;

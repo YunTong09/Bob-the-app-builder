@@ -1,13 +1,15 @@
 "use client";
 
-import { useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import ChatWindow from "@/frontend/features/reply/ChatWindow";
 import ComparePanel from "@/frontend/features/reply/ComparePanel";
 import HistoryPanel from "@/frontend/features/memory/HistoryPanel";
-import PreferencesPanel from "@/frontend/features/preferences/PreferencesPanel";
+import PreferencesPanel, { readLocalPreferences } from "@/frontend/features/preferences/PreferencesPanel";
 import VentInput from "@/frontend/features/reply/VentInput";
 import type { GenerateReplyResponse, ReplyTone } from "@/frontend/api/contract";
 import { generateReply } from "@/frontend/api/replyApi";
+
+const setupKey = "rage-to-reply.workspace-setup";
 
 export default function HomePage() {
   const [mode, setMode] = useState<"evidence" | "quick">("evidence");
@@ -16,7 +18,10 @@ export default function HomePage() {
   const [tone, setTone] = useState<ReplyTone>("neutral");
   const [quickDraft, setQuickDraft] = useState("");
   const [quickTone, setQuickTone] = useState<ReplyTone>("neutral");
-  const [preferencesOpened, setPreferencesOpened] = useState(false);
+  const [dialog, setDialog] = useState<"settings" | "history" | null>(null);
+  const [historyOpened, setHistoryOpened] = useState(false);
+  const [firstVisit, setFirstVisit] = useState(false);
+  const dialogRef = useRef<HTMLDialogElement>(null);
   const [result, setResult] = useState<{ data: GenerateReplyResponse; tone: ReplyTone } | null>(null);
   const [reply, setReply] = useState("");
   const [loading, setLoading] = useState(false);
@@ -25,6 +30,37 @@ export default function HomePage() {
   const canSubmit = Boolean(managerMessage.trim() && draft.trim());
   const withEvidence = mode === "evidence";
   const showReview = withEvidence && Boolean(result);
+
+  useEffect(() => {
+    const preferredTone = readLocalPreferences().tone;
+    setTone(preferredTone);
+    setQuickTone(preferredTone);
+    try {
+      if (localStorage.getItem(setupKey)) return;
+    } catch {
+      // The setup can still be dismissed if browser storage is unavailable.
+    }
+    setFirstVisit(true);
+    setDialog("settings");
+  }, []);
+
+  useEffect(() => {
+    const element = dialogRef.current;
+    if (dialog && element && !element.open) element.showModal();
+    if (!dialog && element?.open) element.close();
+  }, [dialog]);
+
+  function dismissDialog() {
+    if (firstVisit) {
+      try {
+        localStorage.setItem(setupKey, "complete");
+      } catch {
+        // Dismissal still works for this visit.
+      }
+      setFirstVisit(false);
+    }
+    setDialog(null);
+  }
 
   async function handleGenerate(event: FormEvent) {
     event.preventDefault();
@@ -58,31 +94,38 @@ export default function HomePage() {
           <label><input type="radio" name="rewrite-mode" checked={!withEvidence} onChange={() => setMode("quick")} /> Quick Tone Rewrite</label>
         </div>
       </fieldset>
-      <details className="history-disclosure" onToggle={(event) => {
-        if (event.currentTarget.open) setPreferencesOpened(true);
-      }}>
-        <summary>
-          <span className="history-disclosure-copy"><strong>Communication preferences</strong></span>
-          <span className="history-disclosure-indicator" aria-hidden="true" />
-        </summary>
-        {preferencesOpened && <PreferencesPanel allowBrowserStorage onSaved={(preferences) => {
+      <div className="workspace-actions">
+        <button type="button" className="secondary-button" aria-haspopup="dialog" onClick={() => setDialog("settings")}>Settings</button>
+        {withEvidence && <button type="button" className="secondary-button" aria-haspopup="dialog" onClick={() => { setHistoryOpened(true); setDialog("history"); }}>History</button>}
+      </div>
+      <dialog
+        ref={dialogRef}
+        className="workspace-dialog"
+        aria-labelledby="workspace-dialog-title"
+        onCancel={(event) => { event.preventDefault(); dismissDialog(); }}
+      >
+        <header>
+          <h2 id="workspace-dialog-title">{dialog === "history" ? "Conversation history" : firstVisit ? "Set up your workspace" : "Settings"}</h2>
+          <button type="button" className="secondary-button" onClick={dismissDialog}>{firstVisit ? "Skip for now" : "Close"}</button>
+        </header>
+        {dialog === "settings" && <PreferencesPanel allowBrowserStorage onSaved={(preferences) => {
           setTone(preferences.tone);
           setQuickTone(preferences.tone);
+          dismissDialog();
         }} />}
-      </details>
-      <details className="history-disclosure" hidden={!withEvidence}>
-        <summary>
-          <span className="history-disclosure-copy">
-            <strong>Import or review conversation history</strong>
-            <span>Use past messages as supporting evidence.</span>
-          </span>
-          <span className="history-disclosure-indicator" aria-hidden="true" />
-        </summary>
-        <HistoryPanel />
-      </details>
-      <div className={showReview ? "workspace-grid" : "workspace-grid workspace-grid-single"}>
+        {historyOpened && <div hidden={dialog !== "history"}><HistoryPanel /></div>}
+      </dialog>
+      <div className="workspace-grid">
         <form className="panel workspace-panel" onSubmit={handleGenerate}>
           <h2>Write a draft</h2>
+          {withEvidence && (
+            <div>
+              <button type="button" className="secondary-button" disabled={loading || Boolean(managerMessage || draft)} onClick={() => {
+                setManagerMessage("Can you confirm why the shared document hasn't been reviewed yet?");
+                setDraft("I can't open the shared document without the password. Please send it so I can review the document.");
+              }}>Use sample inputs</button>
+            </div>
+          )}
           {withEvidence && <ChatWindow managerMessage={managerMessage} onChange={setManagerMessage} />}
           {!withEvidence && <p className="small-text">Quick rewrite is waiting for the draft-only API. Your text stays on this page.</p>}
           <VentInput
@@ -99,7 +142,7 @@ export default function HomePage() {
           <h2 id="review-heading">Review your reply</h2>
           <ComparePanel polishedReply={reply} tone={result.tone} onChange={setReply} />
           <div className="review-section">
-            <h3>Manager’s request and interpretation</h3>
+            <h3>Manager’s request · AI interpretation</h3>
             <p>{result.data.managerIntent}</p>
             <h3>Your concern</h3>
             <p>{result.data.employeeConcern}</p>

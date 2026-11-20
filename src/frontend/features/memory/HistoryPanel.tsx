@@ -1,12 +1,14 @@
 import SlackImportPanel from "./SlackImportPanel";
 import { useRef, useState } from "react";
 import type { SearchMemoryResponse } from "@/frontend/api/contract";
-import { deleteAllMemory, importMemory, searchMemory } from "@/frontend/api/replyApi";
+import { deleteAllMemory, importMemory, searchMemory, SYNTHETIC_IMPORT } from "@/frontend/api/replyApi";
 
 const pageSize = 20;
 const maxImportBytes = 1_048_576;
 
 export default function HistoryPanel() {
+  const [query, setQuery] = useState("");
+  const [appliedQuery, setAppliedQuery] = useState("");
   const [page, setPage] = useState<SearchMemoryResponse | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
@@ -32,8 +34,16 @@ export default function HistoryPanel() {
     }
   }
 
-  async function load(offset = 0) {
-    setPage(await searchMemory("", pageSize, offset));
+  async function load(offset = 0, search = appliedQuery) {
+    setPage(await searchMemory(search, pageSize, offset));
+    setAppliedQuery(search);
+  }
+
+  async function importSample() {
+    const result = await importMemory(SYNTHETIC_IMPORT.messages);
+    setNotice(`Imported ${result.importedCount}. Skipped ${result.skippedCount} existing messages.`);
+    setQuery("");
+    await load(0, "");
   }
 
   async function importHistory() {
@@ -53,7 +63,13 @@ export default function HistoryPanel() {
     setFile(null);
     if (fileInput.current) fileInput.current.value = "";
     setNotice(`Imported ${result.importedCount}. Skipped ${result.skippedCount} existing messages.`);
-    await load();
+    setQuery("");
+    await load(0, "");
+  }
+
+  function reviewHistory() {
+    setQuery("");
+    void run(() => load(0, ""));
   }
 
   async function deleteHistory() {
@@ -67,7 +83,7 @@ export default function HistoryPanel() {
     <section className="panel history-panel" aria-labelledby="history-heading">
       <h2 id="history-heading">Conversation history</h2>
       <p className="small-text">Import past messages you’re allowed to use as supporting context.</p>
-      <SlackImportPanel onReviewHistory={() => void run(() => load())} />
+      <SlackImportPanel onReviewHistory={reviewHistory} />
       <div className="history-controls">
         <div className="form-field">
           <label htmlFor="history-file">Conversation history JSON</label>
@@ -75,9 +91,22 @@ export default function HistoryPanel() {
             disabled={busy} onChange={(event) => setFile(event.target.files?.[0] ?? null)} />
         </div>
         <button type="button" className="secondary-button" disabled={!file || busy} onClick={() => void run(importHistory)}>Import history</button>
-        <button type="button" className="secondary-button" disabled={busy} onClick={() => void run(() => load())}>Review history</button>
+        <button type="button" className="secondary-button" disabled={busy} onClick={reviewHistory}>Review history</button>
         <button type="button" className="secondary-button" disabled={busy || !page?.total} onClick={() => setConfirmDelete(true)}>Delete history</button>
       </div>
+      <div>
+        <button type="button" className="secondary-button" disabled={busy} onClick={() => void run(importSample)}>Import sample history</button>
+      </div>
+      <form className="history-controls" onSubmit={(event) => {
+        event.preventDefault();
+        void run(() => load(0, query.trim()));
+      }}>
+        <div className="form-field">
+          <label htmlFor="history-search">Search saved messages</label>
+          <input id="history-search" type="search" value={query} onChange={(event) => setQuery(event.target.value)} disabled={busy} />
+        </div>
+        <button type="submit" className="secondary-button" disabled={busy}>Search</button>
+      </form>
       {confirmDelete && (
         <div className="history-confirm">
           <span className="status-label status-label-warning">Warning</span>
