@@ -1,9 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { MemoryMessage, StoredMemoryMessage } from "@/lib/contract";
-import { ApiError, deleteAllMemory, importMemory, isMockMode, SYNTHETIC_IMPORT, searchMemory } from "@/lib/replyApi";
-import { formatTimestamp } from "./ReplyPanel";
+import { MemoryMessage, StoredMemoryMessage } from "@/frontend/api/contract";
+import { ApiError, deleteAllMemory, importMemory, isMockMode, SYNTHETIC_IMPORT, searchMemory } from "@/frontend/api/replyApi";
+import { formatTimestamp } from "@/frontend/shared/formatTimestamp";
 
 export default function MemoryPanel() {
   const [query, setQuery] = useState("");

@@ -8,10 +8,14 @@ anything not grounded in a real retrieved record:
   never treated as support);
 * a "supported" or "contradicted" verdict with no surviving grounded record is
   downgraded to "unverified" -- missing evidence never proves a claim false.
+An independent semantic review then checks each classification and whether its
+support statements actually follow from the original records. Quote membership
+alone is never semantic approval.
 
 Validation (``validate``) is the only evidence validator in the system. The
-orchestrator calls it before returning a reply; the drafting service also calls
-``check_draft`` to retry once when output is unusable.
+orchestrator calls it with the original DraftInput before returning a reply. It
+checks the actual final text with a separate semantic review. The drafting
+service also calls ``check_draft`` to retry once on cheap structural failures.
 """
 
 from __future__ import annotations
@@ -34,6 +38,7 @@ from backend.application.ports import (
 )
 
 from .llm import JsonModel, call_with_retry
+from .review import review_assessment, review_draft
 
 MIN_QUOTE_CHARS = 8
 MAX_REPLY_CHARS = 5000
@@ -255,12 +260,6 @@ def _structural_problems(draft: ReplyDraft, assessment: EvidenceAssessment, reco
             problems.append("reply exposes internal message identifiers")
             break
 
-    norm_reply = normalise(reply)
-    for c in assessment.claims:
-        if c.status == "contradicted" and normalise(c.claim).rstrip(".") in norm_reply:
-            problems.append("reply restates a contradicted claim as fact")
-            break
-
     if _VERIFIED_PHRASE.search(reply) and not draft.evidence:
         problems.append("reply presents history as verified without supporting evidence")
     return problems
@@ -277,7 +276,7 @@ class ClaudeEvidenceService:
         if not records:
             # No history: nothing can be supported or contradicted; no model call needed.
             return EvidenceAssessment(claims=tuple(ClaimAssessment(claim=c, status="unverified") for c in claims))
-        return call_with_retry(
+        assessment = call_with_retry(
             self._model,
             task="assessment",
             system=SYSTEM,
@@ -289,18 +288,20 @@ class ClaudeEvidenceService:
             max_tokens=16000,
             parse=lambda data: parse_assessment(data, claims, records),
         )
+        return review_assessment(self._model, assessment, records)
 
     def validate(
         self,
         owner: OwnerContext,
         *,
         draft: ReplyDraft,
-        assessment: EvidenceAssessment,
-        records: tuple[MemoryRecord, ...],
+        request: DraftInput,
     ) -> ValidatedReply:
-        problems = _structural_problems(draft, assessment, records)
+        assessment, records = request.assessment, request.records
+        problems = check_draft(request, draft)
         if problems:
             raise EvidenceValidationError("; ".join(sorted(set(problems))))
+        review_draft(self._model, request, draft)
 
         # Deduplicate evidence by message ID, keeping the first statement.
         evidence: list[EvidenceLink] = []

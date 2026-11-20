@@ -144,6 +144,18 @@ def test_unknown_query_param_on_generate(client):
     assert_error(client.post("/api/reply/generate?userId=x", json=GEN_BODY), 422, "VALIDATION_ERROR")
 
 
+def test_very_long_limit_is_validation_error(client):
+    r = client.get("/api/memory/search", params={"limit": "9" * 5_000})
+    err = assert_error(r, 422, "VALIDATION_ERROR")
+    assert err["details"][0]["field"] == "limit"
+
+
+def test_leading_zeroes_do_not_make_small_pagination_values_invalid(client):
+    r = client.get("/api/memory/search", params={"limit": "0" * 5_000 + "20", "offset": "0" * 5_000})
+    assert r.status_code == 200, r.text
+    assert r.json() == {"messages": [], "total": 0, "limit": 20, "offset": 0}
+
+
 def test_unexpected_exception_is_500_envelope(client, ai):
     ai.analysis = RuntimeError("provider said: SECRET-DRAFT-TEXT sk-ant-123")
     r = client.post("/api/reply/generate", json=GEN_BODY)

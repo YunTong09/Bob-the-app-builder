@@ -185,6 +185,10 @@ class SqliteMemoryService:
                     f"SELECT COUNT(*) FROM messages m WHERE m.owner_id = ?{conv_sql}",
                     (owner_id, *conv_args),
                 ).fetchone()[0]
+                if offset >= total:
+                    # The contract allows offsets larger than SQLite's signed
+                    # 64-bit INTEGER range; they still describe an empty page.
+                    return SearchPage(records=(), total=total)
                 rows = conn.execute(
                     f"SELECT {_COLUMNS} FROM messages m WHERE m.owner_id = ?{conv_sql} "
                     "ORDER BY m.id LIMIT ? OFFSET ?",

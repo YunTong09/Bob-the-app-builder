@@ -41,6 +41,22 @@ export interface ImportMemoryResponse {
   skippedCount: number;
 }
 
+// Slack preview contract from origin/main, pending backend integration on this branch.
+export interface SlackPreviewRequest {
+  channelId: string;
+  oldest?: string;
+  latest?: string;
+  cursor?: string;
+  limit?: number;
+}
+
+export interface SlackPreviewResponse {
+  messages: MemoryMessage[];
+  nextCursor: string | null;
+  skippedCount: number;
+  warnings: string[];
+}
+
 export interface StoredMemoryMessage {
   id: string;
   conversationId: string;

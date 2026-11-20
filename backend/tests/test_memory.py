@@ -131,10 +131,35 @@ def test_import_100_messages(client):
     assert r.json() == {"importedCount": 100, "skippedCount": 0}
 
 
-def test_timestamp_kept_verbatim(client):
-    ts = "2026-11-18T00:30:00.123Z"
-    client.post("/api/memory/import", json={"messages": [msg(1, timestamp=ts)]})
+@pytest.mark.parametrize("ts", [
+    "2026-11-18T00:30:00.123Z",
+    "2026-11-18t00:30:00z",
+    "2026-11-18T10:30:00+10:00",
+    "2026-11-18T10:30:00-03:30",
+    "2026-11-18T23:59:59+23:59",
+    "2024-02-29T12:00:00+00:00",
+])
+def test_timestamp_kept_verbatim(client, ts):
+    r = client.post("/api/memory/import", json={"messages": [msg(1, timestamp=ts)]})
+    assert r.status_code == 200, r.text
     assert search(client)["messages"][0]["timestamp"] == ts
+
+
+@pytest.mark.parametrize("ts", [
+    "2026-11-18T12:00:00+00:99",
+    "2026-11-18T12:00:00-00:60",
+    "2026-11-18T12:00:00+01:99",
+    "2026-11-18T12:00:00+24:00",
+    "2026-11-18T24:00:00Z",
+    "2026-11-18T12:60:00Z",
+    "2026-11-18T12:00:61Z",
+    "2026-02-29T12:00:00Z",
+])
+def test_invalid_timestamp_components_reject_entire_import(client, ts):
+    r = client.post("/api/memory/import", json={"messages": [msg(1), msg(2, timestamp=ts)]})
+    err = assert_error(r, 422, "VALIDATION_ERROR")
+    assert err["details"][0]["field"] == "messages[1].timestamp"
+    assert search(client)["total"] == 0
 
 
 # ------------------------------------------------------------------ search
@@ -148,6 +173,16 @@ def test_pagination_and_total(client):
     assert [m["id"] for m in p1["messages"]] == [f"m{i:03d}" for i in range(10)]
     assert len(p3["messages"]) == 5 and p3["total"] == 25
     assert past == {"messages": [], "total": 25, "limit": 10, "offset": 500}
+
+
+@pytest.mark.parametrize("offset", [2**63, 10**100])
+@pytest.mark.parametrize("query", [None, "budget"])
+def test_large_offsets_return_empty_page_with_correct_total(client, offset, query):
+    client.post("/api/memory/import", json={"messages": [msg(1), msg(2)]})
+    params = {"offset": str(offset)}
+    if query is not None:
+        params["q"] = query
+    assert search(client, **params) == {"messages": [], "total": 2, "limit": 20, "offset": offset}
 
 
 def test_query_and_conversation_filters(client):

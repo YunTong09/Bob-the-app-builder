@@ -83,6 +83,17 @@ def test_search_and_terms_ranking_pagination(db):
     assert db.search(A, query="budget", conversation_id=None, limit=10, offset=50).records == ()
 
 
+@pytest.mark.parametrize("offset", [2, 2**63, 10**100])
+@pytest.mark.parametrize("query", [None, "budget"])
+@pytest.mark.parametrize("conversation_id, total", [(None, 2), ("c2", 1)])
+def test_offsets_past_total_preserve_scoped_count(db, offset, query, conversation_id, total):
+    db.import_messages(A, [rec(1), rec(2, conv="c2")])
+    db.import_messages(B, [rec(3)])
+    page = db.search(A, query=query, conversation_id=conversation_id, limit=10, offset=offset)
+    assert page.records == ()
+    assert page.total == total
+
+
 @pytest.mark.parametrize("q", ['" OR 1=1 --', "budget*", "NEAR(budget review)", "budget OR lunch", "-budget", "col:budget", "'; DROP TABLE messages; --", "***"])
 def test_search_treats_fts_and_sql_syntax_literally(db, q):
     db.import_messages(A, [rec(1, "budget review"), rec(2, "lunch")])

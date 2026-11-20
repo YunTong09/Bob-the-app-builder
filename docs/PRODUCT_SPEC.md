@@ -5,7 +5,7 @@ This document defines product behaviour, feature priorities and MVP acceptance c
 ## 1. Project Overview
 
 **Project Name:** Rage-to-Reply  
-**Type:** AI-powered workplace communication assistant  
+**Type:** Browser-based AI workplace communication assistant  
 **Development Context:** 18-hour hackathon  
 **Team Size:** 3 developers
 
@@ -60,9 +60,16 @@ These six features define the current scope. P0 features form the required MVP; 
 | P1 | Enhanced Tone Adjustment | Add tone controls beside generated replies. Tone changes must preserve the underlying facts. |
 | P1 | Communication Preferences | Let users save their preferred tone, response length, formality and directness. Keep preferences user-controlled. |
 
-Users supply the manager's original message and their emotional draft before choosing a tone. P0 regeneration reuses the same input form; the dedicated controls beside a generated reply are P1.
+The Web App offers two reply modes:
+
+- **Rewrite with Evidence.** Users explicitly import Slack conversation history in the supported JSON format, provide the manager's message and an emotional draft, and choose a tone. The app can retrieve and display source-backed evidence.
+- **Quick Tone Rewrite.** Users type a draft and choose a tone. The rewrite uses the current draft without retrieving imported history.
+
+P0 regeneration reuses the same input form. The dedicated controls beside a generated reply are P1. The numbered workflow below describes Rewrite with Evidence. Quick Tone Rewrite uses draft input, generation, review and editing.
 
 Communication Memory persists only explicitly imported history, including message content, sender, conversation identifier and available timestamps or source information. A basic message list is sufficient for review and deletion. Missing metadata remains blank in the interface and uses the null or omitted representations defined in [API_CONTRACT.md](API_CONTRACT.md).
+
+The restricted single-user demo may also preview one explicitly configured Slack channel, then let the user select messages for import. Previewing does not save history or call Claude. This limited import extension uses the existing memory workflow; it does not add background synchronisation, message sending, thread/file crawling or access to arbitrary private conversations. Its request, response and failure behaviour are defined in [API_CONTRACT.md](API_CONTRACT.md#slack-channel-preview-single-user-demo-extension).
 
 Replies with Receipts extracts factual claims, retrieves relevant history and validates whether source messages support those claims before using them as evidence. Missing or contradictory evidence must be distinguished from supported claims. Communication Preferences must not infer permanent facts about other people.
 
@@ -70,7 +77,7 @@ Replies with Receipts extracts factual claims, retrieves relevant history and va
 
 ## 4. Main User Workflow
 
-1. User opens the application.
+1. User opens the Web App in their browser.
 2. User enters the manager's original message.
 3. User enters their unfiltered response.
 4. User selects a desired tone.
@@ -81,7 +88,7 @@ Replies with Receipts extracts factual claims, retrieves relevant history and va
 9. AI generates a professional response.
 10. The application displays the reply, evidence and uncertainty warnings.
 11. User edits the response or selects a tone and generates again from the input form.
-12. User manually copies the final response.
+12. User reviews the final edited response in the web workspace.
 
 **The application must never automatically send messages.**
 
@@ -101,7 +108,7 @@ The hackathon MVP must demonstrate:
 - Evidence-supported reply generation.
 - Display of supporting evidence separately from the reply, with source references where available.
 - Missing timestamps and sources left blank, and no default saving of emotional drafts.
-- Copy-to-clipboard functionality.
+- Editable reply preview in the browser.
 - Basic error handling.
 
 ### P1 Scope
@@ -118,7 +125,8 @@ Both P1 features must preserve the underlying facts. Do not implement P1 work un
 The hackathon version will not implement:
 
 - Automatic message sending.
-- Full Slack or Gmail integration.
+- Desktop installers, system permissions, browser extensions and integrations with external messaging tools.
+- Full Slack or Gmail integration; the limited, user-confirmed Slack channel import described above is permitted.
 - Employee performance monitoring.
 - Psychological diagnosis or emotion profiling.
 - Persistent manager profiling.
@@ -139,9 +147,9 @@ The MVP is successful when a user can:
 5. See real supporting evidence separately from the reply, with source references where available and no fabricated messages, dates or evidence.
 6. Distinguish verified evidence from unverified or contradicted claims.
 7. Select another tone and generate again from the same input form without changing the facts.
-8. Copy the response for personal review and use.
+8. Review and edit the reply in the browser.
 
-The complete workflow should function without requiring manual intervention by a developer.
+The hosted workflow should open from a browser URL and work without requiring users to install a runtime or start the backend. A shared release requires authenticated sessions and verified data isolation. An isolated local demo is tracked separately from hosted acceptance.
 
 When P1 is implemented, users must also be able to adjust tone beside a generated reply without changing facts, and explicitly save or change their own tone, response length, formality and directness preferences.
 

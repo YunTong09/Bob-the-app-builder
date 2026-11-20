@@ -1,19 +1,15 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Evidence, GenerateReplyResponse, ReplyTone } from "@/lib/contract";
-import { ApiError, generateReply } from "@/lib/replyApi";
+import { Evidence, GenerateReplyResponse, ReplyTone } from "@/frontend/api/contract";
+import { ApiError, generateReply } from "@/frontend/api/replyApi";
+import { formatTimestamp } from "@/frontend/shared/formatTimestamp";
 
 export const TONES: { value: ReplyTone; label: string }[] = [
   { value: "diplomatic", label: "Diplomatic" },
   { value: "neutral", label: "Neutral" },
   { value: "assertive", label: "Assertive" },
 ];
-
-export function formatTimestamp(timestamp: string | null | undefined) {
-  // Show the stated local time as supplied; blank when unknown (never invent a date).
-  return timestamp ? timestamp.slice(0, 16).replace("T", " ") : "";
-}
 
 function ToneRadios({ name, value, onChange, disabled }: { name: string; value: ReplyTone; onChange: (tone: ReplyTone) => void; disabled?: boolean }) {
   return (
@@ -32,9 +28,9 @@ function ReceiptCard({ item, onApply, applied }: { item: Evidence; onApply: () =
   const when = formatTimestamp(item.timestamp);
   return (
     <section className="card receipt" aria-label="Receipt">
-      <h3 className="card-title">Receipt</h3>
+      <h3 className="card-title"><span className="status-label status-label-supported">Supported</span></h3>
       <blockquote className="receipt-quote">{item.content}</blockquote>
-      <p className="meta">Supports: {item.supportedClaim}</p>
+      <p>Supports: {item.supportedClaim}</p>
       <p className="meta">
         Sender: {item.sender}
         {when && ` · ${when}`}

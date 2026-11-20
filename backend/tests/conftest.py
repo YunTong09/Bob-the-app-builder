@@ -87,13 +87,13 @@ class FakeAI:
             raise self.assessment
         return self.assessment
 
-    def validate(self, owner: OwnerContext, *, draft: ReplyDraft, assessment: EvidenceAssessment, records: tuple[MemoryRecord, ...]) -> ValidatedReply:
-        self.calls.append(("validate", (owner, draft, records)))
+    def validate(self, owner: OwnerContext, *, draft: ReplyDraft, request: DraftInput) -> ValidatedReply:
+        self.calls.append(("validate", (owner, draft, request)))
         v = self.validated
         if isinstance(v, Exception):
             raise v
         if callable(v):
-            return v(draft=draft, records=records)
+            return v(draft=draft, records=request.records)
         if v is None:
             return ValidatedReply(reply=draft.reply, evidence=draft.evidence, unverified_claims=(), warnings=draft.warnings)
         return v

@@ -1,6 +1,6 @@
 # Rage-to-Reply
 
-Rage-to-Reply turns an employee's private vent into a professional reply while preserving their intent and grounding claims in imported conversation history. The repository currently contains a Next.js prototype with seeded in-memory history and canned analysis by default, so the prototype can run without an API key. The feature list below describes the target scope, not completed implementation.
+Rage-to-Reply is a Web App that turns an employee's private draft into an editable professional reply and grounds claims in imported conversation history. The repository contains a Next.js browser prototype and a FastAPI backend. The prototype runs with synthetic data by default. The browser can use a local FastAPI instance or the built-in mock. Authenticated hosting is a later milestone.
 
 ## Documentation
 
@@ -9,7 +9,8 @@ Rage-to-Reply turns an employee's private vent into a professional reply while p
 | [PRODUCT_SPEC.md](docs/PRODUCT_SPEC.md) | Defines product behaviour, feature priorities, MVP scope and acceptance criteria. |
 | [ARCHITECTURE.md](docs/ARCHITECTURE.md) | Explains the technology stack, component responsibilities, data flow and security boundaries. |
 | [API_CONTRACT.md](docs/API_CONTRACT.md) | Defines endpoint behaviour, request and response schemas, validation rules and errors. |
-| [FRONTEND_CONTRACT.md](docs/FRONTEND_CONTRACT.md) | Describes the desktop reply assistant workflow, permissions, typed or spoken input, draft insertion and data handling. |
+| [FRONTEND_CONTRACT.md](docs/FRONTEND_CONTRACT.md) | Defines the browser workspace, input and result states, privacy handling and visual design. |
+| [Slack prototype tracker](docs/progress/slack-integration-tracker.md) | Historical record of the Slack modal prototype. |
 
 ## Feature priorities
 
@@ -24,7 +25,7 @@ Rage-to-Reply turns an employee's private vent into a professional reply while p
 
 The [product specification](docs/PRODUCT_SPEC.md#3-core-application-features) owns the full requirements and acceptance criteria. Complete the P0 workflow before adding the two P1 features.
 
-## Install and run
+## Run the current browser prototype
 
 ```bash
 npm install
@@ -33,6 +34,15 @@ npm run dev
 ```
 
 Open `http://localhost:3000`.
+
+Both browser pages use the same frontend API client. The default browser mock works without FastAPI. To test the HTTP integration with FastAPI's mock AI on macOS or Linux, start these in separate terminals after installing the backend dependencies:
+
+```bash
+R2R_WEB_ORIGIN=http://127.0.0.1:3000 R2R_AI_MODE=mock python -m uvicorn backend.api.main:app --host 127.0.0.1 --port 8000
+NEXT_PUBLIC_R2R_MOCK=false NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:8000 npm run dev -- --hostname 127.0.0.1
+```
+
+Open `http://127.0.0.1:3000`. Set the same variables in PowerShell with `$env:NAME="value"` before starting the corresponding command. The browser address, including its port, must exactly match `R2R_WEB_ORIGIN` on the backend. Rebuild or restart Next.js after changing its public variables. Both servers are loopback-only for this demo.
 
 Useful commands:
 
@@ -45,7 +55,7 @@ Set `USE_MOCK=false` and provide `ANTHROPIC_API_KEY` to use Claude. `ANTHROPIC_M
 
 ## FastAPI backend (P0 API, in progress)
 
-`backend/` implements the P0 routes in [API_CONTRACT.md](docs/API_CONTRACT.md) with FastAPI and Pydantic, a SQLite + FTS5 memory store and Claude-based analysis, evidence assessment and drafting. The Next.js prototype above is unchanged.
+`backend/` implements the P0 routes in [API_CONTRACT.md](docs/API_CONTRACT.md) with FastAPI and Pydantic, a SQLite + FTS5 memory store and Claude-based analysis, evidence assessment and drafting. Both browser pages can use the local routes through the shared frontend API client.
 
 ```bash
 python -m venv backend/.venv
@@ -78,6 +88,34 @@ R2R_AI_MODE=mock backend/.venv/Scripts/python -m uvicorn backend.api.main:app --
 - To run the API tests against SQLite instead of the in-memory double, set `R2R_TEST_MEMORY_FACTORY=backend.tests.sqlite_factory:make`.
 - Synthetic request and response fixtures are in `backend/fixtures/`.
 
+### Preview and import a Slack test channel
+
+1. Create a Slack app in a test workspace. Add the bot scope `channels:history` for a public channel or `groups:history` for a private channel, then install the app. Reinstall it after changing scopes.
+2. Invite the bot to one test channel containing synthetic messages. Copy its channel ID and use the installed app's `xoxb-` bot token. This history reader does not require an `xapp-` Socket Mode token.
+3. From the project root, set the FastAPI process environment and start the single-user demo in PowerShell:
+
+```powershell
+$slackTokenInput = Read-Host 'Slack bot token' -AsSecureString
+$env:SLACK_BOT_TOKEN = [System.Net.NetworkCredential]::new('', $slackTokenInput).Password
+$env:R2R_SLACK_CHANNEL_ID = 'C0123456789' # Replace with the one allowed test channel
+$env:R2R_AI_MODE = 'mock'
+.\backend\.venv\Scripts\python.exe -m uvicorn backend.api.main:app --host 127.0.0.1 --port 8000
+```
+
+FastAPI reads these environment variables; it does not automatically load `.env.local` or `.env.slack.local`. The `mock` setting avoids needing Claude credentials for this import workflow; the Slack history request still uses the real Slack API.
+
+Keep the server running and open a second PowerShell terminal. Replace the channel ID below with the same allowed channel configured in the server terminal, then request a preview:
+
+```powershell
+$slackPreviewBody = @{ channelId = 'C0123456789'; limit = 20 } | ConvertTo-Json
+$slackPreview = Invoke-RestMethod -Method Post -Uri 'http://127.0.0.1:8000/api/slack/preview' -ContentType 'application/json' -Body $slackPreviewBody
+$slackPreview | ConvertTo-Json -Depth 10
+```
+
+Previewing does not save messages. Review the returned messages and submit only the ones you choose through the existing memory-import operation. The [Slack preview contract](docs/API_CONTRACT.md#slack-channel-preview-single-user-demo-extension) documents request fields, pagination, errors and how selected messages use the existing import operation. Missing metadata stays missing, and messages become searchable only after import.
+
+This backend reader fetches parent channel messages; it does not fetch thread replies or import files, and it cannot read ordinary direct messages between other people using the bot token. It retains the existing direct-loopback demo identity and does not add a login, shared deployment or frontend integration.
+
 ## Environment variables
 
 | Variable | Purpose |
@@ -88,13 +126,13 @@ R2R_AI_MODE=mock backend/.venv/Scripts/python -m uvicorn backend.api.main:app --
 
 ## API contract
 
-See [API_CONTRACT.md](docs/API_CONTRACT.md) for the target endpoints, request and response schemas, validation rules, errors and synthetic examples. The current prototype routes and schemas do not yet implement that contract; integration must follow the owning document.
+See [API_CONTRACT.md](docs/API_CONTRACT.md) for the target endpoints, request and response schemas, validation rules, errors and synthetic examples. FastAPI serves the contracted routes. The Web App client calls them directly in HTTP mode. The legacy Next.js routes remain available to older callers.
 
 ## Who owns what
 
 The following paths describe the current prototype. [AGENTS.md](AGENTS.md#3-team-ownership) defines development ownership and handoffs for the target implementation.
 
-- **A — Frontend:** `src/components` and `src/app/page.tsx`
+- **A — Frontend:** browser routes in `src/app/` and feature modules, styles and API clients in `src/frontend/`
 - **B — Backend/AI:** `src/lib/claude.ts`, `src/lib/prompts.ts`, `src/lib/schema.ts`
 - **C — Cloud/integration:** `src/lib/memoryStore.ts`, deployment, seed data, and API route wiring
 

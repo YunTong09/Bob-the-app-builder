@@ -5,14 +5,17 @@ produce, so the real SQLite store, the real evidence validator and the
 orchestrator can be exercised without an API key. It is never used as a
 fallback when real Claude calls fail.
 
-The mock cannot judge support, so it marks every claim "unverified" and only
-offers keyword-related records as context.
+The mock cannot judge support, so it marks every claim "unverified" and its
+reviewer rejects candidate evidence. Final review accepts only this module's
+fixed, explicitly labelled synthetic replies, never arbitrary model output.
 """
 
 from __future__ import annotations
 
 import re
 from typing import Any
+
+from .review import DRAFT_REVIEW_KEYS
 
 MOCK_PREFIX = "[Mock reply - Claude not called]"
 _WORD = re.compile(r"[^\W_]{3,}", re.UNICODE)
@@ -70,3 +73,32 @@ class MockJsonModel:
             "reply": f"{MOCK_PREFIX} {_REPLIES[p['tone']]}",
             "cited_message_ids": [e["message_id"] for e in p["allowed_evidence"]],
         }
+
+    def _assessment_review(self, p: dict[str, Any]) -> dict[str, Any]:
+        # This explicit development double cannot independently establish any
+        # historical support. Related keyword matches never become receipts.
+        return {
+            "reviews": [
+                {
+                    "claim_index": claim["claim_index"],
+                    "status_valid": claim["proposed_status"] == "unverified",
+                    "statements": [
+                        {"statement_index": statement["statement_index"], "supported": False}
+                        for statement in claim["statements"]
+                    ],
+                }
+                for claim in p["claims"]
+            ]
+        }
+
+    def _draft_review(self, p: dict[str, Any]) -> dict[str, Any]:
+        # Approval is limited to this finite set of labelled synthetic outputs.
+        # It is not a semantic validator or a fallback for production Claude.
+        template = _REPLIES.get(p["tone"])
+        known_synthetic_reply = (
+            template is not None
+            and p["reply"] == f"{MOCK_PREFIX} {template}"
+            and not p["citations"]
+            and not p["conflict_records"]
+        )
+        return {key: known_synthetic_reply for key in DRAFT_REVIEW_KEYS}

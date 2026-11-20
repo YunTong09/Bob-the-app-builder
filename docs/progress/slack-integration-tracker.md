@@ -1,15 +1,19 @@
 # Rage-to-Reply Slack Integration Tracker
 
+> Historical record of the Slack modal prototype. For active Web App milestones, see [Web deployment and integration milestones](../ARCHITECTURE.md#8-web-deployment-and-integration-milestones). The dashboard below records Slack prototype progress.
+
+> Active Web App work is tracked in the [Web App integration tracker](web-app-integration.md).
+
 ## Progress Dashboard
 
 | Metric | Value |
 | --- | --- |
 | Overall Progress | **14.3%** (1 / 7) |
 | Completed Tasks | 1 · TASK-04 |
-| In Progress Tasks | 1 · TASK-03 |
+| In Progress Tasks | 1 · TASK-05 |
 | Blocked Tasks | 1 · TASK-01 |
 | Current Priority | Unblock the TASK-01 connection test |
-| Next Recommended Task | Develop TASK-02 (shortcut that opens the TASK-03 modal) and wire the TASK-03 submission handler. Verify the combined flow in Slack after TASK-01. |
+| Next Recommended Task | Develop TASK-02 and TASK-03 in parallel with synthetic inputs. Verify the combined flow in Slack after TASK-01. |
 | Last Updated | 2026-11-21 (Australia/Brisbane) |
 
 `Progress = DONE Tasks / 7 × 100%`. Count tasks once they are implemented and have passed acceptance.
@@ -24,15 +28,15 @@ This phase delivers a **mock demo in a native Slack modal** using Slack Bolt for
 
 ## Dependency Order and Current Progress
 
-| Order | Task | Needed to Start | Needed for Full Acceptance | Status |
+| Integration Stage | Task | Needed to Start | Needed for Full Acceptance | Status |
 | --- | --- | --- | --- | --- |
 | 1a | TASK-01 · Project Setup & Slack Connection | Existing project | Test app, valid tokens, and Socket Mode | BLOCKED |
 | 1b | TASK-04 · Mock AI Rewrite Service | API Contract and synthetic fixtures | Offline checks of the fixed reply, tone, and evidence | DONE |
 | 2a | TASK-02 · Slack Message Shortcut | Existing Bolt entry point from TASK-01 and a minimal modal | Verified live connection from TASK-01 | TODO |
-| 2b | TASK-03 · Input Modal | Start now with a synthetic manager message | Connect TASK-02 for the live Slack flow | IN PROGRESS |
-| 4 | TASK-05 · Processing & Result Modal | Use fixtures to build the result view | TASK-03 form submission and TASK-04 mock | TODO |
-| 5 | TASK-06 · Error Handling & Retry | Prepare failure cases | Working form, mock, and result flow from TASK-03, TASK-04, and TASK-05 | TODO |
-| 6 | TASK-07 · Team Testing & Demo Validation | Test workspace and teammate account | TASK-01 through TASK-06 | TODO |
+| 2b | TASK-03 · Input Modal | Start now with a synthetic manager message | Connect TASK-02 for the live Slack flow | TODO |
+| 3 | TASK-05 · Processing & Result Modal | Processing and result views implemented with the TASK-04 mock | TASK-03 form submission and live Slack verification | IN PROGRESS |
+| 4 | TASK-06 · Error Handling & Retry | Prepare failure cases | Working form, mock, and result flow from TASK-03, TASK-04, and TASK-05 | TODO |
+| 5 | TASK-07 · Team Testing & Demo Validation | Test workspace and teammate account | TASK-01 through TASK-06 | TODO |
 
 TASK-02 and TASK-03 can be developed and tested offline in parallel. The live integration acceptance order is **TASK-01 → TASK-02 → TASK-03 → TASK-05 → TASK-06 → TASK-07**. TASK-04 can be developed and accepted independently ahead of TASK-05 integration. TASK-02 and TASK-04 have no dependency on each other. The TASK-02 handler can be tested with a synthetic payload now. The live shortcut and modal test requires a verified Slack connection.
 
@@ -40,7 +44,6 @@ TASK-02 and TASK-03 can be developed and tested offline in parallel. The live in
 
 - TASK-01 added `slack/app.mts` and the Socket Mode start and type-check commands. Git ignores the local credentials file. The Slack type check and offline checks for missing and malformed credentials passed. Live connection verification is pending.
 - TASK-04 reuses a synthetic Python API response fixture and passed offline acceptance.
-- TASK-03 added `slack/input-modal.mts` (modal view, validation, and submission handler). Offline payload checks passed. Live Slack verification and registration in `slack/app.mts` are pending.
 
 ### TASK-01 · Project Setup & Slack Connection
 
@@ -106,35 +109,30 @@ TASK-02 and TASK-03 can be developed and tested offline in parallel. The live in
 
 ### TASK-03 · Input Modal
 
-**Status:** IN PROGRESS
+**Status:** TODO
 
 **Objective:** Collect the draft and tone in a native Slack modal.
 
 **Implementation Checklist:**
 
-- [x] Show the selected manager message and a multiline draft field using Block Kit.
-- [x] Provide Diplomatic, Neutral, and Assertive options plus a Rewrite action.
-- [x] Validate blank input, length, and allowed tone values.
-- [ ] Register `INPUT_MODAL_CALLBACK_ID` with `handleInputSubmission` in the Bolt app and verify it live (needs TASK-01 and TASK-02).
+- [ ] Show the selected manager message and a multiline draft field using Block Kit.
+- [ ] Provide Diplomatic, Neutral, and Assertive options plus a Rewrite action.
+- [ ] Validate blank input, length, and allowed tone values.
 
 **Acceptance Criteria:**
 
 - A valid submission yields the original manager message, draft, and selected tone.
 - Invalid or blank input shows an inline error and preserves the user's input.
 
-**Files:** Added `slack/input-modal.mts` (`buildInputModal`, `parseInputSubmission`, `handleInputSubmission`). Its submission handler continues into `showRewriteInModal` from `slack/rewrite-modal.mts`. See `docs/API_CONTRACT.md` for fields and tones.
+**Files:** Slack view path is pending. See `docs/API_CONTRACT.md` for fields and tones.
 
-**Dependencies:** The input view has no prerequisite for offline development or testing. Live acceptance from message selection through form submission requires TASK-02 to call `buildInputModal({ managerMessage })` with the trigger ID, and the handler registration in `slack/app.mts`.
+**Dependencies:** The input view has no prerequisite for offline development or testing. Use a synthetic manager message to build and test the form. Live acceptance from message selection through form submission requires TASK-02.
 
-**Verification:**
+**Verification:** An `rg` review confirmed the tone specification and found no Slack input view in the files reviewed. A live modal submission is pending.
 
-- `tsc --noEmit --strict ... slack/app.mts slack/rewrite.mts slack/rewrite-modal.mts slack/input-modal.mts` passed. `npm run slack:typecheck` cannot expand `slack/*.mts` on Windows cmd, so the files were listed explicitly.
-- An offline Node.js script with synthetic payloads confirmed: a valid submission returns `{ managerMessage, employeeDraft, tone }` for each tone. Blank and whitespace-only drafts, drafts over 3,000 characters, unknown or missing tones, and a missing manager message return inline errors. The draft is not written to `private_metadata`. The initial draft and tone are restored when the view is rebuilt. Invalid input skips the rewrite service and acks `response_action: "errors"`. Valid input acks the processing view and calls `views.update` once.
-- Not tested: a live Slack modal submission, and whether Slack preserves typed input on an `errors` response.
+**Blockers:** None for offline development. Live Slack acceptance depends on TASK-02.
 
-**Blockers:** None for offline development. Live Slack acceptance depends on TASK-01 and TASK-02.
-
-**Notes:** Slack caps `plain_text_input` `max_length`, section text, and `private_metadata` at 3,000 characters, which is below the API Contract's 10,000. The modal enforces 3,000, and `buildInputModal` throws a `RangeError` for a longer selected message. TASK-02 must handle that case. The selected manager message travels in `private_metadata`; the draft stays in the interaction only.
+**Notes:** Keep the draft within the current interaction and out of logs and modal metadata.
 
 ### TASK-04 · Mock AI Rewrite Service
 
@@ -165,28 +163,29 @@ TASK-02 and TASK-03 can be developed and tested offline in parallel. The live in
 
 ### TASK-05 · Processing & Result Modal
 
-**Status:** TODO
+**Status:** IN PROGRESS
 
 **Objective:** Show processing and the rewrite result in sequence in the same modal.
 
 **Implementation Checklist:**
 
-- [ ] Acknowledge the submission and switch the modal to a processing state.
-- [ ] Update the same modal with the professional reply, selected tone, and one synthetic evidence item.
-- [ ] Connect the service to the view states and keep the reply and evidence in distinct sections.
+- [x] Acknowledge the submission and switch the modal to a processing state.
+- [x] Update the same modal with the professional reply, selected tone, and one synthetic evidence item.
+- [x] Connect the service to the view states and keep the reply and evidence in distinct sections.
+- [ ] Wire the flow to the TASK-03 submission handler and verify it in Slack.
 
 **Acceptance Criteria:**
 
 - A deliberately delayed mock displays the processing state, followed by the reply, correct tone, and evidence in the same modal.
 - The interaction stays in the modal without posting to Slack or writing to the original composer.
 
-**Files:** Slack view and handler paths are pending. See `src/app/page.tsx` and `src/components/ComparePanel.tsx` for the web prototype.
+**Files:** `slack/rewrite-modal.mts` uses the TASK-04 mock in `slack/rewrite.mts`.
 
 **Dependencies:** Build the result view with a fixture. Full acceptance requires the TASK-03 submission flow and the TASK-04 mock adapter.
 
-**Verification:** Reviewed the web result entry point and Slack-related file list. Slack modal update testing is pending.
+**Verification:** Prior offline checks passed for delayed mock processing, same-view updates, and all three tone labels. The Slack type check passed in a temporary copy. Live testing is pending.
 
-**Blockers:** Full acceptance awaits the input modal and mock integration.
+**Blockers:** Full acceptance awaits TASK-03 submission wiring and a verified Slack connection.
 
 **Notes:** The web prototype's Copy reply button is outside this demo flow.
 
@@ -263,4 +262,4 @@ TASK-02 and TASK-03 can be developed and tested offline in parallel. The live in
 | 2026-11-21 | TASK-01 | Added the TypeScript Slack Bolt entry point, Socket Mode startup command, and env examples. | Type and missing-credential checks passed. Git ignores local credentials. The live test was pending for lack of credentials. | Uncommitted at the time. |
 | 2026-11-21 | TASK-01 through TASK-07 | Reordered the overview by integration dependencies, identified work that can run in parallel, and recorded completed work. | Compared the tracker with local commit `84a0fd0`. Documentation update based on existing verification records. | Uncommitted at the time. |
 | 2026-11-21 | TASK-04 | Added the standalone rewrite interface, fixture-based mock, and controllable failure mode. | Slack type check and offline assertions passed. Modal and live API integration remained pending. | Uncommitted at the time. |
-| 2026-11-21 | TASK-03 | Added the Block Kit input modal, validation, and submission handler that continues into the TASK-05 modal. | Type check passed and offline payload assertions passed. Live Slack modal test and app registration pending. | Uncommitted at the time. |
+| 2026-11-21 | TASK-03, TASK-05 | Clarified stage numbering and restored TASK-05 progress from the committed modal implementation. | Compared the tracker against commit `d41995e` and the prior offline verification record. | Uncommitted. |
