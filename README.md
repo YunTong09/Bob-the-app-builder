@@ -2,6 +2,15 @@
 
 Rage-to-Reply is a small Next.js foundation for turning an employee's private vent into a short, professional reply. The current skeleton uses seeded in-memory memory records and canned analysis by default, so the full flow works without an API key.
 
+## Documentation
+
+| File | Purpose |
+| --- | --- |
+| [PRODUCT_SPEC.md](docs/PRODUCT_SPEC.md) | Defines product behaviour, feature priorities, MVP scope and acceptance criteria. |
+| [ARCHITECTURE.md](docs/ARCHITECTURE.md) | Explains the technology stack, component responsibilities, data flow and security boundaries. |
+| [API_CONTRACT.md](docs/API_CONTRACT.md) | Defines endpoint behaviour, request and response schemas, validation rules and errors. |
+| [FRONTEND_CONTRACT.md](docs/FRONTEND_CONTRACT.md) | Describes the desktop reply assistant workflow, permissions, typed or spoken input, draft insertion and data handling. |
+
 ## Install and run
 
 ```bash
