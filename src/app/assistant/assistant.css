@@ -1,0 +1,95 @@
+/* Corporate Chaos design system — see docs/FRONTEND_CONTRACT.md. Scoped to .r2r. */
+.r2r {
+  --primary: #a78bfa; --rage: #ff6b6b; --warning: #ffc857; --calm: #54d6be; --on-accent: #211c2c;
+  --bg: #f7f7f8; --surface: #ffffff; --text: #211c2c; --text-2: #514b5d; --border: #82798a; --focus: #503391;
+  background: var(--bg); color: var(--text); min-height: 100vh; padding: 24px;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; font-size: 16px; line-height: 1.5;
+}
+@media (prefers-color-scheme: dark) {
+  .r2r { --bg: #171326; --surface: #251f39; --text: #f8f6fc; --text-2: #c6bed3; --border: #8b809d; --focus: #d9ccff; }
+}
+.r2r *, .r2r *::before, .r2r *::after { box-sizing: border-box; }
+.r2r :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.r2r h1 { font-size: 20px; letter-spacing: 0; line-height: 1.3; margin: 0; }
+.r2r-layout { display: grid; gap: 24px; grid-template-columns: minmax(0, 1fr) 400px; margin: 0 auto; max-width: 1000px; }
+
+/* Chat preview */
+.slack-mock { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; display: grid; grid-template-columns: 120px 1fr; min-height: 420px; overflow: hidden; }
+.slack-sidebar { border-right: 1px solid var(--border); display: flex; flex-direction: column; justify-content: space-between; padding: 16px; }
+.slack-title { font-size: 20px; font-weight: 700; margin: 0; }
+.slack-user { color: var(--text-2); margin: 0; }
+.slack-main { display: flex; flex-direction: column; justify-content: space-between; padding: 16px; }
+.slack-message { margin: 0; }
+.slack-composer { border: 1px solid var(--border); border-radius: 8px; display: grid; gap: 8px; padding: 12px; }
+.slack-composer label { color: var(--text-2); font-size: 14px; }
+.slack-composer textarea { background: transparent; border: 0; color: var(--text); font: inherit; min-height: 64px; resize: none; }
+.slack-composer .btn { justify-self: end; }
+
+/* Popup */
+.popup { align-self: start; background: var(--bg); border: 1px solid var(--border); border-radius: 12px; display: grid; gap: 16px; padding: 16px; }
+.popup-header { align-items: center; display: flex; justify-content: space-between; }
+.tabs { border-bottom: 1px solid var(--border); display: flex; gap: 4px; }
+.tab { background: transparent; border: 0; border-bottom: 2px solid transparent; color: var(--text-2); cursor: pointer; font: inherit; font-size: 14px; padding: 8px 12px; transition: color 150ms, border-color 150ms; }
+.tab[aria-selected="true"] { border-bottom-color: var(--primary); color: var(--text); font-weight: 600; }
+.stack { display: grid; gap: 12px; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; display: grid; gap: 8px; padding: 16px; }
+.card-title { font-size: 16px; font-weight: 600; margin: 0; }
+.field-label { color: var(--text-2); font-size: 14px; }
+.field-label.inline { align-self: center; }
+.sr-only { border: 0; clip: rect(0 0 0 0); height: 1px; margin: -1px; overflow: hidden; padding: 0; position: absolute; width: 1px; }
+.meta { color: var(--text-2); font-size: 14px; margin: 0; overflow-wrap: anywhere; }
+.text-error { color: var(--text); font-weight: 600; }
+.memory-text { margin: 0; overflow-wrap: anywhere; }
+.r2r p { margin: 0; }
+
+.textarea, .input { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font: inherit; padding: 8px 12px; width: 100%; }
+.textarea { min-height: 96px; resize: vertical; }
+.textarea-sm { min-height: 56px; }
+
+.row { align-items: center; display: flex; flex-wrap: wrap; gap: 8px; }
+.row-between { align-items: center; display: flex; justify-content: space-between; }
+.row-end { display: flex; justify-content: flex-end; }
+.tone-row { align-items: flex-start; }
+
+.btn { border: 1px solid var(--border); border-radius: 8px; cursor: pointer; font: inherit; font-size: 14px; font-weight: 600; padding: 8px 16px; transition: opacity 150ms, background-color 150ms; }
+.btn:disabled { cursor: not-allowed; opacity: .55; }
+.btn-primary { background: var(--primary); color: var(--on-accent); }
+.btn-secondary { background: var(--surface); color: var(--text); }
+.btn-danger { background: var(--rage); color: var(--on-accent); }
+.btn-danger-outline { background: var(--surface); color: var(--text); text-align: left; }
+.btn-danger-outline:not(:disabled):hover { border-color: var(--rage); }
+.file-btn { display: inline-block; }
+.file-btn input { border: 0; clip: rect(0 0 0 0); height: 1px; overflow: hidden; position: absolute; width: 1px; }
+.file-btn:focus-within { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+.badge { background: var(--surface); border: 1px solid var(--border); border-radius: 999px; font-size: 14px; padding: 0 12px; }
+.badge-rage { background: var(--rage); color: var(--on-accent); }
+
+.tone-group { border: 1px solid var(--border); border-radius: 8px; display: grid; min-width: 160px; overflow: hidden; }
+.tone-option { align-items: center; background: var(--surface); cursor: pointer; display: flex; font-size: 14px; justify-content: space-between; padding: 4px 12px; }
+.tone-option + .tone-option { border-top: 1px solid var(--border); }
+.tone-option:has(input:checked) { box-shadow: inset 3px 0 0 var(--primary); font-weight: 600; }
+.tone-option input { accent-color: var(--primary); }
+
+.receipt { border-left: 4px solid var(--calm); }
+.receipt-quote { border: 0; margin: 0; padding: 0; }
+.status-card { align-items: flex-start; display: flex; gap: 12px; }
+.status-icon { align-items: center; border-radius: 999px; color: var(--on-accent); display: inline-flex; flex: 0 0 24px; font-weight: 700; height: 24px; justify-content: center; }
+.status-unverified .status-icon, .status-warning .status-icon { background: var(--warning); }
+.status-error { border-left: 4px solid var(--rage); }
+.status-error .status-icon { background: var(--rage); }
+.status-unverified { border-left: 4px solid var(--warning); }
+.status-warning { border-left: 4px solid var(--warning); }
+details summary { cursor: pointer; }
+
+.pref-grid { display: grid; gap: 12px; grid-template-columns: 1fr 1fr; }
+.pref-item { display: grid; gap: 4px; }
+
+@media (max-width: 860px) {
+  .r2r { padding: 16px; }
+  .r2r-layout { grid-template-columns: 1fr; }
+  .slack-mock { min-height: 260px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .r2r * { transition: none !important; animation: none !important; }
+}
