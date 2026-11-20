@@ -1,21 +1,24 @@
-type ComparePanelProps = { rawText: string; polishedReply: string };
+import { toneLabels, type Tone } from "@/lib/web-api";
 
-export default function ComparePanel({ rawText, polishedReply }: ComparePanelProps) {
-  async function copyReply() {
-    await navigator.clipboard.writeText(polishedReply);
-  }
+type ComparePanelProps = {
+  polishedReply: string;
+  tone: Tone;
+  onChange: (reply: string) => void;
+};
 
+export default function ComparePanel({ polishedReply, tone, onChange }: ComparePanelProps) {
   return (
-    <section className="panel compare-panel">
-      <div className="compare-column raw-column">
-        <div className="result-label">Your raw thoughts</div>
-        <p>{rawText}</p>
+    <div className="form-field">
+      <div className="reply-label">
+        <label htmlFor="suggested-reply">Suggested reply</label>
+        <span className="tone-badge">{toneLabels[tone]}</span>
       </div>
-      <div className="compare-column polished-column">
-        <div className="result-label">Ready to send</div>
-        <p>{polishedReply}</p>
-        <button className="secondary-button" type="button" onClick={copyReply}>Copy reply</button>
-      </div>
-    </section>
+      <textarea
+        id="suggested-reply"
+        className="plain-textarea vent-textarea"
+        value={polishedReply}
+        onChange={(event) => onChange(event.target.value)}
+      />
+    </div>
   );
 }
