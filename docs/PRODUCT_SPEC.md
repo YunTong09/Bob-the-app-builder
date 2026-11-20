@@ -49,105 +49,22 @@ Employees who:
 
 ## 3. Core Application Features
 
-### Feature 1: Rage-to-Professional
+These six features define the current scope. P0 features form the required MVP; P1 features follow once the complete P0 workflow is stable.
 
-**Priority: P0**
+| Priority | Feature | Key requirements |
+| --- | --- | --- |
+| P0 | Rage-to-Professional | Turn the user's emotional draft into a professional reply while preserving their intent. Support Diplomatic, Neutral and Assertive tones, with regeneration from the same input. Do not accept blame, invent facts or change meaning. |
+| P0 | Manager Message Interpreter | Identify explicit requests, possible actions, missing information and potential misunderstandings. Label interpretations clearly; do not claim to know the manager's emotions or intentions. |
+| P0 | Replies with Receipts — Main Differentiator | Search imported conversations for evidence supporting claims in the user's draft. Show evidence separately with source references where available. Never invent messages, dates or evidence. |
+| P0 | Communication Memory | Let users import, review and delete conversation history. Store available message details and leave missing timestamps or sources blank. Do not save emotional drafts by default. |
+| P1 | Enhanced Tone Adjustment | Add tone controls beside generated replies. Tone changes must preserve the underlying facts. |
+| P1 | Communication Preferences | Let users save their preferred tone, response length, formality and directness. Keep preferences user-controlled. |
 
-Users provide:
-- The manager's original message.
-- Their unfiltered emotional response.
-- Their preferred communication tone.
+Users supply the manager's original message and their emotional draft before choosing a tone. P0 regeneration reuses the same input form; the dedicated controls beside a generated reply are P1.
 
-The AI generates a professional response while preserving the user's actual concerns and intended message.
+Communication Memory persists only explicitly imported history, including message content, sender, conversation identifier and available timestamps or source information. A basic message list is sufficient for review and deletion. Missing metadata remains blank in the interface and uses the null or omitted representations defined in [API_CONTRACT.md](API_CONTRACT.md).
 
-Supported tones:
-- Diplomatic
-- Neutral
-- Assertive
-
-Initial tone selection and generating again from the same input form are P0. Users can choose another tone and submit the form again.
-
-The output must not automatically accept blame, invent information or change the user's intended meaning.
-
-### Feature 2: Manager Message Interpreter
-
-**Priority: P0**
-
-The AI analyses the manager's original message and identifies:
-- Explicit requests.
-- Possible intended actions.
-- Missing information.
-- Potential misunderstandings.
-
-The application must distinguish interpretations from confirmed facts.
-
-It must not claim to know the manager's emotions or intentions.
-
-### Feature 3: Replies with Receipts
-
-**Priority: P0 — Main Differentiator**
-
-Users can import previous workplace conversations.
-
-The application:
-1. Extracts relevant factual claims from the employee's message.
-2. Searches imported conversation history.
-3. Retrieves related messages.
-4. Evaluates which claims have supporting evidence.
-5. Generates a reply using the verified context.
-
-Supporting evidence should be displayed separately from the generated reply.
-
-Evidence must include source references where available.
-
-The AI must never invent historical messages, dates or supporting evidence.
-
-### Feature 4: Communication Memory
-
-**Priority: P0**
-
-The application supports persistent memory of explicitly imported workplace conversations.
-
-Memory can store:
-- Message content.
-- Sender.
-- Timestamp.
-- Conversation identifier.
-- Source identifier.
-
-Users must be able to import, review and delete their saved history in the MVP. A basic message list is sufficient; a conversation timeline is optional.
-
-Missing timestamps and source information must remain missing rather than being fabricated.
-
-Emotional drafts should not be stored permanently by default.
-
-### Feature 5: Enhanced Tone Adjustment
-
-**Priority: P1**
-
-Add dedicated tone adjustment controls alongside a generated reply. These controls improve the P0 workflow, which already allows users to choose a tone and generate again from the input form.
-
-Changing the tone must not change the underlying facts.
-
-### Feature 6: Rage Meter
-
-**Priority: P1 — Demo Feature**
-
-Display a visual indicator comparing the emotional language of the original draft with the rewritten message.
-
-The meter is a playful representation of writing tone, not a clinical measure of anger or mental wellbeing.
-
-### Feature 7: Communication Preferences
-
-**Priority: P1**
-
-Allow users to save preferences such as:
-- Preferred tone.
-- Response length.
-- Formality.
-- Directness.
-
-Preferences must be user-controlled rather than inferred as permanent facts about other people.
+Replies with Receipts extracts factual claims, retrieves relevant history and validates whether source messages support those claims before using them as evidence. Missing or contradictory evidence must be distinguished from supported claims. Communication Preferences must not infer permanent facts about other people.
 
 ---
 
@@ -175,27 +92,24 @@ Preferences must be user-controlled rather than inferred as permanent facts abou
 The hackathon MVP must demonstrate:
 
 - Working message input.
-- Professional response generation with Claude.
-- Three selectable tones.
+- Professional response generation with Claude that preserves intent without accepting blame or inventing facts.
+- Diplomatic, Neutral and Assertive tones, with regeneration from the same input form.
+- Manager message interpretation covering explicit requests, possible actions, missing information and misunderstandings, with interpretations labelled.
 - Importing sample conversation history.
 - Reviewing and deleting imported history through a basic message list.
 - Contextual memory retrieval.
 - Evidence-supported reply generation.
-- Display of retrieved evidence.
+- Display of supporting evidence separately from the reply, with source references where available.
+- Missing timestamps and sources left blank, and no default saving of emotional drafts.
 - Copy-to-clipboard functionality.
 - Basic error handling.
 
-### Stretch Goals
+### P1 Scope
 
 - Dedicated tone adjustment controls alongside a generated reply.
-- Rage meter animation.
-- Voice-to-text input.
 - User-controlled personal communication preferences.
-- Conversation timeline visualisation.
-- Browser extension integration.
-- Semantic memory retrieval.
 
-Do not implement stretch goals until the complete MVP workflow is functioning.
+Both P1 features must preserve the underlying facts. Do not implement P1 work until the complete P0 workflow is functioning. Features outside the six-feature list have no current implementation priority.
 
 ---
 
@@ -218,15 +132,18 @@ The hackathon version will not implement:
 
 The MVP is successful when a user can:
 
-1. Input an emotionally charged workplace response.
-2. Import, review and delete historical conversations.
-3. Generate a professional reply.
-4. See real supporting evidence where available.
-5. Distinguish verified evidence from unverified claims.
-6. Select another tone and generate again from the input form without changing the facts.
-7. Copy the response for personal review and use.
+1. Enter the manager's message, an emotional draft and a preferred tone.
+2. See the manager's explicit requests, possible actions, missing information and potential misunderstandings, with interpretations clearly labelled and no claims about hidden emotions or intentions.
+3. Import, review and delete historical conversations while missing timestamps and sources remain blank and emotional drafts are not saved by default.
+4. Generate a professional reply that preserves their intent without accepting blame, inventing facts or changing meaning.
+5. See real supporting evidence separately from the reply, with source references where available and no fabricated messages, dates or evidence.
+6. Distinguish verified evidence from unverified or contradicted claims.
+7. Select another tone and generate again from the same input form without changing the facts.
+8. Copy the response for personal review and use.
 
 The complete workflow should function without requiring manual intervention by a developer.
+
+When P1 is implemented, users must also be able to adjust tone beside a generated reply without changing facts, and explicitly save or change their own tone, response length, formality and directness preferences.
 
 ---
 
@@ -235,7 +152,7 @@ The complete workflow should function without requiring manual intervention by a
 - Preserve the employee's voice and intention.
 - Prioritise factual accuracy over polished wording.
 - Do not invent evidence.
-- Do not automatically blame the employee.
+- Do not accept blame on the employee's behalf.
 - Respect user privacy.
 - Keep the user in control.
 - Prefer practical functionality over unnecessary complexity.

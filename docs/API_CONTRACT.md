@@ -1,6 +1,6 @@
 # Rage-to-Reply — API Contract
 
-**Status:** MVP implementation contract. The repository currently contains documentation; these routes are not implemented yet.
+**Status:** Target MVP contract. The current Next.js prototype does not yet implement these routes or schemas.
 
 This document owns endpoint behaviour, wire schemas, validation and errors. [PRODUCT_SPEC.md](PRODUCT_SPEC.md) owns product scope, [ARCHITECTURE.md](ARCHITECTURE.md) owns components and data flow, and [AGENTS.md](../AGENTS.md) owns development rules and team responsibilities. Keep API examples here and link to them from other documents.
 
@@ -73,9 +73,13 @@ export interface GenerateReplyResponse {
 
 `managerMessage`, `employeeDraft` and `tone` are required. If `conversationId` is omitted, retrieve from all of the current owner's imported history. If provided, restrict retrieval to that conversation as well as the owner. Generation does not import either input.
 
-`managerIntent` summarises the manager's explicit request. Any interpretation beyond the words supplied must be labelled as uncertain. It must not claim knowledge of the manager's feelings or hidden intentions.
+Use this same endpoint to generate again from the input form with the same messages and a selected tone. Optional P1 tone controls beside the reply also reuse this request. Changing tone must preserve the underlying facts and the employee's intended meaning; the reply must not accept blame on the employee's behalf or invent facts.
+
+`managerIntent` summarises the manager's explicit requests and may describe possible actions, clearly labelled as interpretations. Use `warnings` to identify missing information and potential misunderstandings. Any interpretation beyond the words supplied must be labelled as uncertain. Neither field may claim knowledge of the manager's emotions or intentions. These existing fields carry the Manager Message Interpreter output; no separate endpoint or response fields are required.
 
 `evidence` contains only retrieved messages supporting the associated `supportedClaim`. The backend validates both the reference and its claimed support, then fills `content`, `sender`, `timestamp` and known `source` from the original authorised record. ID membership alone does not prove a claim. Include `source` when known; an unknown source may be omitted or null. Do not accept invented or altered source text from the model.
+
+The frontend displays supporting evidence separately from the generated reply, with source references where available. Unknown timestamps and sources appear blank in the UI; evidence timestamps remain null, and unknown sources may be omitted or null as defined above. Never invent dates or provenance.
 
 `unverifiedClaims` lists employee claims not established by the available history. If a record contradicts a claim, explain the conflict in `warnings` and do not present the claim as supported. Missing history is not proof that a claim is false. The reply may preserve a clearly user-reported concern without presenting it as a verified historical fact.
 
@@ -207,6 +211,8 @@ export interface SearchMemoryResponse {
 ```
 
 `total` counts all matching records for the owner and optional conversation before pagination. No matches return `200` with `messages: []` and `total: 0`. An offset past the last match returns an empty page with the actual total.
+
+History review displays unknown timestamps and sources as blank. Keep the corresponding response values null rather than substituting an import date or a fabricated source.
 
 Treat non-empty `q` as literal search terms joined with AND, not executable SQL or raw FTS operators. Return content matches ordered by relevance, then `id` ascending for ties. A non-empty query with no searchable terms returns no matches. For history review without a query, order by `id` ascending. Use parameterised queries and construct safe FTS expressions.
 

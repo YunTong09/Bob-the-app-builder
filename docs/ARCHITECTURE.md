@@ -45,11 +45,14 @@ The frontend allows employees to:
 - Enter their **unfiltered/emotional draft**.
 - Choose a **tone**: `diplomatic`, `neutral`, or `assertive`.
 - Generate and review a proposed response.
+- Review the manager's explicit requests, possible actions labelled as interpretations, missing information, and potential misunderstandings.
 - View the **evidence panel** with relevant source messages and any uncertainty warnings.
 - Edit the response and copy it manually.
 - Import conversation history and review/delete saved messages through a basic message list.
 
-The frontend developer owns the API client and maps the shared contract to these screens. A conversation timeline and dedicated tone adjustment controls are optional enhancements; initial tone selection and generating again from the input form are required.
+The frontend developer owns the API client and maps the shared contract to these screens. Initial tone selection and generating again from the same input form are required; both use the generation endpoint defined in [API_CONTRACT.md](API_CONTRACT.md). P1 dedicated tone controls beside the reply reuse that endpoint and preserve the underlying facts. P1 communication preferences let the user control tone, response length, formality and directness.
+
+Display supporting evidence separately from the reply and include source references where available. Leave missing timestamps and sources blank in both evidence and history review rather than inventing metadata.
 
 **Boundary:** The frontend never holds the Anthropic API key, calls Claude directly, or treats model-generated evidence as verified. It does not send a response to the manager.
 
@@ -75,10 +78,10 @@ The required reply and memory endpoints, optional P1 preferences endpoints, vali
 
 Two main operations:
 
-1. **Analysis:** Extract the manager's explicit request, the employee's concern, factual claims, clarification requests, and uncertainties. Treat interpretations of intent as hypotheses, not facts.
+1. **Analysis:** Extract the manager's explicit requests, possible actions, missing information, potential misunderstandings, the employee's concern, and factual claims. Clearly label interpretations and uncertainty; do not claim knowledge of the manager's emotions or intentions.
 2. **Grounded drafting:** Given the messages, relevant history, evidence statuses, and selected tone, draft a respectful, concise reply that preserves the employee's intended meaning.
 
-Claude returns structured data validated against Pydantic models. It must not invent messages, timestamps, unsupported actions, admissions, or promises. Do not automatically introduce apologies or force the employee to concede blame.
+Claude returns structured data validated against Pydantic models. It must preserve the employee's intended meaning across all tones and must not invent messages, timestamps, unsupported actions, admissions, or promises. Do not automatically introduce apologies or force the employee to concede blame.
 
 **Safety boundary:** Messages imported from a manager or another third party are untrusted source data, not executable instructions. The AI/memory developer implements evidence validation against authorised retrieved records. The integration developer invokes that validator before returning a reply and tests that invalid evidence cannot reach the frontend.
 
@@ -116,7 +119,7 @@ For the MVP, keyword/full-text retrieval is sufficient; a vector database is not
 
 **Owner:** Integration developer, with shared schema agreement
 
-The API returns the suggested reply, manager request/interpretation, employee concern, supporting evidence, unverified claims and warnings. Use the response schema and synthetic example in [API_CONTRACT.md](API_CONTRACT.md) as the single wire-format reference. The selected tone is a request field; the frontend retains it when generating again.
+The API returns the suggested reply, manager request/interpretation, employee concern, supporting evidence, unverified claims and warnings. The existing `managerIntent` and `warnings` fields carry the interpreter's explicit requests, labelled possible actions, missing information and potential misunderstandings. Use the response schema and synthetic example in [API_CONTRACT.md](API_CONTRACT.md) as the single wire-format reference. The selected tone is a request field; the frontend retains the original input when generating again, including when the user selects another tone.
 
 Every `messageId` in `evidence` must refer to a real, authorised retrieved message. The reply itself should be labelled a **suggestion**, not an automatically verified statement.
 
@@ -164,7 +167,7 @@ The authoritative MVP scope and user acceptance criteria are in [PRODUCT_SPEC.md
 
 ## 8. Out of scope for the 18-hour MVP
 
-Follow the non-goals and stretch-goal boundaries in [PRODUCT_SPEC.md](PRODUCT_SPEC.md). The MVP uses local SQLite FTS5 retrieval; it does not require a vector database or external messaging integration.
+Follow the six-feature scope, P1 boundaries and non-goals in [PRODUCT_SPEC.md](PRODUCT_SPEC.md). The MVP uses local SQLite FTS5 retrieval; it does not require a vector database or external messaging integration.
 
 ---
 

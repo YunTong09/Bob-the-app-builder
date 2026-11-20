@@ -1,6 +1,6 @@
 # Rage-to-Reply
 
-Rage-to-Reply is a small Next.js foundation for turning an employee's private vent into a short, professional reply. The current skeleton uses seeded in-memory memory records and canned analysis by default, so the full flow works without an API key.
+Rage-to-Reply turns an employee's private vent into a professional reply while preserving their intent and grounding claims in imported conversation history. The repository currently contains a Next.js prototype with seeded in-memory history and canned analysis by default, so the prototype can run without an API key. The feature list below describes the target scope, not completed implementation.
 
 ## Documentation
 
@@ -10,6 +10,19 @@ Rage-to-Reply is a small Next.js foundation for turning an employee's private ve
 | [ARCHITECTURE.md](docs/ARCHITECTURE.md) | Explains the technology stack, component responsibilities, data flow and security boundaries. |
 | [API_CONTRACT.md](docs/API_CONTRACT.md) | Defines endpoint behaviour, request and response schemas, validation rules and errors. |
 | [FRONTEND_CONTRACT.md](docs/FRONTEND_CONTRACT.md) | Describes the desktop reply assistant workflow, permissions, typed or spoken input, draft insertion and data handling. |
+
+## Feature priorities
+
+| Priority | Feature | Purpose |
+| --- | --- | --- |
+| P0 | Rage-to-Professional | Preserve intent while rewriting in Diplomatic, Neutral or Assertive tone; regenerate from the same input without accepting blame or inventing facts. |
+| P0 | Manager Message Interpreter | Identify requests, possible actions, missing information and misunderstandings, with interpretations clearly labelled. |
+| P0 | Replies with Receipts | Find supporting evidence in imported conversations and show it separately with available source references. |
+| P0 | Communication Memory | Import, review and delete history; leave missing metadata blank and do not save emotional drafts by default. |
+| P1 | Enhanced Tone Adjustment | Adjust tone beside a generated reply while preserving facts. |
+| P1 | Communication Preferences | Save user-controlled tone, response length, formality and directness preferences. |
+
+The [product specification](docs/PRODUCT_SPEC.md#3-core-application-features) owns the full requirements and acceptance criteria. Complete the P0 workflow before adding the two P1 features.
 
 ## Install and run
 
@@ -40,49 +53,15 @@ Set `USE_MOCK=false` and provide `ANTHROPIC_API_KEY` to use Claude. `ANTHROPIC_M
 
 ## API contract
 
-`POST /api/analyze`
-
-```json
-{
-  "managerId": "dave",
-  "managerMessage": "I already gave you the company docs, why don't you know where the key is?",
-  "employeeRawText": "The key is locked behind a password, am I supposed to guess it psychically?"
-}
-```
-
-Returns:
-
-```json
-{
-  "managerIntent": "Confirm whether the employee can access the key and identify what is blocking them.",
-  "rageLevel": 72,
-  "extractedFacts": ["The key is behind a password.", "The employee does not have the password."],
-  "relatedMemories": [{ "id": "...", "text": "...", "date": "2026-11-12" }],
-  "polishedReply": "Hi Dave, I don't currently have the password for the key..."
-}
-```
-
-`GET /api/memory?managerId=dave` returns `MemoryEvent[]`.
-
-`POST /api/memory` accepts `{ "managerId": "dave", "text": "...", "date": "YYYY-MM-DD" }` and returns the saved event.
-
-`POST /api/reset` reloads `src/data/seed.json` into the in-memory store.
-
-`MemoryEvent = { id: string, managerId: string, text: string, date: string }`
+See [API_CONTRACT.md](docs/API_CONTRACT.md) for the target endpoints, request and response schemas, validation rules, errors and synthetic examples. The current prototype routes and schemas do not yet implement that contract; integration must follow the owning document.
 
 ## Who owns what
+
+The following paths describe the current prototype. [AGENTS.md](AGENTS.md#3-team-ownership) defines development ownership and handoffs for the target implementation.
 
 - **A — Frontend:** `src/components` and `src/app/page.tsx`
 - **B — Backend/AI:** `src/lib/claude.ts`, `src/lib/prompts.ts`, `src/lib/schema.ts`
 - **C — Cloud/integration:** `src/lib/memoryStore.ts`, deployment, seed data, and API route wiring
-
-## TODO
-
-- Voice input
-- Shredder animation
-- Manager personality memory
-- Tone selector
-- Slack integration
 
 ## Privacy and safety notes
 
