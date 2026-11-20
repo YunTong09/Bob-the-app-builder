@@ -1,12 +1,14 @@
 # Rage-to-Reply Slack Integration Tracker
 
+> Historical record of the Slack modal prototype. For active Web App milestones, see [Web deployment and integration milestones](../ARCHITECTURE.md#8-web-deployment-and-integration-milestones). The dashboard below records Slack prototype progress.
+
 ## Progress Dashboard
 
 | Metric | Value |
 | --- | --- |
 | Overall Progress | **14.3%** (1 / 7) |
 | Completed Tasks | 1 · TASK-04 |
-| In Progress Tasks | 0 |
+| In Progress Tasks | 1 · TASK-05 |
 | Blocked Tasks | 1 · TASK-01 |
 | Current Priority | Unblock the TASK-01 connection test |
 | Next Recommended Task | Develop TASK-02 and TASK-03 in parallel with synthetic inputs. Verify the combined flow in Slack after TASK-01. |
@@ -24,15 +26,15 @@ This phase delivers a **mock demo in a native Slack modal** using Slack Bolt for
 
 ## Dependency Order and Current Progress
 
-| Order | Task | Needed to Start | Needed for Full Acceptance | Status |
+| Integration Stage | Task | Needed to Start | Needed for Full Acceptance | Status |
 | --- | --- | --- | --- | --- |
 | 1a | TASK-01 · Project Setup & Slack Connection | Existing project | Test app, valid tokens, and Socket Mode | BLOCKED |
 | 1b | TASK-04 · Mock AI Rewrite Service | API Contract and synthetic fixtures | Offline checks of the fixed reply, tone, and evidence | DONE |
 | 2a | TASK-02 · Slack Message Shortcut | Existing Bolt entry point from TASK-01 and a minimal modal | Verified live connection from TASK-01 | TODO |
 | 2b | TASK-03 · Input Modal | Start now with a synthetic manager message | Connect TASK-02 for the live Slack flow | TODO |
-| 4 | TASK-05 · Processing & Result Modal | Use fixtures to build the result view | TASK-03 form submission and TASK-04 mock | TODO |
-| 5 | TASK-06 · Error Handling & Retry | Prepare failure cases | Working form, mock, and result flow from TASK-03, TASK-04, and TASK-05 | TODO |
-| 6 | TASK-07 · Team Testing & Demo Validation | Test workspace and teammate account | TASK-01 through TASK-06 | TODO |
+| 3 | TASK-05 · Processing & Result Modal | Processing and result views implemented with the TASK-04 mock | TASK-03 form submission and live Slack verification | IN PROGRESS |
+| 4 | TASK-06 · Error Handling & Retry | Prepare failure cases | Working form, mock, and result flow from TASK-03, TASK-04, and TASK-05 | TODO |
+| 5 | TASK-07 · Team Testing & Demo Validation | Test workspace and teammate account | TASK-01 through TASK-06 | TODO |
 
 TASK-02 and TASK-03 can be developed and tested offline in parallel. The live integration acceptance order is **TASK-01 → TASK-02 → TASK-03 → TASK-05 → TASK-06 → TASK-07**. TASK-04 can be developed and accepted independently ahead of TASK-05 integration. TASK-02 and TASK-04 have no dependency on each other. The TASK-02 handler can be tested with a synthetic payload now. The live shortcut and modal test requires a verified Slack connection.
 
@@ -159,28 +161,29 @@ TASK-02 and TASK-03 can be developed and tested offline in parallel. The live in
 
 ### TASK-05 · Processing & Result Modal
 
-**Status:** TODO
+**Status:** IN PROGRESS
 
 **Objective:** Show processing and the rewrite result in sequence in the same modal.
 
 **Implementation Checklist:**
 
-- [ ] Acknowledge the submission and switch the modal to a processing state.
-- [ ] Update the same modal with the professional reply, selected tone, and one synthetic evidence item.
-- [ ] Connect the service to the view states and keep the reply and evidence in distinct sections.
+- [x] Acknowledge the submission and switch the modal to a processing state.
+- [x] Update the same modal with the professional reply, selected tone, and one synthetic evidence item.
+- [x] Connect the service to the view states and keep the reply and evidence in distinct sections.
+- [ ] Wire the flow to the TASK-03 submission handler and verify it in Slack.
 
 **Acceptance Criteria:**
 
 - A deliberately delayed mock displays the processing state, followed by the reply, correct tone, and evidence in the same modal.
 - The interaction stays in the modal without posting to Slack or writing to the original composer.
 
-**Files:** Slack view and handler paths are pending. See `src/app/page.tsx` and `src/components/ComparePanel.tsx` for the web prototype.
+**Files:** `slack/rewrite-modal.mts` uses the TASK-04 mock in `slack/rewrite.mts`.
 
 **Dependencies:** Build the result view with a fixture. Full acceptance requires the TASK-03 submission flow and the TASK-04 mock adapter.
 
-**Verification:** Reviewed the web result entry point and Slack-related file list. Slack modal update testing is pending.
+**Verification:** Prior offline checks passed for delayed mock processing, same-view updates, and all three tone labels. The Slack type check passed in a temporary copy. Live testing is pending.
 
-**Blockers:** Full acceptance awaits the input modal and mock integration.
+**Blockers:** Full acceptance awaits TASK-03 submission wiring and a verified Slack connection.
 
 **Notes:** The web prototype's Copy reply button is outside this demo flow.
 
@@ -257,3 +260,4 @@ TASK-02 and TASK-03 can be developed and tested offline in parallel. The live in
 | 2026-11-21 | TASK-01 | Added the TypeScript Slack Bolt entry point, Socket Mode startup command, and env examples. | Type and missing-credential checks passed. Git ignores local credentials. The live test was pending for lack of credentials. | Uncommitted at the time. |
 | 2026-11-21 | TASK-01 through TASK-07 | Reordered the overview by integration dependencies, identified work that can run in parallel, and recorded completed work. | Compared the tracker with local commit `84a0fd0`. Documentation update based on existing verification records. | Uncommitted at the time. |
 | 2026-11-21 | TASK-04 | Added the standalone rewrite interface, fixture-based mock, and controllable failure mode. | Slack type check and offline assertions passed. Modal and live API integration remained pending. | Uncommitted at the time. |
+| 2026-11-21 | TASK-03, TASK-05 | Clarified stage numbering and restored TASK-05 progress from the committed modal implementation. | Compared the tracker against commit `d41995e` and the prior offline verification record. | Uncommitted. |

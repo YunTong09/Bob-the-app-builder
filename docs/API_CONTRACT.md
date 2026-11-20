@@ -1,6 +1,6 @@
 # Rage-to-Reply — API Contract
 
-**Status:** Target MVP contract. The current Next.js prototype does not yet implement these routes or schemas.
+**Status:** Web App API contract. FastAPI implements the P0 routes. The existing Next.js prototype still uses separate legacy routes.
 
 This document owns endpoint behaviour, wire schemas, validation and errors. [PRODUCT_SPEC.md](PRODUCT_SPEC.md) owns product scope, [ARCHITECTURE.md](ARCHITECTURE.md) owns components and data flow, and [AGENTS.md](../AGENTS.md) owns development rules and team responsibilities. Keep API examples here and link to them from other documents.
 
@@ -15,13 +15,13 @@ This document owns endpoint behaviour, wire schemas, validation and errors. [PRO
 - Supplied timestamps must be RFC 3339 date-times with an explicit timezone. Omit an unknown timestamp or source on import. Store missing metadata as null; never substitute the import time for a message timestamp.
 - Arrays in successful responses are always present, including when empty. Output timestamps are strings or null as specified below.
 - Counts, totals and pagination values are non-negative integers, with the additional limit bounds specified for search.
-- No route sends messages, copies content to the clipboard, or automatically saves the manager message or emotional draft. The frontend performs copying only after the user clicks Copy.
+- Generation returns a suggested reply for review in the browser. It does not send messages, use the clipboard, or automatically save the manager message or emotional draft.
 
 ### Identity and ownership
 
 The server derives the owner from an authenticated session. The restricted MVP demo may instead use one server-controlled demo owner only when run locally for one user, bound to loopback and inaccessible to other users. Do not expose that shared demo identity as a public multi-user deployment.
 
-Requests never accept `userId` or `sessionId` as proof of ownership. In authenticated mode, a missing or invalid session returns `401`. Authentication setup is outside this MVP contract and must be agreed before enabling multi-user access.
+Requests never accept `userId` or `sessionId` as proof of ownership. In authenticated mode, a missing or invalid session returns `401`. The authentication provider and session mechanism must be agreed before shared Web App deployment. The current demo resolver supports direct loopback access only.
 
 Apply ownership and any `conversationId` restriction within database queries **before ranking, counting or limiting results**. Import, search, generation, deletion and optional preferences all use the same owner. A conversation with no records visible to that owner behaves like an empty conversation; do not reveal another user's records or their existence. Failure to establish or enforce ownership is an error, never a reason to search globally.
 

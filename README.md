@@ -1,6 +1,6 @@
 # Rage-to-Reply
 
-Rage-to-Reply turns an employee's private vent into a professional reply while preserving their intent and grounding claims in imported conversation history. The repository currently contains a Next.js prototype with seeded in-memory history and canned analysis by default, so the prototype can run without an API key. The feature list below describes the target scope, not completed implementation.
+Rage-to-Reply is a Web App that turns an employee's private draft into an editable professional reply and grounds claims in imported conversation history. The repository contains a Next.js browser prototype and a FastAPI backend. The prototype runs with synthetic data by default. Connecting the browser to FastAPI and deploying authenticated access are the next integration milestones.
 
 ## Documentation
 
@@ -9,7 +9,8 @@ Rage-to-Reply turns an employee's private vent into a professional reply while p
 | [PRODUCT_SPEC.md](docs/PRODUCT_SPEC.md) | Defines product behaviour, feature priorities, MVP scope and acceptance criteria. |
 | [ARCHITECTURE.md](docs/ARCHITECTURE.md) | Explains the technology stack, component responsibilities, data flow and security boundaries. |
 | [API_CONTRACT.md](docs/API_CONTRACT.md) | Defines endpoint behaviour, request and response schemas, validation rules and errors. |
-| [FRONTEND_CONTRACT.md](docs/FRONTEND_CONTRACT.md) | Describes the desktop reply assistant workflow, permissions, typed or spoken input, draft insertion and data handling. |
+| [FRONTEND_CONTRACT.md](docs/FRONTEND_CONTRACT.md) | Defines the browser workspace, input and result states, privacy handling and visual design. |
+| [Slack prototype tracker](docs/progress/slack-integration-tracker.md) | Historical record of the Slack modal prototype. |
 
 ## Feature priorities
 
@@ -24,7 +25,7 @@ Rage-to-Reply turns an employee's private vent into a professional reply while p
 
 The [product specification](docs/PRODUCT_SPEC.md#3-core-application-features) owns the full requirements and acceptance criteria. Complete the P0 workflow before adding the two P1 features.
 
-## Install and run
+## Run the current browser prototype
 
 ```bash
 npm install
@@ -88,7 +89,7 @@ R2R_AI_MODE=mock backend/.venv/Scripts/python -m uvicorn backend.api.main:app --
 
 ## API contract
 
-See [API_CONTRACT.md](docs/API_CONTRACT.md) for the target endpoints, request and response schemas, validation rules, errors and synthetic examples. The current prototype routes and schemas do not yet implement that contract; integration must follow the owning document.
+See [API_CONTRACT.md](docs/API_CONTRACT.md) for the target endpoints, request and response schemas, validation rules, errors and synthetic examples. FastAPI serves the contracted routes. The Next.js prototype still uses its legacy endpoints until Web App integration is complete.
 
 ## Who owns what
 
