@@ -84,3 +84,29 @@ def test_stub_mode_full_flow(monkeypatch):
     assert body["reply"].startswith("[stub")
     assert [e["messageId"] for e in body["evidence"]] == ["msg_001"]
     assert body["evidence"][0]["content"] == "I've uploaded the documents to the shared drive."
+
+
+def test_local_web_origin_preserves_demo_identity(monkeypatch):
+    import sys
+
+    origin = "http://127.0.0.1:3000"
+    monkeypatch.setenv("R2R_SERVICES", "stub")
+    monkeypatch.setenv("R2R_WEB_ORIGIN", origin)
+    monkeypatch.delitem(sys.modules, "backend.api.main", raising=False)
+    main = importlib.import_module("backend.api.main")
+    client = TestClient(main.app, base_url="http://127.0.0.1:8000", client=("127.0.0.1", 50000))
+
+    preflight = {"Access-Control-Request-Method": "POST", "Access-Control-Request-Headers": "content-type"}
+    for request_origin, status in [(origin, 200), ("https://example.com", 400)]:
+        response = client.options("/api/reply/generate", headers={**preflight, "Origin": request_origin})
+        assert response.status_code == status
+        assert response.headers.get("access-control-allow-origin") == (origin if status == 200 else None)
+
+    response = client.post("/api/reply/generate", json=GEN_BODY, headers={"Origin": origin})
+    assert response.status_code == 200
+    assert response.headers["access-control-allow-origin"] == origin
+    response = client.get("/api/memory/search", headers={"Origin": origin, "X-Forwarded-For": "203.0.113.9"})
+    assert_error(response, 401, "UNAUTHENTICATED")
+    assert response.headers["access-control-allow-origin"] == origin
+
+    assert client.get("/api/memory/search", headers={"Host": "example.com"}).status_code == 400

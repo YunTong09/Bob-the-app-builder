@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
-import MemoryPanel from "@/components/assistant/MemoryPanel";
-import PreferencesPanel from "@/components/assistant/PreferencesPanel";
-import ReplyPanel from "@/components/assistant/ReplyPanel";
-import { isMockMode } from "@/lib/replyApi";
-import "./assistant.css";
+import { useState, type KeyboardEvent } from "react";
+import MemoryPanel from "@/frontend/features/memory/MemoryPanel";
+import PreferencesPanel from "@/frontend/features/preferences/PreferencesPanel";
+import ReplyPanel from "@/frontend/features/reply/ReplyPanel";
+import { isMockMode } from "@/frontend/api/replyApi";
+import "@/frontend/styles/assistant.css";
 
 // Synthetic chat shown on the left to stand in for the desktop chat app (Slack) in the sketches.
 const CHAT_MANAGER_MESSAGE = "Why haven't you accessed the document yet?";
@@ -19,6 +19,20 @@ const TABS: { id: Tab; label: string }[] = [
 
 export default function AssistantPage() {
   const [tab, setTab] = useState<Tab>("reply");
+
+  function navigateTabs(event: KeyboardEvent<HTMLButtonElement>, index: number) {
+    const offsets: Record<string, number> = {
+      ArrowLeft: (index + TABS.length - 1) % TABS.length,
+      ArrowRight: (index + 1) % TABS.length,
+      Home: 0,
+      End: TABS.length - 1,
+    };
+    if (!Object.hasOwn(offsets, event.key)) return;
+    event.preventDefault();
+    const next = TABS[offsets[event.key]].id;
+    setTab(next);
+    document.getElementById(`tab-${next}`)?.focus();
+  }
 
   return (
     <div className="r2r">
@@ -38,21 +52,23 @@ export default function AssistantPage() {
           </div>
         </section>
 
-        <main className="popup" aria-label="Rage-to-Reply extension">
+        <main className="popup" aria-label="Rage-to-Reply assistant">
           <header className="popup-header">
             <h1>Rage-to-Reply</h1>
             {isMockMode && <span className="badge">mock data</span>}
           </header>
           <div role="tablist" aria-label="Sections" className="tabs">
-            {TABS.map((t) => (
+            {TABS.map((t, index) => (
               <button
                 key={t.id}
                 role="tab"
                 id={`tab-${t.id}`}
                 aria-selected={tab === t.id}
                 aria-controls={`panel-${t.id}`}
+                tabIndex={tab === t.id ? 0 : -1}
                 className="tab"
                 onClick={() => setTab(t.id)}
+                onKeyDown={(event) => navigateTabs(event, index)}
               >
                 {t.label}
               </button>

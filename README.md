@@ -1,6 +1,6 @@
 # Rage-to-Reply
 
-Rage-to-Reply is a Web App that turns an employee's private draft into an editable professional reply and grounds claims in imported conversation history. The repository contains a Next.js browser prototype and a FastAPI backend. The prototype runs with synthetic data by default. Connecting the browser to FastAPI and deploying authenticated access are the next integration milestones.
+Rage-to-Reply is a Web App that turns an employee's private draft into an editable professional reply and grounds claims in imported conversation history. The repository contains a Next.js browser prototype and a FastAPI backend. The prototype runs with synthetic data by default. The browser can use a local FastAPI instance or the built-in mock. Authenticated hosting is a later milestone.
 
 ## Documentation
 
@@ -35,6 +35,15 @@ npm run dev
 
 Open `http://localhost:3000`.
 
+Both browser pages use the same frontend API client. The default browser mock works without FastAPI. To test the HTTP integration with FastAPI's mock AI on macOS or Linux, start these in separate terminals after installing the backend dependencies:
+
+```bash
+R2R_WEB_ORIGIN=http://127.0.0.1:3000 R2R_AI_MODE=mock python -m uvicorn backend.api.main:app --host 127.0.0.1 --port 8000
+NEXT_PUBLIC_R2R_MOCK=false NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:8000 npm run dev -- --hostname 127.0.0.1
+```
+
+Open `http://127.0.0.1:3000`. Set the same variables in PowerShell with `$env:NAME="value"` before starting the corresponding command. The browser address, including its port, must exactly match `R2R_WEB_ORIGIN` on the backend. Rebuild or restart Next.js after changing its public variables. Both servers are loopback-only for this demo.
+
 Useful commands:
 
 ```bash
@@ -46,7 +55,7 @@ Set `USE_MOCK=false` and provide `ANTHROPIC_API_KEY` to use Claude. `ANTHROPIC_M
 
 ## FastAPI backend (P0 API, in progress)
 
-`backend/` implements the P0 routes in [API_CONTRACT.md](docs/API_CONTRACT.md) with FastAPI and Pydantic, a SQLite + FTS5 memory store and Claude-based analysis, evidence assessment and drafting. The Next.js prototype above is unchanged.
+`backend/` implements the P0 routes in [API_CONTRACT.md](docs/API_CONTRACT.md) with FastAPI and Pydantic, a SQLite + FTS5 memory store and Claude-based analysis, evidence assessment and drafting. Both browser pages can use the local routes through the shared frontend API client.
 
 ```bash
 python -m venv backend/.venv
@@ -89,13 +98,13 @@ R2R_AI_MODE=mock backend/.venv/Scripts/python -m uvicorn backend.api.main:app --
 
 ## API contract
 
-See [API_CONTRACT.md](docs/API_CONTRACT.md) for the target endpoints, request and response schemas, validation rules, errors and synthetic examples. FastAPI serves the contracted routes. The Next.js prototype still uses its legacy endpoints until Web App integration is complete.
+See [API_CONTRACT.md](docs/API_CONTRACT.md) for the target endpoints, request and response schemas, validation rules, errors and synthetic examples. FastAPI serves the contracted routes. The Web App client calls them directly in HTTP mode. The legacy Next.js routes remain available to older callers.
 
 ## Who owns what
 
 The following paths describe the current prototype. [AGENTS.md](AGENTS.md#3-team-ownership) defines development ownership and handoffs for the target implementation.
 
-- **A — Frontend:** `src/components` and `src/app/page.tsx`
+- **A — Frontend:** browser routes in `src/app/` and feature modules, styles and API clients in `src/frontend/`
 - **B — Backend/AI:** `src/lib/claude.ts`, `src/lib/prompts.ts`, `src/lib/schema.ts`
 - **C — Cloud/integration:** `src/lib/memoryStore.ts`, deployment, seed data, and API route wiring
 

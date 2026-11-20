@@ -60,7 +60,12 @@ These six features define the current scope. P0 features form the required MVP; 
 | P1 | Enhanced Tone Adjustment | Add tone controls beside generated replies. Tone changes must preserve the underlying facts. |
 | P1 | Communication Preferences | Let users save their preferred tone, response length, formality and directness. Keep preferences user-controlled. |
 
-Users supply the manager's original message and their emotional draft before choosing a tone. P0 regeneration reuses the same input form; the dedicated controls beside a generated reply are P1.
+The Web App offers two reply modes:
+
+- **Rewrite with Evidence.** Users explicitly import Slack conversation history in the supported JSON format, provide the manager's message and an emotional draft, and choose a tone. The app can retrieve and display source-backed evidence.
+- **Quick Tone Rewrite.** Users type a draft and choose a tone. The rewrite uses the current draft without retrieving imported history.
+
+P0 regeneration reuses the same input form. The dedicated controls beside a generated reply are P1. The numbered workflow below describes Rewrite with Evidence. Quick Tone Rewrite uses draft input, generation, review and editing.
 
 Communication Memory persists only explicitly imported history, including message content, sender, conversation identifier and available timestamps or source information. A basic message list is sufficient for review and deletion. Missing metadata remains blank in the interface and uses the null or omitted representations defined in [API_CONTRACT.md](API_CONTRACT.md).
 

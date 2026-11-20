@@ -1,11 +1,12 @@
 import { useRef, useState } from "react";
-import { webApi, type HistoryPage } from "@/lib/web-api";
+import type { SearchMemoryResponse } from "@/frontend/api/contract";
+import { deleteAllMemory, importMemory, searchMemory } from "@/frontend/api/replyApi";
 
 const pageSize = 20;
 const maxImportBytes = 1_048_576;
 
 export default function HistoryPanel() {
-  const [page, setPage] = useState<HistoryPage | null>(null);
+  const [page, setPage] = useState<SearchMemoryResponse | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -31,7 +32,7 @@ export default function HistoryPanel() {
   }
 
   async function load(offset = 0) {
-    setPage(await webApi<HistoryPage>(`/api/memory/search?limit=${pageSize}&offset=${offset}`));
+    setPage(await searchMemory("", pageSize, offset));
   }
 
   async function importHistory() {
@@ -44,14 +45,10 @@ export default function HistoryPanel() {
     } catch {
       throw new Error("The file is not valid JSON.");
     }
-    if (!data || typeof data !== "object" || !("messages" in data) || !Array.isArray(data.messages)) {
+    if (!data || typeof data !== "object" || !("messages" in data) || Object.keys(data).length !== 1 || !Array.isArray(data.messages)) {
       throw new Error('Use a JSON object with a "messages" array.');
     }
-    const result = await webApi<{ importedCount: number; skippedCount: number }>("/api/memory/import", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: contents,
-    });
+    const result = await importMemory(data.messages);
     setFile(null);
     if (fileInput.current) fileInput.current.value = "";
     setNotice(`Imported ${result.importedCount}. Skipped ${result.skippedCount} existing messages.`);
@@ -59,7 +56,7 @@ export default function HistoryPanel() {
   }
 
   async function deleteHistory() {
-    const result = await webApi<{ deletedCount: number }>("/api/memory", { method: "DELETE" });
+    const result = await deleteAllMemory();
     setPage({ messages: [], total: 0, limit: pageSize, offset: 0 });
     setConfirmDelete(false);
     setNotice(`Deleted ${result.deletedCount} saved messages.`);
@@ -81,13 +78,14 @@ export default function HistoryPanel() {
       </div>
       {confirmDelete && (
         <div className="history-confirm">
+          <span className="status-label status-label-warning">Warning</span>
           <p>Delete all imported messages?</p>
           <button type="button" className="secondary-button" disabled={busy} onClick={() => setConfirmDelete(false)}>Cancel</button>
           <button type="button" className="secondary-button" disabled={busy} onClick={() => void run(deleteHistory)}>Confirm deletion</button>
         </div>
       )}
       <p className="small-text" role="status">{busy ? "Updating history…" : notice}</p>
-      {error && <p className="error-message" role="alert">{error}</p>}
+      {error && <p className="error-message" role="alert"><span className="status-label status-label-error">Error</span>{error}</p>}
       {page && (
         <>
           {page.messages.length === 0 ? <p className="small-text">No saved messages on this page.</p> : (

@@ -1,4 +1,4 @@
-import { toneLabels, type Tone } from "@/lib/web-api";
+import { toneLabels, type Tone } from "@/frontend/api/web-api";
 
 type VentInputProps = {
   value: string;
