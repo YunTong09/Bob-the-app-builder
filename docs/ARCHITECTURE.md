@@ -2,11 +2,13 @@
 
 **Status:** Hackathon MVP architecture  
 **Team:** 3 developers  
-**Primary stack:** React + TypeScript, FastAPI + Python, Anthropic Claude API, SQLite + FTS5
+**Primary stack:** React + TypeScript + Vite + Tailwind CSS; Python 3.11+ + FastAPI + Pydantic; Anthropic Claude API; SQLite + FTS5
 
 ## 1. Purpose
 
-Rage-to-Reply helps employees turn an emotional draft into a professional, accurate reply to a workplace message. Its differentiator, **Replies with Receipts**, retrieves relevant past messages and presents traceable evidence alongside the proposed reply.
+This document defines components, data flow and implementation boundaries for Rage-to-Reply. [PRODUCT_SPEC.md](PRODUCT_SPEC.md) owns product behaviour, priorities and acceptance criteria; [API_CONTRACT.md](API_CONTRACT.md) owns endpoint behaviour and schemas; [AGENTS.md](../AGENTS.md) owns development rules and team responsibilities.
+
+The core pipeline turns an emotional draft into a professional reply and retrieves relevant past messages as traceable evidence alongside the suggestion.
 
 The user reviews and copies the response; **the application never sends it automatically**.
 
@@ -45,7 +47,9 @@ The frontend allows employees to:
 - Generate and review a proposed response.
 - View the **evidence panel** with relevant source messages and any uncertainty warnings.
 - Edit the response and copy it manually.
-- Import conversation history and view/delete saved messages (MVP as time allows).
+- Import conversation history and review/delete saved messages through a basic message list.
+
+The frontend developer owns the API client and maps the shared contract to these screens. A conversation timeline and dedicated tone adjustment controls are optional enhancements; initial tone selection and generating again from the input form are required.
 
 **Boundary:** The frontend never holds the Anthropic API key, calls Claude directly, or treats model-generated evidence as verified. It does not send a response to the manager.
 
@@ -61,16 +65,7 @@ FastAPI handles:
 - Orchestrating the analysis → retrieval → generation workflow.
 - Returning a stable, validated JSON response.
 
-**MVP endpoints:**
-
-| Method | Route | Purpose |
-|---|---|---|
-| `POST` | `/api/reply/generate` | Run the grounded reply pipeline |
-| `POST` | `/api/memory/import` | Import user-provided conversation history |
-| `GET` | `/api/memory/search` | Return relevant stored messages for review |
-| `DELETE` | `/api/memory` | Delete the active user's imported history |
-| `GET` | `/api/preferences` | Read communication preferences (optional) |
-| `PUT` | `/api/preferences` | Update communication preferences (optional) |
+The required reply and memory endpoints, optional P1 preferences endpoints, validation rules and error responses are defined in [API_CONTRACT.md](API_CONTRACT.md). The integration developer owns these endpoints and the orchestration that invokes the AI and memory services.
 
 **Identity:** For a single-user hackathon demo, a server-controlled demo session is acceptable if it is explicitly isolated and not exposed as multi-user security. For a multi-user deployment, use real authentication and derive identity server-side; never trust a client-supplied `userId` as proof of access.
 
@@ -85,7 +80,7 @@ Two main operations:
 
 Claude returns structured data validated against Pydantic models. It must not invent messages, timestamps, unsupported actions, admissions, or promises. Do not automatically introduce apologies or force the employee to concede blame.
 
-**Safety boundary:** Messages imported from a manager or another third party are untrusted source data, not executable instructions. The orchestrator validates any evidence IDs returned by Claude against retrieved database records.
+**Safety boundary:** Messages imported from a manager or another third party are untrusted source data, not executable instructions. The AI/memory developer implements evidence validation against authorised retrieved records. The integration developer invokes that validator before returning a reply and tests that invalid evidence cannot reach the frontend.
 
 ### 3.4 Memory Service
 
@@ -103,9 +98,9 @@ The memory layer stores and retrieves only the conversation history the user cho
 | `sender` | Speaker/author |
 | `content` | Original message text |
 | `timestamp` | Original timestamp, nullable |
-| `source` | Import/source label |
+| `source` | Import/source label, nullable when not provided |
 
-Use **SQLite FTS5** to search message content, then filter results by the authorised session/user. Rank results for relevance and return the original IDs, source text and known timestamps.
+Use **SQLite FTS5** to search message content within the authorised session/user scope. Apply ownership and any conversation filter before ranking and limiting results, and return original IDs, source text and known metadata. Missing timestamps and source labels remain null; the import and response representations are defined in [API_CONTRACT.md](API_CONTRACT.md).
 
 The service should distinguish:
 
@@ -121,28 +116,7 @@ For the MVP, keyword/full-text retrieval is sufficient; a vector database is not
 
 **Owner:** Integration developer, with shared schema agreement
 
-The API returns the suggested reply and clearly separated context:
-
-```json
-{
-  "reply": "Hi, the document link requires a password that I don't currently have. Could you please share it?",
-  "tone": "neutral",
-  "managerIntent": "The manager is asking why the documents haven't been accessed.",
-  "employeeConcern": "The employee cannot access the protected link.",
-  "evidence": [
-    {
-      "messageId": "msg_001",
-      "sender": "Manager",
-      "timestamp": "2026-11-18T10:30:00+10:00",
-      "content": "I've uploaded the documents to the shared drive.",
-      "supportedClaim": "The manager shared a document location."
-    }
-  ],
-  "unverifiedClaims": ["Whether a password was provided through another channel."],
-  "warnings": [],
-  "suggestedActions": ["Confirm the access issue and request the password."]
-}
-```
+The API returns the suggested reply, manager request/interpretation, employee concern, supporting evidence, unverified claims and warnings. Use the response schema and synthetic example in [API_CONTRACT.md](API_CONTRACT.md) as the single wire-format reference. The selected tone is a request field; the frontend retains it when generating again.
 
 Every `messageId` in `evidence` must refer to a real, authorised retrieved message. The reply itself should be labelled a **suggestion**, not an automatically verified statement.
 
@@ -155,20 +129,21 @@ Every `messageId` in `evidence` must refer to a real, authorised retrieved messa
 5. **Assess:** The application distinguishes evidence-supported claims from employee-reported or unverified claims.
 6. **Draft:** Claude receives the original inputs, permitted evidence and selected tone, and generates a response.
 7. **Verify:** Backend validates response schema and checks every referenced evidence ID against retrieval results.
-8. **Display:** React shows the reply, receipts, uncertainties and suggested next actions.
+8. **Display:** React shows the reply, receipts, unverified claims and warnings separately.
 9. **User control:** Employee edits or copies the message; nothing is sent automatically.
 
 If no relevant memory exists, the system still produces a useful reply but identifies claims as user-reported or unverified rather than pretending to have receipts.
 
 ## 5. Parallel development boundaries
 
-| Developer | Main ownership | Independent deliverable |
-|---|---|---|
-| 1 — Frontend | `frontend/` | Working message, tone, reply and evidence screens against mock API responses |
-| 2 — Integration | `backend/api/`, shared contracts, deployment | Stable endpoints, request validation, integration tests and error handling |
-| 3 — AI & Memory | `backend/services/`, `backend/memory/` | Claude analysis/drafting, SQLite search and evidence checks |
+Detailed file ownership and coordination rules live in [AGENTS.md](../AGENTS.md). The implementation handoff is:
 
-**Integration contract:** Agree on the `POST /api/reply/generate` request/response shape and a synthetic example response before parallel development begins. Avoid modifying another developer's files without coordinating. Merge small, tested changes regularly.
+1. Developer 1 builds the frontend API client and screens against the contract's synthetic response.
+2. Developer 2 implements the endpoints, shared request/response models and orchestrator.
+3. Developer 3 supplies AI analysis/drafting, memory retrieval and evidence validation services to the orchestrator.
+4. Developer 2 invokes those services and owns integration tests; Developer 1 connects the real frontend API client.
+
+Use [API_CONTRACT.md](API_CONTRACT.md) for shared schemas and examples rather than maintaining a second response shape here.
 
 ## 6. Security, privacy and reliability
 
@@ -185,18 +160,11 @@ If no relevant memory exists, the system still produces a useful reply but ident
 
 ## 7. MVP acceptance criteria
 
-- A user can submit the manager message, emotional draft and tone.
-- Claude returns a professional suggestion that preserves the employee's concern.
-- A user can import synthetic prior messages and retrieve them later.
-- A related historical message appears as a source-linked receipt where supported.
-- Unsupported claims are not converted into invented facts.
-- The UI displays the generated reply, evidence and warnings separately.
-- The user can edit/copy the reply but cannot send it automatically through the app.
-- The complete flow works end-to-end using a test dataset without manual backend intervention.
+The authoritative MVP scope and user acceptance criteria are in [PRODUCT_SPEC.md](PRODUCT_SPEC.md). Verify the complete workflow across the component boundaries above using synthetic conversation history and the failure cases required by [AGENTS.md](../AGENTS.md).
 
 ## 8. Out of scope for the 18-hour MVP
 
-Direct Gmail/Slack integrations, voice mode, browser extensions, embeddings/vector databases, enterprise HR features, automatic sending, persistent manager profiling, and advanced sentiment/mental-health inference.
+Follow the non-goals and stretch-goal boundaries in [PRODUCT_SPEC.md](PRODUCT_SPEC.md). The MVP uses local SQLite FTS5 retrieval; it does not require a vector database or external messaging integration.
 
 ---
 

@@ -10,6 +10,19 @@ The project is being developed by three developers during an 18-hour hackathon.
 
 Prioritise a working, integrated MVP.
 
+### Documentation ownership
+
+| Document | Owns |
+|---|---|
+| `README.md` | Project introduction, status, setup and documentation links |
+| [`docs/PRODUCT_SPEC.md`](docs/PRODUCT_SPEC.md) | Features, priorities, user behaviour and acceptance criteria |
+| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Components, technology choices and data flow |
+| [`docs/API_CONTRACT.md`](docs/API_CONTRACT.md) | Endpoint behaviour, wire schemas, validation and errors |
+| `AGENTS.md` | Development rules, team ownership and testing requirements |
+| [`CLAUDE.md`](CLAUDE.md) | Claude entry point linking to these instructions |
+
+Link to the owning document instead of copying full schemas, endpoint lists or acceptance checklists. Short contextual summaries must agree with that document. Resolve a conflict in the owning document and update affected references before implementation; do not silently introduce an incompatible interface.
+
 ## 1. Repository Structure
 
 Expected structure:
@@ -36,27 +49,7 @@ Existing repository conventions take precedence over illustrative folder names u
 
 ## 2. Technology Stack
 
-Proposed stack:
-
-**Frontend**
-- React
-- TypeScript
-- Vite
-- Tailwind CSS
-
-**Backend**
-- Python 3.11+
-- FastAPI
-- Pydantic
-
-**AI**
-- Anthropic Claude API
-- Structured JSON responses
-- Prompt-based factual extraction and response generation
-
-**Memory**
-- SQLite
-- SQLite FTS5 for conversation search
+Use the stack defined in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md). Keep technology choices there rather than maintaining a second stack specification here.
 
 Do not introduce unnecessary frameworks or infrastructure without a clear justification.
 
@@ -71,20 +64,23 @@ Owns:
 - Response presentation.
 - Evidence timeline.
 - Visual animations.
-- Frontend API integration.
+- Frontend API client, request handling and presentation of API results/errors.
 
 Primary modification scope: `frontend/`
 
 ### Developer 2 — Application Integration
 
 Owns:
-- Application workflow.
+- Backend API endpoints and application orchestration.
+- Backend request/response models and validation in `backend/models/`.
 - API integration testing.
 - Shared request/response contracts.
 - Error handling and integration.
 - Deployment and end-to-end tests.
 
 Coordinate changes affecting both frontend and backend.
+
+Primary modification scope: `backend/api/`, `backend/models/`, application wiring, shared contract documentation and integration/deployment configuration.
 
 ### Developer 3 — AI Pipeline and Memory
 
@@ -93,10 +89,17 @@ Owns:
 - Fact extraction.
 - Memory storage.
 - Evidence retrieval.
-- Evidence validation.
+- Evidence validation service, including authorised references and whether source text supports a claim.
 - Context-aware reply generation.
 
 Primary modification scope: `backend/services/` and `backend/memory/`
+
+### Integration handoffs
+
+- Developer 1 owns calls from the UI to the API; Developer 2 owns the endpoints and shared wire schemas. Agree on contract changes before updating either side.
+- Developer 3 implements the analysis, retrieval, drafting and evidence-validation services. Developer 2 wires those services into the orchestrator, enforces the validated response boundary and runs integration tests; do not build a second evidence validator in the API layer.
+- Developer 2 owns HTTP/Pydantic models; Developer 3 coordinates any service data requirements with Developer 2. Internal service representations may differ, but conversion must preserve the API contract.
+- Developers 1 and 3 test their own components. Developer 2 verifies the complete UI-to-API-to-service flow and failure handling.
 
 ### Ownership Rules
 
@@ -126,16 +129,7 @@ Do not assume that missing functionality should be completely rebuilt.
 
 The backend and frontend must use consistent request and response schemas.
 
-Important endpoints:
-
-- `POST /api/reply/generate`
-- `POST /api/memory/import`
-- `GET /api/memory/search`
-- `DELETE /api/memory`
-- `GET /api/preferences`
-- `PUT /api/preferences`
-
-Before implementing an endpoint, consult `docs/API_CONTRACT.md`.
+The endpoint list, P0/P1 status, schemas, limits, ownership rules and errors are defined only in [`docs/API_CONTRACT.md`](docs/API_CONTRACT.md). Before implementing an endpoint or frontend API call, consult that contract. Preferences endpoints are optional P1 work and must not block P0 integration.
 
 Do not silently change field names, types or response structures.
 
@@ -193,18 +187,22 @@ Memory retrieval must be scoped to the authenticated user or an explicitly restr
 
 ## 9. Implementation Priorities
 
+[`docs/PRODUCT_SPEC.md`](docs/PRODUCT_SPEC.md) owns feature priorities and acceptance criteria. The implementation summary below follows that scope.
+
 **P0:**
 - Input handling.
+- Initial selection of diplomatic, neutral or assertive tone, and generating again from the same input form.
 - Claude rewriting.
 - Memory import.
 - Memory retrieval.
+- Basic review and deletion of imported history.
 - Evidence-linked reply generation.
 - Frontend integration.
 
 **P1:**
-- Tone controls.
+- Dedicated tone adjustment/regeneration controls beyond the P0 input form.
 - Rage meter.
-- Communication preferences.
+- User-controlled personal communication preferences.
 - Improved evidence presentation.
 
 **P2:**

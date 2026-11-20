@@ -1,5 +1,7 @@
 # Rage-to-Reply — Product Specification
 
+This document defines product behaviour, feature priorities and MVP acceptance criteria. See [ARCHITECTURE.md](ARCHITECTURE.md) for components and data flow, [API_CONTRACT.md](API_CONTRACT.md) for endpoint behaviour and schemas, and [AGENTS.md](../AGENTS.md) for development rules and ownership.
+
 ## 1. Project Overview
 
 **Project Name:** Rage-to-Reply  
@@ -63,6 +65,8 @@ Supported tones:
 - Neutral
 - Assertive
 
+Initial tone selection and generating again from the same input form are P0. Users can choose another tone and submit the form again.
+
 The output must not automatically accept blame, invent information or change the user's intended meaning.
 
 ### Feature 2: Manager Message Interpreter
@@ -111,15 +115,17 @@ Memory can store:
 - Conversation identifier.
 - Source identifier.
 
-Users should be able to review and delete imported history.
+Users must be able to import, review and delete their saved history in the MVP. A basic message list is sufficient; a conversation timeline is optional.
+
+Missing timestamps and source information must remain missing rather than being fabricated.
 
 Emotional drafts should not be stored permanently by default.
 
-### Feature 5: Tone Adjustment
+### Feature 5: Enhanced Tone Adjustment
 
 **Priority: P1**
 
-Allow the user to regenerate a response using different communication styles.
+Add dedicated tone adjustment controls alongside a generated reply. These controls improve the P0 workflow, which already allows users to choose a tone and generate again from the input form.
 
 Changing the tone must not change the underlying facts.
 
@@ -157,7 +163,7 @@ Preferences must be user-controlled rather than inferred as permanent facts abou
 8. AI evaluates factual support.
 9. AI generates a professional response.
 10. The application displays the reply, evidence and uncertainty warnings.
-11. User edits or regenerates the response.
+11. User edits the response or selects a tone and generates again from the input form.
 12. User manually copies the final response.
 
 **The application must never automatically send messages.**
@@ -172,6 +178,7 @@ The hackathon MVP must demonstrate:
 - Professional response generation with Claude.
 - Three selectable tones.
 - Importing sample conversation history.
+- Reviewing and deleting imported history through a basic message list.
 - Contextual memory retrieval.
 - Evidence-supported reply generation.
 - Display of retrieved evidence.
@@ -180,9 +187,10 @@ The hackathon MVP must demonstrate:
 
 ### Stretch Goals
 
+- Dedicated tone adjustment controls alongside a generated reply.
 - Rage meter animation.
 - Voice-to-text input.
-- Manager communication preferences.
+- User-controlled personal communication preferences.
 - Conversation timeline visualisation.
 - Browser extension integration.
 - Semantic memory retrieval.
@@ -199,6 +207,7 @@ The hackathon version will not implement:
 - Full Slack or Gmail integration.
 - Employee performance monitoring.
 - Psychological diagnosis or emotion profiling.
+- Persistent manager profiling.
 - Employment law advice.
 - Enterprise HR administration.
 - Complex multi-agent architectures.
@@ -210,11 +219,11 @@ The hackathon version will not implement:
 The MVP is successful when a user can:
 
 1. Input an emotionally charged workplace response.
-2. Import or select relevant historical conversations.
+2. Import, review and delete historical conversations.
 3. Generate a professional reply.
 4. See real supporting evidence where available.
 5. Distinguish verified evidence from unverified claims.
-6. Adjust the tone without changing the facts.
+6. Select another tone and generate again from the input form without changing the facts.
 7. Copy the response for personal review and use.
 
 The complete workflow should function without requiring manual intervention by a developer.
