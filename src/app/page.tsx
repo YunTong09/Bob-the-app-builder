@@ -116,7 +116,7 @@ export default function HomePage() {
         {historyOpened && <div hidden={dialog !== "history"}><HistoryPanel /></div>}
       </dialog>
       <div className="workspace-grid">
-        <form className="panel workspace-panel" onSubmit={handleGenerate}>
+        <form className="panel workspace-panel workspace-draft" onSubmit={handleGenerate}>
           <h2>Write a draft</h2>
           {withEvidence && (
             <div>
@@ -138,7 +138,7 @@ export default function HomePage() {
           </div>
           {withEvidence && error && <p className="error-message" role="alert"><span className="status-label status-label-error">Error</span>{error}</p>}
         </form>
-        {withEvidence && result && <section className="panel workspace-panel" aria-labelledby="review-heading">
+        {withEvidence && result && <section className="panel workspace-panel workspace-review" aria-labelledby="review-heading">
           <h2 id="review-heading">Review your reply</h2>
           <ComparePanel polishedReply={reply} tone={result.tone} onChange={setReply} />
           <div className="review-section">
