@@ -38,6 +38,17 @@ a { color: var(--focus); text-decoration: underline; }
 .site-nav a { border-radius: 8px; color: var(--muted); padding: 8px 12px; text-decoration: none; }
 .site-nav a:hover { background: var(--surface); text-decoration: underline; }
 .site-nav a[aria-current="page"] { background: var(--primary); border: 1px solid var(--border); color: var(--primary-text); font-weight: 650; }
+.site-nav .site-brand { display: inline-flex; align-items: center; padding: 0 4px; }
+.site-brand-mark {
+  display: grid;
+  place-items: center;
+  grid-template: minmax(0, 1fr) / minmax(0, 1fr);
+  width: 56px;
+  height: 36px;
+  overflow: hidden;
+  border-radius: 6px;
+}
+.site-brand-mark img { width: 84px; height: 56px; max-width: none; }
 .theme-control { display: flex; align-items: center; gap: 8px; margin-inline-start: auto; }
 .theme-control select { width: auto; padding: 4px 8px; }
 

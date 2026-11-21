@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -14,6 +15,11 @@ export default function SiteNav() {
   return (
     <nav className="site-nav" aria-label="Main navigation">
       <div className="site-nav-inner">
+        <Link href="/" className="site-brand" aria-label="Rage-to-Reply home">
+          <span className="site-brand-mark">
+            <Image src="/rage-to-reply-logo.png" alt="" width={84} height={56} unoptimized />
+          </span>
+        </Link>
         {pages.map(({ href, label }) => (
           <Link key={href} href={href} aria-current={pathname === href ? "page" : undefined}>
             {label}
