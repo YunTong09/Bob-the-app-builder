@@ -1,0 +1,27 @@
+# Slack app manifest for the Rage-to-Reply channel history reader (SLACK-03).
+# Create the app at https://api.slack.com/apps -> Create New App -> From a manifest,
+# choose the test workspace and paste this file. Setup steps are in README.md
+# ("Preview and import a Slack test channel").
+#
+# Scope is the minimum for previewing one public test channel through
+# POST /api/slack/preview. The reader calls auth.test (no scope) and
+# conversations.history (channels:history; the bot must be a channel member).
+# The app sends no messages and uses neither Socket Mode nor an xapp- token.
+# For a private test channel, add groups:history and reinstall the app.
+# SLACK-01 extends this manifest with App Home, the message shortcut and
+# interactivity once those callbacks exist.
+display_information:
+  name: Rage-to-Reply
+  description: Preview and import synthetic Slack test-channel history into Rage-to-Reply.
+features:
+  bot_user:
+    display_name: Rage-to-Reply
+    always_online: false
+oauth_config:
+  scopes:
+    bot:
+      - channels:history
+settings:
+  org_deploy_enabled: false
+  socket_mode_enabled: false
+  token_rotation_enabled: false
