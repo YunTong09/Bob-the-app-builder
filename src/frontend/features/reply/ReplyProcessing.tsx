@@ -2,13 +2,19 @@
 
 import { useEffect, useRef } from "react";
 import PixelAnimation from "@/frontend/shared/PixelAnimation";
+import RageLoadingMeter from "./RageLoadingMeter";
 
 type Props = {
   regenerating: boolean;
   synthetic: boolean;
+  complete?: boolean;
 };
 
-export default function ReplyProcessing({ regenerating, synthetic }: Props) {
+export default function ReplyProcessing({
+  regenerating,
+  synthetic,
+  complete = false,
+}: Props) {
   const titleRef = useRef<HTMLHeadingElement>(null);
   useEffect(() => {
     titleRef.current?.focus();
@@ -49,16 +55,15 @@ export default function ReplyProcessing({ regenerating, synthetic }: Props) {
             Understand your message. Check the context. Shape a professional
             reply that keeps your point intact.
           </p>
-          <span className="processing-state">Processing your request</span>
+          <span className="processing-state">
+            {complete ? "Reply ready" : "Processing your request"}
+          </span>
           <p className="processing-disclaimer">
             The animation is a visual cue, not a progress percentage or an
             assessment of your emotions.
           </p>
         </div>
-        <PixelAnimation
-          kind="rage"
-          label="From frustration to a thoughtful reply"
-        />
+        <RageLoadingMeter complete={complete} />
       </section>
       <div className="processing-details">
         <section

@@ -33,6 +33,8 @@ export default function HomePage() {
   const [reply, setReply] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [finishing, setFinishing] = useState(false);
+  const regeneratingRequest = useRef(false);
   const inFlight = useRef(false);
   const canSubmit = Boolean(managerMessage.trim() && draft.trim());
   const withEvidence = mode === "evidence";
@@ -72,6 +74,8 @@ export default function HomePage() {
     event.preventDefault();
     if (!withEvidence || inFlight.current || !canSubmit) return;
     inFlight.current = true;
+    regeneratingRequest.current = Boolean(result);
+    setFinishing(false);
     setLoading(true);
     setError("");
 
@@ -83,6 +87,9 @@ export default function HomePage() {
       });
       setResult({ data, tone });
       setReply(data.reply);
+      setFinishing(true);
+      // Let the meter reach zero before revealing the completed reply.
+      await new Promise<void>((resolve) => setTimeout(resolve, 450));
     } catch (caught) {
       setError(
         caught instanceof Error
@@ -97,7 +104,11 @@ export default function HomePage() {
 
   if (loading) {
     return (
-      <ReplyProcessing regenerating={Boolean(result)} synthetic={isMockMode} />
+      <ReplyProcessing
+        regenerating={regeneratingRequest.current}
+        synthetic={isMockMode}
+        complete={finishing}
+      />
     );
   }
 
@@ -256,10 +267,10 @@ export default function HomePage() {
                 disabled={loading || Boolean(managerMessage || draft)}
                 onClick={() => {
                   setManagerMessage(
-                    "Can you confirm why the shared document hasn't been reviewed yet?",
+                    "Can you confirm why the shared document hasn't been reviewed yet? I uploaded the document link to the shared drive and expected you to be able to start reviewing it. Before we discuss the next steps, please let me know whether you have been able to open the link, what is preventing you from accessing the material, and what you need from me to move forward. I would appreciate a clear update rather than another general acknowledgement. If there is an access problem, please explain the issue so that we can resolve it and agree on a realistic time for the review.",
                   );
                   setDraft(
-                    "I can't open the shared document without the password. Please send it so I can review the document.",
+                    "I am frustrated that this is being treated as though I just ignored the document. I want to review it, but I cannot open the shared link because it asks for a password that I do not currently have. Having a link to the shared drive is not the same as having access to the protected document. I do not want my reply to sound defensive, but I also do not want to accept blame for a review I cannot start. Please make it clear that I need the password before I can read the material and provide useful feedback. Once I can access it, we can agree on an appropriate review time. Keep the reply professional and focused on resolving the access issue. Do not invent a date when I asked for the password, claim that I already completed any part of the review, or promise a deadline I have not agreed to. If the imported conversation only confirms that a document location was shared, distinguish that from proof that a password was supplied.",
                   );
                 }}
               >
@@ -314,9 +325,7 @@ export default function HomePage() {
                 <p className="eyebrow">A COOLER HEAD</p>
                 <h2 id="review-heading">Your words, reworked</h2>
               </div>
-              <span className="ready-badge">
-                Ready to review
-              </span>
+              <span className="ready-badge">Ready to review</span>
             </div>
             <ComparePanel
               polishedReply={reply}

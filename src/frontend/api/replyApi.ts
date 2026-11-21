@@ -96,7 +96,9 @@ function mockGenerate(req: GenerateReplyRequest): GenerateReplyResponse {
 
 export async function generateReply(req: GenerateReplyRequest): Promise<GenerateReplyResponse> {
   if (!USE_MOCK) return request("POST", "/api/reply/generate", req);
-  await delay(600);
+  // Synthetic demo pacing lets users see the full loading experience.
+  // Real backend requests above return as soon as the service responds.
+  await delay(8_000);
   if (/\bFAIL\b/.test(req.employeeDraft)) throw new ApiError(502, "MODEL_ERROR", "The reply module failed.");
   return mockGenerate(req);
 }
