@@ -7,6 +7,7 @@ import HistoryPanel from "@/frontend/features/memory/HistoryPanel";
 import PreferencesPanel, {
   readLocalPreferences,
 } from "@/frontend/features/preferences/PreferencesPanel";
+import { appendDictation } from "@/frontend/features/reply/DictationControls";
 import VentInput from "@/frontend/features/reply/VentInput";
 import type { GenerateReplyResponse, ReplyTone } from "@/frontend/api/contract";
 import PixelAnimation from "@/frontend/shared/PixelAnimation";
@@ -291,8 +292,10 @@ export default function HomePage() {
             </p>
           )}
           <VentInput
+            key={withEvidence ? "evidence" : "quick"}
             value={withEvidence ? draft : quickDraft}
             onChange={withEvidence ? setDraft : setQuickDraft}
+            onDictated={(text) => (withEvidence ? setDraft : setQuickDraft)((current) => appendDictation(current, text))}
             tone={withEvidence ? tone : quickTone}
             onToneChange={withEvidence ? setTone : setQuickTone}
             loading={withEvidence && loading}

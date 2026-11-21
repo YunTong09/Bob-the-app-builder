@@ -148,6 +148,28 @@ Rage-to-Reply is an **end-to-end AI web application**. Invited users should be a
 - Slack Import remains an optional data source. Keep the Slack Modal and Desktop Companion research and history. All three are outside the core web P0 roadmap.
 - **Public multi-user registration requires** authentication, per-user data isolation, and security acceptance. Verify rejection of unauthorized API access, isolation for Memory imports, searches, deletions, and receipts, and safe handling of sensitive data.
 
+## WEB-05 — Voice-to-Text Input
+
+**Status** — IN PROGRESS. Implementation and Chrome mock acceptance passed. Live microphone acceptance is pending.
+
+**Changes**
+
+- `src/frontend/features/reply/DictationControls.tsx` extracts the earlier prototype into one typed component. It handles language selection, listening and stop states, final results, cleanup, and privacy guidance.
+- `VentInput.tsx` adds the controls beside the editable draft. `src/app/page.tsx` appends final transcripts to the current mode's draft, preserves typed text, and keeps the existing Generate flow. Mode changes cancel an active session.
+- `ReplyPanel.tsx` reuses the shared controls and preserves the legacy panel. `src/frontend/styles/pixel-workspace.css` styles the controls and active state. `docs/FRONTEND_CONTRACT.md` records dictation's optional permissions and data handling.
+
+**Verification**
+
+- [x] TypeScript (`tsc --noEmit --incremental false`), `npm run lint`, and `npm run build` passed in an isolated workspace. The build emitted dependency-path cache warnings and exited successfully.
+- [x] Headless Chrome with a mocked `webkitSpeechRecognition` verified keyboard start, listening status, `en-US` and `zh-TW`, multiple Start/Stop cycles, append to existing text, duplicate final and interim handling, and editable results.
+- [x] Chrome mock verified denied permission, no speech, unavailable microphone, interruption, service and generic failures, unsupported browsers, and cancellation on mode and route changes. Existing text and typed fallback worked.
+- [x] A local HTTP fixture captured the existing reply-generation request. It received the complete edited text after Generate, with zero requests caused by dictation alone.
+- [x] Chrome confirmed the monochrome microphone sits inside the draft field at 1280px and 375px widths. Keyboard and mocked dictation flows passed after the layout change.
+- [x] Chrome mock verified automatic stop after 1.5 seconds following the speech-end event, cancellation when speaking resumes, continued availability of manual stop, and no automatic Generate request.
+- [ ] Verify real English and Traditional Chinese speech, permissions and stop behavior with a physical microphone on the target Chrome setup.
+
+**Browser compatibility and limitations** — Uses `SpeechRecognition` or `webkitSpeechRecognition` where available. Browser and OS support, language availability, permissions, and network requirements may vary. A browser provider may process audio remotely. The app does not capture or store raw audio. The mock verifies the browser integration and request body; it does not measure transcription accuracy or exercise a live provider. Quick Tone Rewrite retains its existing generation availability.
+
 ## History
 
 <details>
@@ -246,3 +268,4 @@ TypeScript, lint and production build passed. The backend suite passed 435 tests
 | 2026-11-21 | P0 Roadmap | Added WEB-01 through WEB-04, dependencies, and public release requirements. | Documentation update. Product testing was outside the scope. | Uncommitted |
 | 2026-11-21 | Tracker organization | Moved previous tasks and verification into expandable history and retained the roadmap and Change Log. | Markdown formatting checked. | Uncommitted |
 | 2026-11-21 | Handoff guide | Added branch baselines, the next task, acceptance steps, and progress update instructions. | Markdown formatting checked. | Uncommitted |
+| 2026-11-21 | WEB-05 | Added shared browser dictation to the workspace draft. | TypeScript, lint, production build and Chrome mock acceptance passed. Physical microphone pending. | Uncommitted |
