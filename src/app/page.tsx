@@ -10,7 +10,6 @@ import PreferencesPanel, {
 import DisplaySettings from "@/frontend/features/preferences/DisplaySettings";
 import { appendDictation } from "@/frontend/features/reply/DictationControls";
 import VentInput from "@/frontend/features/reply/VentInput";
-import { appendDictation } from "@/frontend/features/reply/DictationControls";
 import type { GenerateReplyResponse, ReplyTone } from "@/frontend/api/contract";
 import PixelAnimation from "@/frontend/shared/PixelAnimation";
 import ReplyInsights from "@/frontend/features/reply/ReplyInsights";
