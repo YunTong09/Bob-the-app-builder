@@ -91,10 +91,15 @@ class _Response(BaseModel):
 
 
 class GenerateReplyRequest(_Request):
-    manager_message: MessageText
+    manager_message: Annotated[str, Field(max_length=TEXT_MAX)] = ""
     employee_draft: MessageText
     tone: ReplyTone
     conversation_id: Identifier | None = None
+
+    @field_validator("manager_message")
+    @classmethod
+    def _absent_manager_context(cls, v: str) -> str:
+        return v if v.strip() else ""
 
     @field_validator("conversation_id", mode="before")
     @classmethod

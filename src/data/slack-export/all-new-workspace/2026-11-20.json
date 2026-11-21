@@ -1,0 +1,45 @@
+[
+  {
+    "type": "message",
+    "user": "U08MGR001BB",
+    "text": "Sam, I heard you were considering the $450 reporting course. Have I actually approved that spend? Please check with me before booking; I cannot find an approval in writing.",
+    "ts": "1795133700.000163",
+    "client_msg_id": "f6b6de68-3b4a-5b56-99c2-879e4c7b2463",
+    "thread_ts": "1794884700.000127",
+    "parent_user_id": "U08EMP001AA"
+  },
+  {
+    "type": "message",
+    "user": "U08MGR001BB",
+    "text": "Sam, we could not find you at the 11:00 release review. Can you tell me what happened and how you will catch up on the decisions and your CSV test update?",
+    "ts": "1795137480.000164",
+    "client_msg_id": "c4801c1e-b606-5f13-bf16-56bce70c91a5",
+    "thread_ts": "1794784320.000106",
+    "parent_user_id": "U08MGR001BB"
+  },
+  {
+    "type": "message",
+    "user": "U08ACCT01FF",
+    "text": "The client has asked for a launch check at 09:00 Saturday. I have not confirmed a person or weekend cover; our rota still shows Monday-Friday.",
+    "ts": "1795154400.000166",
+    "client_msg_id": "9625aa8e-7391-5170-b813-75708da8d2c3",
+    "thread_ts": "1794783000.000101",
+    "parent_user_id": "U08MGR001BB"
+  },
+  {
+    "type": "message",
+    "user": "U08MGR001BB",
+    "text": "Sam, can you cover the client's launch check at 09:00 tomorrow? Please let me know your availability and what we would need to arrange before I commit us.",
+    "ts": "1795155600.000167",
+    "client_msg_id": "1590deb2-800a-5dc3-92ea-fd675b3a8e26",
+    "thread_ts": "1794783000.000101",
+    "parent_user_id": "U08MGR001BB"
+  },
+  {
+    "type": "message",
+    "user": "U08OPS001EE",
+    "text": "I am putting the open action list in the shared tracker before signing off. Items still waiting for a decision will stay marked Waiting, rather than being marked Done.",
+    "ts": "1795156800.000168",
+    "client_msg_id": "e9048735-a565-5d78-8705-15fa1db05ee6"
+  }
+]

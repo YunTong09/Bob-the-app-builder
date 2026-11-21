@@ -1,0 +1,109 @@
+{
+  "channel": {
+    "id": "C08PROJECT1",
+    "name": "project-document-review",
+    "is_channel": true,
+    "is_private": false,
+    "members": ["U08MGR001BB", "U08EMP001AA", "U08TEAM01CC"]
+  },
+  "users": [
+    {
+      "id": "U08MGR001BB",
+      "team_id": "T08DEMO001",
+      "name": "alex.chen",
+      "real_name": "Alex Chen",
+      "is_bot": false,
+      "profile": { "display_name": "Alex Chen", "real_name": "Alex Chen" }
+    },
+    {
+      "id": "U08EMP001AA",
+      "team_id": "T08DEMO001",
+      "name": "sam.patel",
+      "real_name": "Sam Patel",
+      "is_bot": false,
+      "profile": { "display_name": "Sam Patel", "real_name": "Sam Patel" }
+    },
+    {
+      "id": "U08TEAM01CC",
+      "team_id": "T08DEMO001",
+      "name": "priya.shah",
+      "real_name": "Priya Shah",
+      "is_bot": false,
+      "profile": { "display_name": "Priya Shah", "real_name": "Priya Shah" }
+    },
+    {
+      "id": "U08BOT001DD",
+      "team_id": "T08DEMO001",
+      "name": "project-reminder",
+      "is_bot": true,
+      "profile": { "display_name": "Project reminder" }
+    }
+  ],
+  "messages": [
+    {
+      "type": "message",
+      "subtype": "channel_join",
+      "user": "U08EMP001AA",
+      "text": "<@U08EMP001AA> has joined the channel",
+      "ts": "1794961500.000001"
+    },
+    {
+      "type": "message",
+      "user": "U08MGR001BB",
+      "text": "I've uploaded the project documents to the shared drive: <https://example.invalid/shared/project-docs|Project documents>. Please review the material before we agree on the next steps.",
+      "ts": "1794961800.000001",
+      "client_msg_id": "d0bc477b-81f3-4a1c-bfd5-0cff92396641"
+    },
+    {
+      "type": "message",
+      "user": "U08EMP001AA",
+      "text": "I can see the shared drive link, but the document asks for a password. I don't have the password, so I cannot start the review yet. Could you send it?",
+      "ts": "1794962100.000002",
+      "client_msg_id": "2b0fb239-2a88-45d1-a274-e4be87e09ce2",
+      "reactions": [{ "name": "eyes", "users": ["U08TEAM01CC"], "count": 1 }]
+    },
+    {
+      "type": "message",
+      "user": "U08TEAM01CC",
+      "text": "The project document also prompts me for a password when I open that link.",
+      "ts": "1794962400.000003",
+      "thread_ts": "1794962100.000002",
+      "parent_user_id": "U08EMP001AA"
+    },
+    {
+      "type": "message",
+      "user": "U08MGR001BB",
+      "text": "Thanks for flagging the access issue. The shared drive location is correct. Let's confirm document access before setting a review deadline.",
+      "ts": "1794962700.000004",
+      "thread_ts": "1794962100.000002"
+    },
+    {
+      "type": "message",
+      "user": "U08TEAM01CC",
+      "text": "Unrelated update: the weekly inventory checklist is ready for the operations team.",
+      "ts": "1794963600.000005"
+    },
+    {
+      "type": "message",
+      "subtype": "bot_message",
+      "bot_id": "B08REMIND1",
+      "user": "U08BOT001DD",
+      "text": "Reminder: weekly team stand-up starts in 15 minutes.",
+      "ts": "1795046700.000006"
+    },
+    {
+      "type": "message",
+      "user": "U08EMP001AA",
+      "text": "I still do not have the document password. Once I can open the material, we can agree on a realistic review time.",
+      "ts": "1795047000.000007",
+      "client_msg_id": "9e96f217-915d-4095-b613-ac867d1cf799"
+    },
+    {
+      "type": "message",
+      "user": "U08MGR001BB",
+      "text": "Can you confirm what is blocking your review of the shared documents and what you need from me to move forward? Please give me a clear update before we agree on the review timeline.",
+      "ts": "1795047300.000001",
+      "client_msg_id": "6306a4dd-a85f-487a-8a2c-e6d32230a1ee"
+    }
+  ]
+}

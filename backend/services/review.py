@@ -79,6 +79,8 @@ DRAFT_REVIEW_KEYS = (
 DRAFT_SYSTEM = """Independently audit the ACTUAL proposed reply before it is shown to an employee.
 Use original_manager_message and original_employee_draft as the user's actual input,
 not the model's summary. The reply and model's assessments can contain errors.
+An empty original_manager_message means none was supplied. Do not assume a current
+manager request or treat historical records as the missing manager message.
 
 Return strict booleans for all six checks; false whenever uncertain:
 - facts_grounded: EVERY factual assertion is supported by the original inputs or the

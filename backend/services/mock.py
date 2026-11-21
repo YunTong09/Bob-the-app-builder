@@ -22,7 +22,7 @@ _WORD = re.compile(r"[^\W_]{3,}", re.UNICODE)
 _STOP = {"the", "and", "you", "for", "that", "this", "have", "still", "please", "why", "yet", "because", "can", "with", "not"}
 
 _REPLIES = {
-    "diplomatic": "Hi, thanks for following up. I'd like to share where things stand and what I need to move forward. Could we confirm the next steps together?",
+    "diplomatic": "Hi, I'd like to share where things stand and what I need to move forward. Could we confirm the next steps together?",
     "neutral": "Hi, here is where things stand. Please let me know what you need from me next.",
     "assertive": "Hi, to move forward I need the outstanding item resolved. Please confirm the next steps.",
 }

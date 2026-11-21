@@ -1,0 +1,27 @@
+[
+  {
+    "type": "message",
+    "user": "U08EMP001AA",
+    "text": "Found a shady walking track this morning. Much better than trying to walk at lunchtime.",
+    "ts": "1795304400.000176",
+    "client_msg_id": "84e7ca43-4461-55ae-9fbb-79166ff06ae8"
+  },
+  {
+    "type": "message",
+    "user": "U08OPS001EE",
+    "text": "Shady is the important word. I made the lunchtime mistake yesterday.",
+    "ts": "1795305720.000177",
+    "client_msg_id": "ed1d7c71-dd96-54f1-8405-f0739c4e1868",
+    "thread_ts": "1795304400.000176",
+    "parent_user_id": "U08EMP001AA"
+  },
+  {
+    "type": "message",
+    "user": "U08TEAM01CC",
+    "text": "Found the short board game I mentioned. Will bring it next week if people are still keen.",
+    "ts": "1795332600.000178",
+    "client_msg_id": "715dcfff-c58d-57c3-aff0-3234391f5844",
+    "thread_ts": "1795054800.000159",
+    "parent_user_id": "U08TEAM01CC"
+  }
+]

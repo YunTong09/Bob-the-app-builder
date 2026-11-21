@@ -81,6 +81,39 @@ def test_validator_receives_the_original_drafting_context(client, ai):
     assert {record.conversation_id for record in validation_context.records} == {"conv_demo"}
 
 
+@pytest.mark.parametrize("manager_fields", [{}, {"managerMessage": ""}, {"managerMessage": " \n\t "}])
+def test_generate_without_manager_message_preserves_missing_context(client, ai, monkeypatch, manager_fields):
+    import_fixture(client)
+    analysis_inputs = []
+    original_analyse = ai.analyse
+
+    def capture_analysis(owner, *, manager_message, employee_draft):
+        analysis_inputs.append((manager_message, employee_draft))
+        return original_analyse(owner, manager_message=manager_message, employee_draft=employee_draft)
+
+    monkeypatch.setattr(ai, "analyse", capture_analysis)
+    request_body = {"employeeDraft": GEN_BODY["employeeDraft"], "tone": "neutral", **manager_fields}
+    response = client.post("/api/reply/generate", json=request_body)
+
+    assert response.status_code == 200, response.text
+    assert analysis_inputs == [("", GEN_BODY["employeeDraft"])]
+    assert ai.names() == ["analyse", "assess", "draft", "validate"]
+    drafting_context = next(call[1][1] for call in ai.calls if call[0] == "draft")
+    validation_context = next(call[1][2] for call in ai.calls if call[0] == "validate")
+    assert validation_context is drafting_context
+    assert drafting_context.manager_message == ""
+    assert drafting_context.employee_draft == GEN_BODY["employeeDraft"]
+    assert drafting_context.records  # Imported history remains available without a manager message.
+
+
+def test_generate_preserves_nonblank_manager_message_verbatim(client, ai):
+    manager_message = "  Please send the document.\n"
+    response = client.post("/api/reply/generate", json={**GEN_BODY, "managerMessage": manager_message})
+    assert response.status_code == 200, response.text
+    drafting_context = next(call[1][1] for call in ai.calls if call[0] == "draft")
+    assert drafting_context.manager_message == manager_message
+
+
 def test_empty_history_returns_useful_reply_with_warning(client, ai):
     r = client.post("/api/reply/generate", json=GEN_BODY)
     assert r.status_code == 200

@@ -1465,6 +1465,7 @@ button.primary-button:disabled {
 
 .history-banner-top { margin: 0 0 24px; }
 
+<<<<<<< Updated upstream
 .emotion-bao { display: grid; justify-items: center; gap: 8px; padding: 12px; text-align: center; }
 .emotion-bao-stage { position: relative; display: grid; place-items: center; min-height: 218px; width: 100%; }
 .emotion-bao-button {
@@ -1660,3 +1661,45 @@ button.primary-button:disabled {
 .reply-insight-card summary { cursor: pointer; font-weight: 650; }
 .reply-insight-card details > :not(summary) { margin-top: 8px; }
 .reply-warning-card { border-inline-start: 3px solid var(--warning); }
+=======
+.imported-message-picker {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid var(--line);
+  background: var(--background);
+}
+.imported-message-heading {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.imported-message-heading .secondary-button { font-size: 0.75rem; }
+.imported-message-roles {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.imported-message-picker select { min-width: 0; text-overflow: ellipsis; }
+.imported-message-preview {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+.imported-message-preview blockquote {
+  margin: 0;
+  padding: 12px;
+  border-inline-start: 3px solid var(--primary);
+  background: var(--input);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.imported-message-preview .small-text { overflow-wrap: anywhere; }
+.imported-message-preview button { justify-self: start; }
+@media (max-width: 680px) {
+  .imported-message-roles { grid-template-columns: minmax(0, 1fr); }
+}
+>>>>>>> Stashed changes

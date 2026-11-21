@@ -43,7 +43,7 @@ The diagram shows the hosted target. The service implementation also assesses ev
 
 The frontend allows employees to:
 
-- Enter the **manager's original message**.
+- Optionally add the **manager's original message** for context; a draft alone is sufficient to generate.
 - Enter their **unfiltered/emotional draft**.
 - Choose a **tone**: `diplomatic`, `neutral`, or `assertive`.
 - Generate and review a proposed response.
@@ -51,6 +51,7 @@ The frontend allows employees to:
 - View the **evidence panel** with relevant source messages and any uncertainty warnings.
 - Review and edit the response in the browser.
 - Import conversation history and review/delete saved messages through a basic message list.
+- Read a selected extracted Slack export folder locally, resolve user names and channel folders from its root registries, and convert only dated message files to the existing import schema. Preview it for confirmation, then use explicit participant and message selections to fill manager context. Sender IDs stay stable; display names and role choices remain in page state. The selected message's conversation scopes evidence retrieval through the existing API contract. Ancillary export data and user contact fields never enter the memory API.
 
 The frontend developer owns the API client and maps the shared contract to these screens. Initial tone selection and generating again from the same input form are required; both use the generation endpoint defined in [API_CONTRACT.md](API_CONTRACT.md). P1 dedicated tone controls beside the reply reuse that endpoint and preserve the underlying facts. P1 communication preferences let the user control tone, response length, formality and directness.
 
@@ -131,7 +132,7 @@ Every `messageId` in `evidence` must refer to a real, authorised retrieved messa
 
 ## 4. End-to-end workflow
 
-1. **Input:** User enters the manager message, emotional draft and desired tone.
+1. **Input:** User enters an emotional draft and desired tone, optionally adding the manager message. Without it, analysis identifies missing manager context rather than inferring a request.
 2. **Validate:** FastAPI checks the request, session and allowed values.
 3. **Analyse:** Claude returns structured claims, requests and uncertainties.
 4. **Retrieve:** Memory Service searches imported history for supporting or contradicting messages.

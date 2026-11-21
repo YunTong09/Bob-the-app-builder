@@ -1,0 +1,91 @@
+[
+  {
+    "type": "message",
+    "user": "U08MGR001BB",
+    "text": "For the Beacon reconciliation summary, Thursday 19 November at 15:00 is the deadline. I need the exception list and a short explanation of the largest differences, not a slide deck.",
+    "ts": "1794785700.000108",
+    "client_msg_id": "439f20be-4990-50bd-ae41-ce1e3fc81320"
+  },
+  {
+    "type": "message",
+    "user": "U08EMP001AA",
+    "text": "Got it: exception list and notes for Thursday at 15:00. I will use the final ledger extract.",
+    "ts": "1794785940.000109",
+    "client_msg_id": "32ea778f-688e-5933-885e-c525f41aac4f",
+    "thread_ts": "1794785700.000108",
+    "parent_user_id": "U08MGR001BB"
+  },
+  {
+    "type": "message",
+    "user": "U08OPS001EE",
+    "text": "The final ledger extract will be in the shared folder on Tuesday morning. Monday's extract still has three unposted adjustments.",
+    "ts": "1794786180.000110",
+    "client_msg_id": "329df306-54a5-5a34-b8f6-2d3f4b56915a",
+    "thread_ts": "1794785700.000108",
+    "parent_user_id": "U08MGR001BB"
+  },
+  {
+    "type": "message",
+    "user": "U08MGR001BB",
+    "text": "The reporting release this week is CSV export only. PDF layout and scheduled email are outside this release; please estimate them separately if the client asks.",
+    "ts": "1794787500.000111",
+    "client_msg_id": "b6651e61-3cf0-53b8-83c0-ee3ece0d11c1"
+  },
+  {
+    "type": "message",
+    "user": "U08EMP001AA",
+    "text": "CSV only for this release. I have kept PDF and scheduled email out of the acceptance checklist.",
+    "ts": "1794787740.000112",
+    "client_msg_id": "11751085-2d28-5315-8ff3-dacc0ae0e0fb",
+    "thread_ts": "1794787500.000111",
+    "parent_user_id": "U08MGR001BB"
+  },
+  {
+    "type": "message",
+    "user": "U08MGR001BB",
+    "text": "Sam, keep the support queue first this week until there are fewer than 10 open tickets. The Q4 client slides can wait while the queue is above that number.",
+    "ts": "1794789000.000113",
+    "client_msg_id": "e87e8fee-ee9b-56ec-b2a2-a69c472f85d1"
+  },
+  {
+    "type": "message",
+    "user": "U08EMP001AA",
+    "text": "There are 27 open tickets right now. I will stay on support and flag when it is below 10.",
+    "ts": "1794789240.000114",
+    "client_msg_id": "0f4347da-1608-54af-82ad-3f9b96d2c0e6",
+    "thread_ts": "1794789000.000113",
+    "parent_user_id": "U08MGR001BB"
+  },
+  {
+    "type": "message",
+    "user": "U08ACCT01FF",
+    "text": "Atlas handover: the vendor has committed to the corrected customer feed by Thursday at 12:00. Sam's validation comes after that delivery; I am the vendor contact.",
+    "ts": "1794791700.000115",
+    "client_msg_id": "fcaac579-eec1-5a0c-8879-301ab64b32e4"
+  },
+  {
+    "type": "message",
+    "user": "U08EMP001AA",
+    "text": "Thanks Morgan. The validator is ready for a test feed. Please tag me when the corrected file lands.",
+    "ts": "1794791940.000116",
+    "client_msg_id": "950e2f21-bebc-5d7a-b20d-c0332bac8123",
+    "thread_ts": "1794791700.000115",
+    "parent_user_id": "U08ACCT01FF"
+  },
+  {
+    "type": "message",
+    "user": "U08TEAM01CC",
+    "text": "Beacon dashboard note: the headline metric is net completed orders, excluding cancelled and refunded orders. The raw export also has a gross-order column, so check which one is being compared.",
+    "ts": "1794799200.000117",
+    "client_msg_id": "272ccdeb-3e13-5010-80ca-dd5a27e9cb55"
+  },
+  {
+    "type": "message",
+    "user": "U08EMP001AA",
+    "text": "I have labelled the headline Net completed orders and left gross orders in the detail tab.",
+    "ts": "1794799440.000118",
+    "client_msg_id": "2ee860f6-3351-5a96-914c-de77aa236492",
+    "thread_ts": "1794799200.000117",
+    "parent_user_id": "U08TEAM01CC"
+  }
+]

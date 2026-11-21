@@ -1,0 +1,56 @@
+[
+  {
+    "type": "message",
+    "user": "U08MGR001BB",
+    "text": "Welcome to the new workspace. Please use #new-channel for the project document review and #social for informal updates.",
+    "ts": "1794958200.000001",
+    "client_msg_id": "2b7ac534-91cf-4e72-a76e-fd0323f68885"
+  },
+  {
+    "type": "message",
+    "user": "U08EMP001AA",
+    "text": "Thanks, I can see the workspace channels. I will keep project questions in #new-channel.",
+    "ts": "1794958500.000002",
+    "client_msg_id": "18344bcd-9be8-422b-9121-4ca135d19081"
+  },
+  {
+    "type": "message",
+    "user": "U08TEAM01CC",
+    "text": "The weekly team rota is pinned here. This announcement is separate from the project document review.",
+    "ts": "1794958800.000003"
+  },
+  {
+    "type": "message",
+    "user": "U08OPS001EE",
+    "text": "Sam's Wednesday afternoon handover is in the rota. I am covering incoming requests after 14:00; please put anything urgent in the shared queue.",
+    "ts": "1794967500.000142",
+    "client_msg_id": "f386d91f-8f27-5da1-96a8-feaf4b4e6c1b",
+    "thread_ts": "1794783900.000104",
+    "parent_user_id": "U08MGR001BB"
+  },
+  {
+    "type": "message",
+    "user": "U08MGR001BB",
+    "text": "Sam, I have just added you to a 14:30 client workshop today. Can you join and take the action notes? Please let me know promptly if there is a clash.",
+    "ts": "1794971400.000144",
+    "client_msg_id": "a1288e0f-2348-5793-8cbf-523774d01a6f",
+    "thread_ts": "1794783900.000104",
+    "parent_user_id": "U08MGR001BB"
+  },
+  {
+    "type": "message",
+    "user": "U08EMP001AA",
+    "text": "The course place is still available. I am waiting for confirmation before paying or booking it.",
+    "ts": "1794972120.000146",
+    "client_msg_id": "92e801c4-9d51-5489-ba1a-9c925078cc4f",
+    "thread_ts": "1794884700.000127",
+    "parent_user_id": "U08EMP001AA"
+  },
+  {
+    "type": "message",
+    "user": "U08TEAM01CC",
+    "text": "Staging will restart for a patch at 16:15. I expect about five minutes of downtime; the production site is not part of this change.",
+    "ts": "1794981600.000147",
+    "client_msg_id": "f1202fce-5158-58ea-8df9-09a5bc2a2181"
+  }
+]

@@ -1,0 +1,98 @@
+[
+  {
+    "type": "message",
+    "subtype": "channel_join",
+    "user": "U08EMP001AA",
+    "text": "<@U08EMP001AA> has joined the channel",
+    "ts": "1794961500.000001"
+  },
+  {
+    "type": "message",
+    "user": "U08MGR001BB",
+    "text": "I've uploaded the project documents to the shared drive: <https://example.invalid/shared/project-docs|Project documents>. Please review the material before we agree on the next steps.",
+    "ts": "1794961800.000001",
+    "client_msg_id": "d0bc477b-81f3-4a1c-bfd5-0cff92396641"
+  },
+  {
+    "type": "message",
+    "user": "U08EMP001AA",
+    "text": "I can see the shared drive link, but the document asks for a password. I don't have the password, so I cannot start the review yet. Could you send it?",
+    "ts": "1794962100.000002",
+    "client_msg_id": "2b0fb239-2a88-45d1-a274-e4be87e09ce2",
+    "reactions": [
+      {
+        "name": "eyes",
+        "users": [
+          "U08TEAM01CC"
+        ],
+        "count": 1
+      }
+    ]
+  },
+  {
+    "type": "message",
+    "user": "U08TEAM01CC",
+    "text": "The project document also prompts me for a password when I open that link.",
+    "ts": "1794962400.000003",
+    "thread_ts": "1794962100.000002",
+    "parent_user_id": "U08EMP001AA"
+  },
+  {
+    "type": "message",
+    "user": "U08MGR001BB",
+    "text": "Thanks for flagging the access issue. The shared drive location is correct. Let's confirm document access before setting a review deadline.",
+    "ts": "1794962700.000004",
+    "thread_ts": "1794962100.000002"
+  },
+  {
+    "type": "message",
+    "user": "U08TEAM01CC",
+    "text": "Unrelated update: the weekly inventory checklist is ready for the operations team.",
+    "ts": "1794963600.000005"
+  },
+  {
+    "type": "message",
+    "user": "U08OPS001EE",
+    "text": "Support queue is at 22 open tickets. Six came back from the overnight sync; the count is not below 10 yet.",
+    "ts": "1794964800.000139",
+    "client_msg_id": "461f4a5a-193b-58c9-aeaa-643673060548",
+    "thread_ts": "1794789000.000113",
+    "parent_user_id": "U08MGR001BB"
+  },
+  {
+    "type": "message",
+    "user": "U08EMP001AA",
+    "text": "Beacon comparison for this extract: 156 gross orders, 8 cancellations and 6 refunds, giving 142 net completed orders. The dashboard headline is 142.",
+    "ts": "1794966300.000140",
+    "client_msg_id": "70b90d1f-0d6e-5151-9b5c-549848b8e0fa",
+    "thread_ts": "1794799200.000117",
+    "parent_user_id": "U08TEAM01CC"
+  },
+  {
+    "type": "message",
+    "user": "U08OPS001EE",
+    "text": "Finance needs the 142 net number on the board report. The 156 gross total belongs in the supporting table, with the exclusions shown.",
+    "ts": "1794966720.000141",
+    "client_msg_id": "bbb2fe48-9110-5393-be00-98b60515059a",
+    "thread_ts": "1794799200.000117",
+    "parent_user_id": "U08TEAM01CC"
+  },
+  {
+    "type": "message",
+    "user": "U08MGR001BB",
+    "text": "Sam, the client has brought the Beacon reconciliation discussion forward. Can you send the completed exception summary by 16:00 today instead of Thursday at 15:00? Tell me what that changes for your other work.",
+    "ts": "1794971100.000143",
+    "client_msg_id": "50ad93ae-4b89-5274-a801-59514933fc4b",
+    "thread_ts": "1794785700.000108",
+    "parent_user_id": "U08MGR001BB"
+  },
+  {
+    "type": "message",
+    "user": "U08ACCT01FF",
+    "text": "The client asked whether PDF export can be included in Friday's release too. I have not promised it; the agreed checklist I have is still CSV only.",
+    "ts": "1794971700.000145",
+    "client_msg_id": "89dca42c-b702-5c11-b0f7-e35a5677cc09",
+    "thread_ts": "1794787500.000111",
+    "parent_user_id": "U08MGR001BB"
+  }
+]

@@ -1,0 +1,88 @@
+[
+  {
+    "type": "message",
+    "user": "U08OPS001EE",
+    "text": "Final ledger extract is now available: <https://example.invalid/ledger/final-1711|final ledger>. The three adjustments are posted. The earlier Monday file is still there with DRAFT in its name.",
+    "ts": "1794870300.000122",
+    "client_msg_id": "69c2a1bb-4936-5d66-8fe3-7f237580a335",
+    "thread_ts": "1794785700.000108",
+    "parent_user_id": "U08MGR001BB"
+  },
+  {
+    "type": "message",
+    "user": "U08EMP001AA",
+    "text": "Beacon dashboard v3 is pushed. I implemented the net-order calculation and the exception drill-down; the change log lists the formulas and the tests I ran.",
+    "ts": "1794874200.000123",
+    "client_msg_id": "d50ba827-2237-5662-81b5-a1c1ee4b0678"
+  },
+  {
+    "type": "message",
+    "user": "U08TEAM01CC",
+    "text": "Reviewed Sam's v3 calculations and test output. I changed two axis labels and the chart colours; I did not build the calculation or drill-down.",
+    "ts": "1794874680.000124",
+    "client_msg_id": "756ef0af-b006-5775-a689-b3dcf455c643",
+    "thread_ts": "1794874200.000123",
+    "parent_user_id": "U08EMP001AA",
+    "reactions": [
+      {
+        "name": "white_check_mark",
+        "users": [
+          "U08TEAM01CC"
+        ],
+        "count": 1
+      }
+    ]
+  },
+  {
+    "type": "message",
+    "user": "U08OPS001EE",
+    "text": "The version history and change log are linked in the dashboard README, so we can tell which changes belong to which person.",
+    "ts": "1794874920.000125",
+    "client_msg_id": "712b24f1-7be3-5086-af61-190b1e222f0f",
+    "thread_ts": "1794874200.000123",
+    "parent_user_id": "U08EMP001AA"
+  },
+  {
+    "type": "message",
+    "user": "U08EMP001AA",
+    "text": "Atlas validation checklist is ready. I cannot run the final customer checks without the corrected vendor feed.",
+    "ts": "1794879000.000126",
+    "client_msg_id": "8a2ee737-59bf-5103-a5c1-6f3ce5fac16a",
+    "thread_ts": "1794791700.000115",
+    "parent_user_id": "U08ACCT01FF"
+  },
+  {
+    "type": "message",
+    "user": "U08MGR001BB",
+    "text": "For the project status updates, use three short parts: progress, blocker and next step. Keep the detail in the linked task rather than pasting the whole activity log.",
+    "ts": "1794891600.000131",
+    "client_msg_id": "b897dae7-58a7-5dcc-b180-68ecf834f631"
+  },
+  {
+    "type": "message",
+    "user": "U08EMP001AA",
+    "text": "Today's Atlas update is in the task: progress = validator ready; blocker = corrected vendor feed; next step = run checks when Morgan receives the file.",
+    "ts": "1794892020.000132",
+    "client_msg_id": "50ce82ba-c36a-54ec-853d-6dbf652dc33e",
+    "thread_ts": "1794891600.000131",
+    "parent_user_id": "U08MGR001BB"
+  },
+  {
+    "type": "message",
+    "user": "U08TEAM01CC",
+    "text": "That is the same three-part format I used for the engineering update this morning.",
+    "ts": "1794892260.000133",
+    "client_msg_id": "88c02b7f-a6b6-59a2-91da-739935431c2b",
+    "thread_ts": "1794891600.000131",
+    "parent_user_id": "U08MGR001BB"
+  },
+  {
+    "type": "message",
+    "user": "U08EMP001AA",
+    "text": "CSV export passed 18 acceptance checks on the staging sample. The release checklist and output files are in the task.",
+    "ts": "1794895500.000134",
+    "client_msg_id": "9170b7b0-afde-5a56-b5a9-099ee6326dbf",
+    "thread_ts": "1794787500.000111",
+    "parent_user_id": "U08MGR001BB"
+  }
+]

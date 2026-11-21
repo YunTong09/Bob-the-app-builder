@@ -3,7 +3,7 @@
 export type ReplyTone = "diplomatic" | "neutral" | "assertive";
 
 export interface GenerateReplyRequest {
-  managerMessage: string;
+  managerMessage?: string;
   employeeDraft: string;
   tone: ReplyTone;
   conversationId?: string;

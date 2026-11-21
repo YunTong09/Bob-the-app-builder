@@ -1,0 +1,34 @@
+[
+  {
+    "type": "message",
+    "user": "U08OPS001EE",
+    "text": "Anyone know whether the little lunch place on the corner is open again? I brought leftovers in case it is still closed.",
+    "ts": "1794795000.000119",
+    "client_msg_id": "f0221216-6d68-540b-ac3f-ab5cdf7e954d"
+  },
+  {
+    "type": "message",
+    "user": "U08TEAM01CC",
+    "text": "It was open when I walked past. The queue was already out the door though.",
+    "ts": "1794795240.000120",
+    "client_msg_id": "f324a4e3-521d-5750-97a1-f2b22b808967",
+    "thread_ts": "1794795000.000119",
+    "parent_user_id": "U08OPS001EE",
+    "reactions": [
+      {
+        "name": "laughing",
+        "users": [
+          "U08TEAM01CC"
+        ],
+        "count": 1
+      }
+    ]
+  },
+  {
+    "type": "message",
+    "user": "U08EMP001AA",
+    "text": "Small win: my dog finally stopped barking through every video call today.",
+    "ts": "1794811200.000121",
+    "client_msg_id": "d2a9066e-250e-570b-ae58-c57bad8ec224"
+  }
+]

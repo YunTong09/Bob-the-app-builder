@@ -6,20 +6,31 @@ Rage-to-Reply is a browser-based workplace reply assistant with two modes. See [
 
 | Mode | Input | Result |
 | --- | --- | --- |
-| Rewrite with Evidence | Explicitly import conversation history from Slack in the supported JSON format. Enter the manager message and a draft, then choose a tone. | Editable reply, manager interpretation, supporting evidence, unverified claims and warnings. |
+| Rewrite with Evidence | Enter a draft and choose a tone. Optionally add the manager message and explicitly import conversation history. | Editable reply, manager interpretation when context is supplied, supporting evidence, unverified claims and warnings. |
 | Quick Tone Rewrite | Type a draft and choose a tone. No manager message or Slack import is required. | Editable tone-adjusted text generated from the current draft. |
 
 ## Reply Flow
 
 1. **Choose a mode.** Explain the inputs and expected result before the user enters text.
-2. **Enter the draft.** In Rewrite with Evidence, show the history import and manager-message fields. In Quick Tone Rewrite, show the draft and tone controls.
+2. **Enter the draft.** In Rewrite with Evidence, show history import and a clearly optional manager-message field. A non-blank employee draft enables generation without a manager message or history. In Quick Tone Rewrite, show the draft and tone controls.
 3. **Generate.** Offer Diplomatic, Neutral and Assertive. Start generation when the user selects the primary action. Announce processing and retain the inputs for retry or regeneration.
 4. **Review and edit.** Keep the previous reply visible until regeneration succeeds. In Rewrite with Evidence, display source-backed claims, unverified claims and warnings separately.
 5. **Finish in the web workspace.** Users review and edit the final text in the browser.
 
+### Slack JSON and message selection
+
+- The primary import is **folder selection** for an extracted Slack export. Read top-level `users.json` (also accept `user.json`) and `channels.json`; map channel-name subfolders and their `YYYY-MM-DD.json` files to known channel IDs automatically. Group multiple days under the same channel. Ignore ancillary root metadata such as `.slack-manifest.json`, `canvases.json`, `file_conversations.json`, `huddle_transcripts.json`, `integration_logs.json`, `lists.json`, and attachments. Folder metadata must identify the user and channel registries unambiguously; never guess an ID from a folder name. Unsupported or unmapped message folders produce a clear error before saving.
+- The sample preview uses a synthetic extracted export with the same folder structure, not a combined JSON bundle. Parsing does not unzip archives or contact Slack. Preview valid messages and any skipped-record warnings, then explicitly confirm import. Enforce the API's batch/body limits on relevant JSON and converted messages; see [memory import](API_CONTRACT.md#4-memory-import). Show clear empty/export-only-system-event errors. Existing individual JSON conversion formats remain supported by the adapter for compatibility, while the UI uses a folder picker.
+- The sample contains a week of varied conversations for at least ten manual test situations. Users select the original manager message and write their own draft; [TEST_SITUATION.md](../TEST_SITUATION.md) provides the scenario guide. All sample messages remain synthetic and the complete week fits one import.
+- Preserve Slack user IDs in `sender`; participant and channel names are display metadata for the current page session only. Map each message's `user` ID to the matching `id` in `users.json` or `user.json`, using a non-blank profile display name, real name or username. Publish this lookup when the export is previewed, so existing saved messages can show their registered names without importing the messages again. Dropdowns show those names without appending IDs; selection values and API requests retain the original IDs. If no matching name is available, retain the original ID rather than inventing a participant name. Never infer who the manager is, including from names, Slack administrator status or message wording.
+- Initialise the public synthetic sample's name lookup directly from its bundled `users.json` and `channels.json`, so previously imported sample records display names on a fresh page as well. A user-selected export's registry overrides those sample mappings. This requires no browser storage of user metadata.
+- The reply form offers labelled selections for **You**, **Your manager**, **Conversation** and **Manager message**. The two participants must differ. Show only the selected manager's messages in the selected conversation, with known timestamps/source and original text. Explicitly using a selected message fills the optional context and restricts generation to that conversation.
+- Keep role selections in workspace state across generation/regeneration, without storing imported texts or participant metadata in browser storage. Refresh saved history after import or deletion; clear stale message context when its record disappears or roles/conversation change. Editing context manually removes the imported-message selection and conversation restriction.
+- Empty history, unavailable history, invalid role choices, no manager messages and unsupported JSON have readable states and a retry/import path. Manual context and draft-only generation remain available.
+
 **Hosted sign-in.** In the hosted build (`NEXT_PUBLIC_R2R_AUTH=invite`), visitors without a session open `/login`. There they enter their invite code, then return to the workspace. A personal sign-in link (`/login#<invite code>`) signs in without typing. The code stays in the URL fragment, which is never sent to the server, and the page removes it from the address bar immediately. If the API reports an expired session, the browser returns to `/login`. Show readable errors for an invalid code and for too many attempts. The local demo and the browser mock never show sign-in. See [Hosted invite-code sessions](API_CONTRACT.md#hosted-invite-code-sessions).
 
-Quick Tone Rewrite requires backend support for draft-only generation without memory retrieval. The existing evidence endpoint requires a manager message and searches imported history. Confirm the draft-only API with the backend owner before connecting the mode.
+Quick Tone Rewrite requires backend support for generation without memory retrieval. The existing evidence endpoint accepts an optional manager message and still searches imported history, including when only a draft is supplied. Confirm the no-retrieval API with the backend owner before connecting Quick Tone Rewrite.
 
 ## Data Handling and Acceptance Criteria
 

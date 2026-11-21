@@ -1,0 +1,94 @@
+[
+  {
+    "type": "message",
+    "user": "U08MGR001BB",
+    "text": "Sam, can you also get the Q4 client slides into review by 11:00 today? The account team wants something to talk through this morning.",
+    "ts": "1795042800.000149",
+    "client_msg_id": "4482d35d-403d-57ba-9d9f-9275e28a337c",
+    "thread_ts": "1794789000.000113",
+    "parent_user_id": "U08MGR001BB"
+  },
+  {
+    "type": "message",
+    "user": "U08EMP001AA",
+    "text": "I am still handling the support queue and the latest count is 22. Is the slides review replacing that priority or being added to it?",
+    "ts": "1795043280.000150",
+    "client_msg_id": "01623faf-dba5-5810-bfd1-a23ba8c3abbf",
+    "thread_ts": "1794789000.000113",
+    "parent_user_id": "U08MGR001BB"
+  },
+  {
+    "type": "message",
+    "subtype": "bot_message",
+    "bot_id": "B08REMIND1",
+    "user": "U08BOT001DD",
+    "text": "Reminder: weekly team stand-up starts in 15 minutes.",
+    "ts": "1795046700.000006"
+  },
+  {
+    "type": "message",
+    "user": "U08EMP001AA",
+    "text": "I still do not have the document password. Once I can open the material, we can agree on a realistic review time.",
+    "ts": "1795047000.000007",
+    "client_msg_id": "9e96f217-915d-4095-b613-ac867d1cf799"
+  },
+  {
+    "type": "message",
+    "user": "U08MGR001BB",
+    "text": "Can you confirm what is blocking your review of the shared documents and what you need from me to move forward? Please give me a clear update before we agree on the review timeline.",
+    "ts": "1795047300.000001",
+    "client_msg_id": "6306a4dd-a85f-487a-8a2c-e6d32230a1ee"
+  },
+  {
+    "type": "message",
+    "user": "U08MGR001BB",
+    "text": "Sam, I cannot see the Q4 slides ready for review yet. Can you explain where they stand and which task you need me to prioritise?",
+    "ts": "1795050300.000152",
+    "client_msg_id": "adf164be-78f8-5b49-9d4e-4fb2c23f0960",
+    "thread_ts": "1794789000.000113",
+    "parent_user_id": "U08MGR001BB"
+  },
+  {
+    "type": "message",
+    "user": "U08ACCT01FF",
+    "text": "Atlas vendor update: the corrected feed missed the 12:00 delivery. They now expect 16:00. No corrected file has reached me yet; I will post it here when it does.",
+    "ts": "1795054080.000153",
+    "client_msg_id": "deab4ace-1ca7-5605-b97d-bdbff44552dd",
+    "thread_ts": "1794791700.000115",
+    "parent_user_id": "U08ACCT01FF"
+  },
+  {
+    "type": "message",
+    "user": "U08MGR001BB",
+    "text": "Sam, the project update needs to sound more professional and have a bit more polish before I share it. Can you revise it this afternoon and tell me what you will change?",
+    "ts": "1795057200.000154",
+    "client_msg_id": "85b79de9-ed68-5ee5-8cff-1535e4eea04f",
+    "thread_ts": "1794891600.000131",
+    "parent_user_id": "U08MGR001BB"
+  },
+  {
+    "type": "message",
+    "user": "U08MGR001BB",
+    "text": "Sam, why is the Atlas handover not ready? Please give me a clear update on what is missing, who has the next action and when you can reassess it.",
+    "ts": "1795060800.000155",
+    "client_msg_id": "121652ac-839c-5208-a155-8cad5f64f840",
+    "thread_ts": "1794791700.000115",
+    "parent_user_id": "U08ACCT01FF"
+  },
+  {
+    "type": "message",
+    "user": "U08MGR001BB",
+    "text": "I have described the Beacon dashboard as Priya's build in the client notes. Sam, can you hand the calculations over to her and confirm who should get questions about the work?",
+    "ts": "1795064400.000156",
+    "client_msg_id": "981260ed-10ba-5e8b-9d73-7e805b476a25",
+    "thread_ts": "1794874200.000123",
+    "parent_user_id": "U08EMP001AA"
+  },
+  {
+    "type": "message",
+    "user": "U08TEAM01CC",
+    "text": "I have archived the old screenshot pack so it will not be confused with the live dashboard. The live dashboard URL has not changed.",
+    "ts": "1795068600.000157",
+    "client_msg_id": "f077f665-7635-5645-a636-430a6a48e044"
+  }
+]

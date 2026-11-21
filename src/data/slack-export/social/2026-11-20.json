@@ -1,0 +1,25 @@
+[
+  {
+    "type": "message",
+    "user": "U08ACCT01FF",
+    "text": "Friday lunch poll: noodles or sandwiches? I can collect if we order before 12:50.",
+    "ts": "1795142100.000169",
+    "client_msg_id": "14e4aaa5-a41f-536d-9a70-2bb6ae3a209b"
+  },
+  {
+    "type": "message",
+    "user": "U08EMP001AA",
+    "text": "Noodles for me, thanks. I will send you my order in a minute.",
+    "ts": "1795142340.000170",
+    "client_msg_id": "ae74923f-f662-5c9a-99c5-e367ec7e0780",
+    "thread_ts": "1795142100.000169",
+    "parent_user_id": "U08ACCT01FF"
+  },
+  {
+    "type": "message",
+    "user": "U08TEAM01CC",
+    "text": "Have a good weekend, everyone. I am switching notifications off for a bit.",
+    "ts": "1795158300.000171",
+    "client_msg_id": "17c564ba-95bb-51ad-aa21-9b6a0645aa6c"
+  }
+]

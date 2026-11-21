@@ -13,6 +13,8 @@ import {
   SlackPreviewResponse,
   StoredMemoryMessage,
 } from "./contract";
+import { parseSlackImport } from "@/frontend/features/memory/slackImport";
+import { SYNTHETIC_SLACK_EXPORT_FILES, SYNTHETIC_SLACK_CHANNEL_ID } from "@/frontend/features/memory/sampleSlackExport";
 
 // Frontend API client for docs/API_CONTRACT.md.
 // Mock mode (default) serves the contract's synthetic fixtures so the UI works without the backend.
@@ -68,31 +70,29 @@ let mockMemory: StoredMemoryMessage[] = [];
 let mockPreferences: CommunicationPreferences = { tone: "neutral", responseLength: "short", formality: "professional", directness: "balanced" };
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
+export { SYNTHETIC_SLACK_CHANNEL_ID };
 export const SYNTHETIC_IMPORT: { messages: MemoryMessage[] } = {
-  messages: [
-    {
-      id: "msg_001",
-      conversationId: "conv_demo",
-      sender: "Manager",
-      content: "I've uploaded the documents to the shared drive.",
-      timestamp: "2026-11-18T10:30:00+10:00",
-      source: "Synthetic demo conversation",
-    },
-    { id: "msg_002", conversationId: "conv_demo", sender: "Employee", content: "Thanks, I'll take a look this afternoon." },
-  ],
+  messages: parseSlackImport(SYNTHETIC_SLACK_EXPORT_FILES).messages,
 };
 
 function mockGenerate(req: GenerateReplyRequest): GenerateReplyResponse {
-  const hit = mockMemory.find((m) => /document/i.test(m.content));
+  const hit = mockMemory.find((m) =>
+    (!req.conversationId || m.conversationId === req.conversationId) &&
+    /uploaded.*documents.*shared drive/i.test(m.content),
+  );
+  const hasManagerMessage = Boolean(req.managerMessage?.trim());
   return {
     reply: "Hi, the document link is asking for a password that I don't currently have. Could you please share it so I can access the documents?",
-    managerIntent: "The manager is asking why the documents have not been accessed.",
+    managerIntent: hasManagerMessage
+      ? `Supplied manager message (synthetic demo): ${req.managerMessage}`
+      : "No manager message was provided, so its request cannot be interpreted.",
     employeeConcern: "The employee reports being unable to access the protected link.",
     evidence: hit
-      ? [{ messageId: hit.id, content: hit.content, sender: hit.sender, timestamp: hit.timestamp, source: hit.source, supportedClaim: "The manager shared a document location." }]
+      ? [{ messageId: hit.id, content: hit.content, sender: hit.sender, timestamp: hit.timestamp, source: hit.source, supportedClaim: "A document location was shared." }]
       : [],
     unverifiedClaims: ["The employee reports that opening the link requires a password."],
     warnings: [
+      ...(!hasManagerMessage ? ["No manager message was provided; the reply uses your draft and available history."] : []),
       hit
         ? "The retrieved message confirms the document location, but does not establish whether a password was supplied elsewhere."
         : "No supporting history was found. Import conversation history to add receipts.",
@@ -128,15 +128,24 @@ export async function generateReply(req: GenerateReplyRequest): Promise<Generate
 
 export async function previewSlack(req: SlackPreviewRequest): Promise<SlackPreviewResponse> {
   if (!USE_MOCK) return request("POST", "/api/slack/preview", req);
-  if (req.channelId !== "CDEMO123") {
-    throw new ApiError(403, "SLACK_CHANNEL_NOT_ALLOWED", "Use CDEMO123 to preview synthetic Slack messages.");
+  if (req.channelId !== SYNTHETIC_SLACK_CHANNEL_ID) {
+    throw new ApiError(403, "SLACK_CHANNEL_NOT_ALLOWED", `Use ${SYNTHETIC_SLACK_CHANNEL_ID} to preview synthetic Slack messages.`);
   }
-  const messages = SYNTHETIC_IMPORT.messages.map((message) => ({
-    ...message,
-    id: `slack-demo-${message.id}`,
-    conversationId: "slack-demo-CDEMO123",
-  }));
-  return { messages, nextCursor: null, skippedCount: 0, warnings: [] };
+  const messages = SYNTHETIC_IMPORT.messages
+    .filter((message) => message.conversationId === `slack-export:${req.channelId}`)
+    .map((message) => ({ ...message }));
+  const limit = req.limit ?? 100;
+  const cursor = req.cursor?.match(/^sample:(\d+)$/);
+  if (!Number.isInteger(limit) || limit < 1 || limit > 100 || (req.cursor !== undefined && !cursor)) {
+    throw new ApiError(422, "VALIDATION_ERROR", "Use a valid sample page cursor and a limit from 1 to 100.");
+  }
+  const offset = cursor ? Number(cursor[1]) : 0;
+  if (!Number.isSafeInteger(offset) || offset > messages.length) {
+    throw new ApiError(422, "VALIDATION_ERROR", "The sample page cursor is not valid.");
+  }
+  const page = messages.slice(offset, offset + limit);
+  const nextOffset = offset + page.length;
+  return { messages: page, nextCursor: nextOffset < messages.length ? `sample:${nextOffset}` : null, skippedCount: 0, warnings: [] };
 }
 
 export async function importMemory(messages: MemoryMessage[]): Promise<ImportMemoryResponse> {

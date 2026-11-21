@@ -62,12 +62,16 @@ These six features define the current scope. P0 features form the required MVP; 
 
 The Web App offers two reply modes:
 
-- **Rewrite with Evidence.** Users explicitly import Slack conversation history in the supported JSON format, provide the manager's message and an emotional draft, and choose a tone. The app can retrieve and display source-backed evidence.
+- **Rewrite with Evidence.** Users provide an emotional draft and choose a tone. They may add the manager's message for context and explicitly import conversation history for source-backed evidence. Neither is required to generate a reply. Without a manager message, the app states that no manager request can be interpreted rather than inventing one.
 - **Quick Tone Rewrite.** Users type a draft and choose a tone. The rewrite uses the current draft without retrieving imported history.
 
 P0 regeneration reuses the same input form. The dedicated controls beside a generated reply are P1. The numbered workflow below describes Rewrite with Evidence. Quick Tone Rewrite uses draft input, generation, review and editing.
 
 Communication Memory persists only explicitly imported history, including message content, sender, conversation identifier and available timestamps or source information. A basic message list is sufficient for review and deletion. Missing metadata remains blank in the interface and uses the null or omitted representations defined in [API_CONTRACT.md](API_CONTRACT.md).
+
+For Slack imports, users select an extracted export folder containing top-level `users.json` (or `user.json`), `channels.json` and channel-name subfolders with dated message JSON files. The app resolves participant names and channel IDs from those registries automatically, combines message days by channel and ignores unrelated export metadata and attachments. The synthetic test export follows this same directory structure. Preview converted messages before confirming import. Sender IDs remain the authoritative message authors; display names never imply a workplace role. In the reply workspace, users explicitly select themselves and their manager as distinct participants, choose a conversation and select the manager's saved message to use as current reply context. The app fills that original text without requiring a paste and restricts evidence retrieval to its conversation. Roles and display-name metadata last for the current page session only and are not a manager profile. Changing roles, conversation or deleting history clears the selected message. Manual context and generation from a draft alone remain available.
+
+The synthetic export provides a complete seven-day workplace conversation sample, with at least ten distinct situations for users to answer in their own words. Include relevant prior messages, natural unrelated conversation, supported claims, a contradicted claim and a claim with missing proof. Keep the complete sample within one import batch. [TEST_SITUATION.md](../TEST_SITUATION.md) guides manual exploration using original manager messages and open writing prompts; it does not supply emotional drafts or finished replies.
 
 The restricted single-user demo may also preview one explicitly configured Slack channel, then let the user select messages for import. Previewing does not save history or call Claude. This limited import extension uses the existing memory workflow; it does not add background synchronisation, message sending, thread/file crawling or access to arbitrary private conversations. Its request, response and failure behaviour are defined in [API_CONTRACT.md](API_CONTRACT.md#slack-channel-preview-single-user-demo-extension).
 
@@ -78,7 +82,7 @@ Replies with Receipts extracts factual claims, retrieves relevant history and va
 ## 4. Main User Workflow
 
 1. User opens the Web App in their browser.
-2. User enters the manager's original message.
+2. User may import Slack JSON, identify themselves and their manager, and select the manager's message from a saved conversation; alternatively add context manually or leave it blank.
 3. User enters their unfiltered response.
 4. User selects a desired tone.
 5. User clicks "Generate Reply".
@@ -101,7 +105,7 @@ The hackathon MVP must demonstrate:
 - Working message input.
 - Professional response generation with Claude that preserves intent without accepting blame or inventing facts.
 - Diplomatic, Neutral and Assertive tones, with regeneration from the same input form.
-- Manager message interpretation covering explicit requests, possible actions, missing information and misunderstandings, with interpretations labelled.
+- Optional manager message interpretation covering explicit requests, possible actions, missing information and misunderstandings, with interpretations labelled. Generation from the employee draft alone remains available, with missing manager context clearly identified.
 - Importing sample conversation history.
 - Reviewing and deleting imported history through a basic message list.
 - Contextual memory retrieval.
@@ -140,9 +144,9 @@ The hackathon version will not implement:
 
 The MVP is successful when a user can:
 
-1. Enter the manager's message, an emotional draft and a preferred tone.
+1. Enter an emotional draft and a preferred tone, optionally adding the manager's message.
 2. See the manager's explicit requests, possible actions, missing information and potential misunderstandings, with interpretations clearly labelled and no claims about hidden emotions or intentions.
-3. Import, review and delete historical conversations while missing timestamps and sources remain blank and emotional drafts are not saved by default.
+3. Preview, import, review and delete historical conversations while missing timestamps and sources remain blank and emotional drafts are not saved by default. Import Slack JSON using stable sender IDs, explicitly select participant roles and choose a saved manager message without pasting it.
 4. Generate a professional reply that preserves their intent without accepting blame, inventing facts or changing meaning.
 5. See real supporting evidence separately from the reply, with source references where available and no fabricated messages, dates or evidence.
 6. Distinguish verified evidence from unverified or contradicted claims.

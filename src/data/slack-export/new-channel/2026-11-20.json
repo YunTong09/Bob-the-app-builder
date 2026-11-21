@@ -1,0 +1,27 @@
+[
+  {
+    "type": "message",
+    "user": "U08MGR001BB",
+    "text": "Sam, the spreadsheet says 156 orders and your Beacon headline says 142. Why do the numbers disagree? Please check the definition and tell me which figure belongs in the board report.",
+    "ts": "1795129500.000161",
+    "client_msg_id": "2704f94e-2c36-551a-ba7d-6b76fcfb4ffb",
+    "thread_ts": "1794799200.000117",
+    "parent_user_id": "U08TEAM01CC"
+  },
+  {
+    "type": "message",
+    "user": "U08MGR001BB",
+    "text": "Sam, can you include PDF export by 17:00 today as well as the CSV release? We have the same delivery slot and budget. Please tell me the impact before I confirm anything to the client.",
+    "ts": "1795130700.000162",
+    "client_msg_id": "da4bbf45-08e5-5565-9126-acb0dfccf64d",
+    "thread_ts": "1794787500.000111",
+    "parent_user_id": "U08MGR001BB"
+  },
+  {
+    "type": "message",
+    "user": "U08TEAM01CC",
+    "text": "Reminder for anyone comparing screenshots: the board report uses the net-order definition. Please put the extract date beside any numbers you paste.",
+    "ts": "1795140600.000165",
+    "client_msg_id": "2ead243a-ebc6-5323-8deb-d15998983d14"
+  }
+]

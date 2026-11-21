@@ -13,6 +13,8 @@ from .llm import JsonModel, call_with_retry
 MAX_ITEMS = 8
 MAX_CLAIMS = 10
 MAX_ITEM_CHARS = 600
+NO_MANAGER_INTENT = "No manager message was provided, so there is no manager request to interpret."
+NO_MANAGER_WARNING = "No manager message was provided. This reply uses your draft and any supporting history."
 
 SYSTEM = """You analyse workplace messages for Rage-to-Reply, which helps an employee turn an
 emotional draft into a professional reply. You do not write the reply.
@@ -24,6 +26,11 @@ From the manager's message, extract:
   This is an interpretation.
 - missing_information: up to two short items identifying material gaps in both messages.
 - potential_misunderstandings: at most one short item noting a material possible misunderstanding.
+
+The manager's message is optional. If it is empty, leave explicit_requests,
+possible_actions and potential_misunderstandings empty. Analyse the employee's
+draft for concerns, claims and retrieval queries without inventing a manager
+message or inferring the current request from past conversation history.
 
 From the employee's draft, extract:
 - employee_concern: one neutral sentence describing the employee's concern, written as
@@ -37,9 +44,13 @@ Rules:
 - Never state or guess the manager's emotions, tone, motives or hidden intentions
   (e.g. do not say the manager is angry, frustrated, disappointed or testing the employee).
 - Do not invent facts, names, dates or history.
+<<<<<<< Updated upstream
 - Use the language of the manager's message.
 - Write one concise idea per array item. The interface can present items as points;
   omit Markdown markers, headings, repeated context and filler.
+=======
+- Use the language of the manager's message when present; otherwise use the employee's draft.
+>>>>>>> Stashed changes
 - Use empty arrays when nothing applies."""
 
 _STR_ARRAY = {"type": "array", "items": {"type": "string"}}
@@ -91,7 +102,7 @@ def _end(text: str) -> str:
     return text if text.endswith((".", "?", "!")) else text + "."
 
 
-def parse_analysis(data: dict[str, Any]) -> MessageAnalysis:
+def parse_analysis(data: dict[str, Any], *, manager_message_present: bool = True) -> MessageAnalysis:
     requests = _strings(data, "explicit_requests", MAX_ITEMS)
     actions = _strings(data, "possible_actions", MAX_ITEMS)
     missing = _strings(data, "missing_information", MAX_ITEMS)
@@ -110,16 +121,20 @@ def parse_analysis(data: dict[str, Any]) -> MessageAnalysis:
         if _EMOTION_CLAIM.search(text):
             raise ModelError("analysis: attributes emotions or motives to the manager")
 
-    if requests:
+    if not manager_message_present:
+        intent = NO_MANAGER_INTENT
+    elif requests:
         intent = " ".join(f"Explicit request: {_end(r)}" for r in requests)
     else:
         intent = "No explicit request was identified in the manager's message."
-    if actions:
+    if manager_message_present and actions:
         intent += " " + " ".join(f"Possible action (interpretation): {_end(a)}" for a in actions)
 
-    warnings = tuple(f"Missing information: {_end(m)}" for m in missing) + tuple(
-        f"Possible misunderstanding (interpretation): {_end(m)}" for m in misunderstandings
-    )
+    warnings = tuple(f"Missing information: {_end(m)}" for m in missing)
+    if manager_message_present:
+        warnings += tuple(f"Possible misunderstanding (interpretation): {_end(m)}" for m in misunderstandings)
+    else:
+        warnings += (NO_MANAGER_WARNING,)
     return MessageAnalysis(
         manager_intent=intent,
         employee_concern=concern,
@@ -141,5 +156,5 @@ class ClaudeAnalysisService:
             payload={"manager_message": manager_message, "employee_draft": employee_draft},
             schema=SCHEMA,
             max_tokens=16000,
-            parse=parse_analysis,
+            parse=lambda data: parse_analysis(data, manager_message_present=bool(manager_message.strip())),
         )

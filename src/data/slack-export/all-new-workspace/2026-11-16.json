@@ -1,0 +1,64 @@
+[
+  {
+    "type": "message",
+    "user": "U08MGR001BB",
+    "text": "Morning team. Orion review, the Beacon dashboard and Atlas handover are the main items this week. Keep blockers in their project threads so we can see what needs a decision.",
+    "ts": "1794782700.000100",
+    "client_msg_id": "6db3f9ff-ec8a-558b-9bcb-63efa082b6ea"
+  },
+  {
+    "type": "message",
+    "user": "U08MGR001BB",
+    "text": "The published rota is Monday to Friday, 09:00-17:00. There is no weekend cover booked for this team; please flag any client request that would need extra cover.",
+    "ts": "1794783000.000101",
+    "client_msg_id": "90726e41-884b-50b1-ac50-1cc1a18419ab"
+  },
+  {
+    "type": "message",
+    "user": "U08EMP001AA",
+    "text": "Thanks, that matches my calendar. I have not put myself down for any weekend cover.",
+    "ts": "1794783180.000102",
+    "client_msg_id": "f970ff38-7511-506c-a519-f27a35b36f50",
+    "thread_ts": "1794783000.000101",
+    "parent_user_id": "U08MGR001BB"
+  },
+  {
+    "type": "message",
+    "user": "U08OPS001EE",
+    "text": "Expenses note: add the receipt link and cost code in the expenses tracker by Thursday noon. A tracker entry without a receipt stays pending; no need to send the same file by email as well.",
+    "ts": "1794783600.000103",
+    "client_msg_id": "0500c0f4-8708-52d4-acf9-15965974af13"
+  },
+  {
+    "type": "message",
+    "user": "U08MGR001BB",
+    "text": "Sam, your Wednesday 18 November appointment is approved: you can be away from 14:00 until the end of the day. Please leave a short handover before you go.",
+    "ts": "1794783900.000104",
+    "client_msg_id": "78b5ba7f-7cca-58e2-a9d6-f00aca8509c6"
+  },
+  {
+    "type": "message",
+    "user": "U08EMP001AA",
+    "text": "Thank you. I have blocked Wednesday afternoon and will leave the handover before 14:00.",
+    "ts": "1794784080.000105",
+    "client_msg_id": "05dd08d8-9cff-5b97-af3c-da131ff28588",
+    "thread_ts": "1794783900.000104",
+    "parent_user_id": "U08MGR001BB"
+  },
+  {
+    "type": "message",
+    "user": "U08MGR001BB",
+    "text": "Release review is Friday 20 November at 11:00 in Cedar, with a video link for remote attendees. Sam, please bring the CSV export test results.",
+    "ts": "1794784320.000106",
+    "client_msg_id": "309a4263-cc74-5bbf-bb03-c62b63cd0656"
+  },
+  {
+    "type": "message",
+    "user": "U08EMP001AA",
+    "text": "Friday at 11:00 is in my calendar. I will bring the CSV test results.",
+    "ts": "1794784440.000107",
+    "client_msg_id": "6df84a3a-b3e4-57b7-ab14-e7b04a5ed559",
+    "thread_ts": "1794784320.000106",
+    "parent_user_id": "U08MGR001BB"
+  }
+]

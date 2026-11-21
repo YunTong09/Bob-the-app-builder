@@ -59,7 +59,7 @@ export default function ReplyPanel({ initialManagerMessage }: { initialManagerMe
   const [listening, setListening] = useState(false);
   const [copyNote, setCopyNote] = useState("");
 
-  const canGenerate = managerMessage.trim() !== "" && draft.trim() !== "" && !loading;
+  const canGenerate = draft.trim() !== "" && !loading;
 
   async function run(nextTone: ReplyTone) {
     setTone(nextTone);
@@ -68,7 +68,7 @@ export default function ReplyPanel({ initialManagerMessage }: { initialManagerMe
     setCopied(false);
     try {
       // The draft is sent only to generate a reply; it is never stored by the frontend.
-      const data = await generateReply({ managerMessage, employeeDraft: draft, tone: nextTone });
+      const data = await generateReply({ managerMessage: managerMessage.trim() ? managerMessage : undefined, employeeDraft: draft, tone: nextTone });
       setResult(data);
       setReply(data.reply);
       setAppliedIds([]);
@@ -102,8 +102,8 @@ export default function ReplyPanel({ initialManagerMessage }: { initialManagerMe
   return (
     <div className="stack">
       <section className="card">
-        <label className="field-label" htmlFor="manager-message">Manager&apos;s message (read from chat)</label>
-        <textarea id="manager-message" className="textarea textarea-sm" value={managerMessage} onChange={(e) => setManagerMessage(e.target.value)} maxLength={10000} />
+        <label className="field-label" htmlFor="manager-message">Manager&apos;s message (optional)</label>
+        <textarea id="manager-message" className="textarea textarea-sm" value={managerMessage} onChange={(e) => setManagerMessage(e.target.value)} maxLength={10000} placeholder="Optional: add their message for more context" />
         <label className="field-label" htmlFor="your-words">Your words</label>
         <DictationControls onTranscript={(text) => setDraft((current) => appendDictation(current, text))} disabled={loading}>
           <textarea id="your-words" className="textarea" value={draft} onChange={(e) => setDraft(e.target.value)} maxLength={10000} placeholder="Say what you really think. This stays private and isn't saved." />

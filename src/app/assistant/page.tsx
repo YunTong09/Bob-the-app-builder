@@ -11,8 +11,9 @@ export default function TutorialPage() {
         <section className="panel workspace-panel" aria-labelledby="tutorial-start">
           <h2 id="tutorial-start">Try it in the Workspace</h2>
           <ol className="text-list">
-            <li>Choose <strong>Rewrite with Evidence</strong>. Enter the work message and your draft, or select <strong>Use sample inputs</strong> on a blank form.</li>
-            <li>Optionally open <strong>History</strong> to import sample messages, upload a JSON file, or preview Slack messages and confirm which ones to import.</li>
+            <li>Choose <strong>Rewrite with Evidence</strong>. Enter your own draft in the writing space.</li>
+            <li>Open <strong>History</strong> and choose the extracted Slack export folder, or select <strong>Preview sample Slack export</strong>. The app reads <code>users.json</code> and <code>channels.json</code> and groups the dated message files by channel. Review the messages before confirming import.</li>
+            <li>Select <strong>You</strong> and <strong>Your manager</strong>, choose a conversation and a manager message, then select <strong>Use selected message</strong>. Names and sender IDs do not automatically identify a manager. You can also add context manually or generate from your draft alone.</li>
             <li>Pick Diplomatic, Neutral, or Assertive and choose <strong>Generate reply</strong>.</li>
             <li>Review the AI interpretation, supporting evidence, unverified claims, and warnings. Edit the suggested reply, or change the tone and regenerate.</li>
           </ol>

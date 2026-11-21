@@ -2,15 +2,23 @@
 
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import ChatWindow from "@/frontend/features/reply/ChatWindow";
+import ImportedMessagePicker, {
+  type ImportedMessageSelection,
+} from "@/frontend/features/reply/ImportedMessagePicker";
 import ComparePanel from "@/frontend/features/reply/ComparePanel";
 import HistoryPanel from "@/frontend/features/memory/HistoryPanel";
+import { SYNTHETIC_PARTICIPANT_NAMES, SYNTHETIC_CONVERSATION_NAMES } from "@/frontend/features/memory/sampleSlackExport";
 import PreferencesPanel, {
   readLocalPreferences,
 } from "@/frontend/features/preferences/PreferencesPanel";
 import DisplaySettings from "@/frontend/features/preferences/DisplaySettings";
 import { appendDictation } from "@/frontend/features/reply/DictationControls";
+<<<<<<< Updated upstream
 import VentInput from "@/frontend/features/reply/VentInput";
 import type { GenerateReplyResponse, ReplyTone } from "@/frontend/api/contract";
+=======
+import type { GenerateReplyResponse, ReplyTone, StoredMemoryMessage } from "@/frontend/api/contract";
+>>>>>>> Stashed changes
 import PixelAnimation from "@/frontend/shared/PixelAnimation";
 import ReplyInsights from "@/frontend/features/reply/ReplyInsights";
 import ReplyProcessing from "@/frontend/features/reply/ReplyProcessing";
@@ -21,6 +29,13 @@ const setupKey = "rage-to-reply.workspace-setup";
 export default function HomePage() {
   const [mode, setMode] = useState<"evidence" | "quick">("evidence");
   const [managerMessage, setManagerMessage] = useState("");
+  const [historyRevision, setHistoryRevision] = useState(0);
+  const [participantNames, setParticipantNames] = useState<Record<string, string>>(() => ({ ...SYNTHETIC_PARTICIPANT_NAMES }));
+  const [conversationNames, setConversationNames] = useState<Record<string, string>>(() => ({ ...SYNTHETIC_CONVERSATION_NAMES }));
+  const [importedSelection, setImportedSelection] = useState<ImportedMessageSelection>({
+    selfId: "", managerId: "", conversationId: "", messageId: "",
+  });
+  const [selectedManagerMessage, setSelectedManagerMessage] = useState<StoredMemoryMessage | null>(null);
   const [draft, setDraft] = useState("");
   const [tone, setTone] = useState<ReplyTone>("neutral");
   const [quickDraft, setQuickDraft] = useState("");
@@ -42,9 +57,13 @@ export default function HomePage() {
 
   const regeneratingRequest = useRef(false);
   const inFlight = useRef(false);
+<<<<<<< Updated upstream
   const requestTiming = useRef<{ startedAt: number; estimateMs: number | null }>({ startedAt: 0, estimateMs: null });
   const successfulDurations = useRef<number[]>([]);
   const canSubmit = Boolean(managerMessage.trim() && draft.trim());
+=======
+  const canSubmit = Boolean(draft.trim());
+>>>>>>> Stashed changes
   const withEvidence = mode === "evidence";
   const showReview = withEvidence && Boolean(result);
 
@@ -76,6 +95,7 @@ export default function HomePage() {
   }, [dialog]);
 
   function dismissDialog() {
+    if (dialog === "history") setHistoryRevision((revision) => revision + 1);
     if (firstVisit) {
       try {
         localStorage.setItem(setupKey, "complete");
@@ -85,6 +105,22 @@ export default function HomePage() {
       setFirstVisit(false);
     }
     setDialog(null);
+  }
+
+  function applyImportedMessage(message: StoredMemoryMessage | null) {
+    setSelectedManagerMessage(message);
+    if (message) setManagerMessage(message.content);
+    else if (selectedManagerMessage) setManagerMessage("");
+  }
+
+  function historyChanged(change?: "import" | "delete") {
+    setHistoryRevision((revision) => revision + 1);
+    if (change === "delete") {
+      applyImportedMessage(null);
+      setImportedSelection({ selfId: "", managerId: "", conversationId: "", messageId: "" });
+      setParticipantNames({});
+      setConversationNames({});
+    }
   }
 
   async function handleGenerate(event: FormEvent) {
@@ -105,9 +141,12 @@ export default function HomePage() {
 
     try {
       const data = await generateReply({
-        managerMessage,
+        managerMessage: managerMessage.trim() ? managerMessage : undefined,
         employeeDraft: draft,
         tone,
+        ...(selectedManagerMessage && managerMessage === selectedManagerMessage.content
+          ? { conversationId: selectedManagerMessage.conversationId }
+          : {}),
       });
       successfulDurations.current = [...samples, performance.now() - startedAt].slice(-3);
       setPendingReply({ data, tone });
@@ -260,7 +299,11 @@ export default function HomePage() {
         )}
         {historyOpened && (
           <div hidden={dialog !== "history"}>
-            <HistoryPanel />
+            <HistoryPanel
+              onHistoryChanged={historyChanged}
+              onParticipants={(names) => setParticipantNames((current) => ({ ...current, ...names }))}
+              onConversationNames={(names) => setConversationNames((current) => ({ ...current, ...names }))}
+            />
           </div>
         )}
       </dialog>
@@ -292,32 +335,37 @@ export default function HomePage() {
             </span>
           </div>
           <p className="small-text">
-            Start with the message. Then tell us your side.
+            Tell us your side. Choose a manager&apos;s message from history if it helps.
           </p>
           {withEvidence && (
-            <div>
-              <button
-                type="button"
-                className="secondary-button"
-                disabled={loading || Boolean(managerMessage || draft)}
-                onClick={() => {
-                  setManagerMessage(
-                    "Can you confirm why the shared document hasn't been reviewed yet? I uploaded the document link to the shared drive and expected you to be able to start reviewing it. Before we discuss the next steps, please let me know whether you have been able to open the link, what is preventing you from accessing the material, and what you need from me to move forward. I would appreciate a clear update rather than another general acknowledgement. If there is an access problem, please explain the issue so that we can resolve it and agree on a realistic time for the review.",
-                  );
-                  setDraft(
-                    "I am frustrated that this is being treated as though I just ignored the document. I want to review it, but I cannot open the shared link because it asks for a password that I do not currently have. Having a link to the shared drive is not the same as having access to the protected document. I do not want my reply to sound defensive, but I also do not want to accept blame for a review I cannot start. Please make it clear that I need the password before I can read the material and provide useful feedback. Once I can access it, we can agree on an appropriate review time. Keep the reply professional and focused on resolving the access issue. Do not invent a date when I asked for the password, claim that I already completed any part of the review, or promise a deadline I have not agreed to. If the imported conversation only confirms that a document location was shared, distinguish that from proof that a password was supplied.",
-                  );
-                }}
-              >
-                Use sample inputs
-              </button>
-            </div>
-          )}
-          {withEvidence && (
-            <ChatWindow
-              managerMessage={managerMessage}
-              onChange={setManagerMessage}
-            />
+            <>
+              <ImportedMessagePicker
+                revision={historyRevision}
+                participantNames={participantNames}
+                conversationNames={conversationNames}
+                selection={importedSelection}
+                onSelectionChange={setImportedSelection}
+                onUseMessage={applyImportedMessage}
+              />
+              {selectedManagerMessage && (
+                <p className="small-text" role="status">
+                  Using the selected message from {Object.prototype.hasOwnProperty.call(participantNames, selectedManagerMessage.sender)
+                    ? participantNames[selectedManagerMessage.sender] : selectedManagerMessage.sender}.
+                  {" "}Evidence will come from this conversation.
+                </p>
+              )}
+              <details>
+                <summary>{selectedManagerMessage ? "Edit the selected message manually" : "Add a message manually (optional)"}</summary>
+                <ChatWindow
+                  managerMessage={managerMessage}
+                  onChange={(value) => {
+                    setSelectedManagerMessage(null);
+                    setImportedSelection((current) => ({ ...current, messageId: "" }));
+                    setManagerMessage(value);
+                  }}
+                />
+              </details>
+            </>
           )}
           {!withEvidence && (
             <p className="feature-notice" role="status">

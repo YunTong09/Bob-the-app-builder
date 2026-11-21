@@ -8,6 +8,7 @@ import {
   importMemory,
   isMockMode,
   previewSlack,
+  SYNTHETIC_SLACK_CHANNEL_ID,
 } from "@/frontend/api/replyApi";
 
 const pageSize = 20;
@@ -17,11 +18,13 @@ const channelPattern = /^[CG][A-Z0-9]{1,127}$/;
 
 export default function SlackImportPanel({
   onReviewHistory,
+  onImported,
 }: {
   onReviewHistory: () => void;
+  onImported?: () => void;
 }) {
   const id = useId();
-  const [channel, setChannel] = useState(isMockMode ? "CDEMO123" : "");
+  const [channel, setChannel] = useState(isMockMode ? SYNTHETIC_SLACK_CHANNEL_ID : "");
   const [preview, setPreview] = useState<SlackPreviewResponse | null>(null);
   const [selected, setSelected] = useState(new Map<string, MemoryMessage>());
   const [confirming, setConfirming] = useState(false);
@@ -104,6 +107,7 @@ export default function SlackImportPanel({
       setResult(null);
       const imported = await importMemory(messages);
       setResult(imported);
+      onImported?.();
       setSelected(new Map());
       setConfirming(false);
     });

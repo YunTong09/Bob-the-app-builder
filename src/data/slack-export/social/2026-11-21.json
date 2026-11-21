@@ -1,0 +1,43 @@
+[
+  {
+    "type": "message",
+    "user": "U08OPS001EE",
+    "text": "The little weekend market is back near the river. Good fruit, very determined pigeons.",
+    "ts": "1795220400.000172",
+    "client_msg_id": "349650f3-cf88-563a-9b0d-0ed488355a01"
+  },
+  {
+    "type": "message",
+    "user": "U08EMP001AA",
+    "text": "We went last month. The bread stall is worth finding.",
+    "ts": "1795221300.000173",
+    "client_msg_id": "2f737c0c-89ee-573d-80e0-5346eec414ec",
+    "thread_ts": "1795220400.000172",
+    "parent_user_id": "U08OPS001EE"
+  },
+  {
+    "type": "message",
+    "user": "U08ACCT01FF",
+    "text": "Finally repotted the balcony plants. They now have more space than my desk does.",
+    "ts": "1795234200.000174",
+    "client_msg_id": "9dc1998d-d929-536e-b318-89056e349706",
+    "reactions": [
+      {
+        "name": "seedling",
+        "users": [
+          "U08TEAM01CC"
+        ],
+        "count": 1
+      }
+    ]
+  },
+  {
+    "type": "message",
+    "user": "U08TEAM01CC",
+    "text": "That is the sign I needed to stop putting off mine. Tomorrow's job.",
+    "ts": "1795237500.000175",
+    "client_msg_id": "f82447fa-53de-54a3-b753-ccf9cfbf6866",
+    "thread_ts": "1795234200.000174",
+    "parent_user_id": "U08ACCT01FF"
+  }
+]

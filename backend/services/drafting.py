@@ -18,7 +18,7 @@ from .evidence import check_draft
 from .llm import JsonModel, call_with_retry
 
 TONE_GUIDE = {
-    "diplomatic": "Warm and collaborative. Acknowledge the manager's request, then state the employee's position and next step.",
+    "diplomatic": "Warm and collaborative. Acknowledge the manager's request if one was supplied, then state the employee's position and next step.",
     "neutral": "Plain, factual and concise. No warmth padding, no edge.",
     "assertive": "Direct and confident. State the facts and the request clearly, without hedging, apologising or hostility.",
 }
@@ -32,6 +32,9 @@ Rules:
 - Apply the requested tone only to wording. The facts must stay identical across tones.
 - Use only facts from the employee's draft, the manager's message and the supplied evidence.
   Never invent events, dates, times, people, documents, admissions, promises or history.
+- The manager's message is optional. If empty, rewrite from the employee's draft and
+  permitted evidence without inventing or acknowledging a manager request. Historical
+  messages must not be treated as the missing current manager message.
 - Do not mention any date or time unless it appears verbatim in those inputs.
 - Claims listed as unverified are the employee's own report: you may state them as the
   employee's experience ("I haven't received ...") but never as confirmed by records.
@@ -40,9 +43,14 @@ Rules:
 - Do not apologise or accept blame unless the employee's draft clearly does so. Do not
   speculate about the manager's emotions or intentions.
 - Do not mention message IDs, "records", "the system" or this application.
+<<<<<<< Updated upstream
 - Write in the language of the manager's message. Aim for 1-3 short sentences of ready-to-send
   prose. Lead with the main point or request. Preserve any material condition, fact, or
   next step even if it takes another sentence. Omit headings, bullets and filler.
+=======
+- Write in the language of the manager's message when present; otherwise use the
+  employee's draft. Keep it short (usually 2-5 sentences).
+>>>>>>> Stashed changes
 - cited_message_ids: IDs from allowed_evidence that the reply actually relies on (may be empty).
   Only IDs listed in allowed_evidence are permitted."""
 

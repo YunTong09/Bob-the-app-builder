@@ -1,0 +1,77 @@
+[
+  {
+    "id": "C08WORKSP1",
+    "name": "all-new-workspace",
+    "created": 1794697200,
+    "creator": "U08MGR001BB",
+    "is_archived": false,
+    "is_general": true,
+    "members": [
+      "U08MGR001BB",
+      "U08EMP001AA",
+      "U08TEAM01CC",
+      "U08OPS001EE",
+      "U08ACCT01FF"
+    ],
+    "topic": {
+      "value": "",
+      "creator": "",
+      "last_set": 0
+    },
+    "purpose": {
+      "value": "Synthetic workspace announcements and team updates.",
+      "creator": "U08MGR001BB",
+      "last_set": 1794697200
+    }
+  },
+  {
+    "id": "C08PROJECT1",
+    "name": "new-channel",
+    "created": 1794697200,
+    "creator": "U08MGR001BB",
+    "is_archived": false,
+    "is_general": false,
+    "members": [
+      "U08MGR001BB",
+      "U08EMP001AA",
+      "U08TEAM01CC",
+      "U08OPS001EE",
+      "U08ACCT01FF"
+    ],
+    "topic": {
+      "value": "",
+      "creator": "",
+      "last_set": 0
+    },
+    "purpose": {
+      "value": "Synthetic project coordination: Orion document access, Beacon reporting and Atlas handover.",
+      "creator": "U08MGR001BB",
+      "last_set": 1794697200
+    }
+  },
+  {
+    "id": "C08SOCIAL1",
+    "name": "social",
+    "created": 1794697200,
+    "creator": "U08MGR001BB",
+    "is_archived": false,
+    "is_general": false,
+    "members": [
+      "U08MGR001BB",
+      "U08EMP001AA",
+      "U08TEAM01CC",
+      "U08OPS001EE",
+      "U08ACCT01FF"
+    ],
+    "topic": {
+      "value": "",
+      "creator": "",
+      "last_set": 0
+    },
+    "purpose": {
+      "value": "Synthetic informal team conversation.",
+      "creator": "U08MGR001BB",
+      "last_set": 1794697200
+    }
+  }
+]

@@ -23,7 +23,12 @@ def assert_error(r, status: int, code: str) -> dict:
     "patch, field",
     [
         ({"employeeDraft": "   \n\t"}, "employeeDraft"),
-        ({"managerMessage": ""}, "managerMessage"),
+        ({"managerMessage": None}, "managerMessage"),
+        ({"managerMessage": 123}, "managerMessage"),
+        ({"managerMessage": False}, "managerMessage"),
+        ({"managerMessage": []}, "managerMessage"),
+        ({"managerMessage": "x" * 10_001}, "managerMessage"),
+        ({"managerMessage": " " * 10_001}, "managerMessage"),
         ({"tone": "angry"}, "tone"),
         ({"tone": 1}, "tone"),
         ({"employeeDraft": 123}, "employeeDraft"),
@@ -43,10 +48,12 @@ def test_generate_rejects_invalid_fields(client, ai, patch, field):
     assert ai.calls == []  # Claude is never called for invalid input
 
 
-def test_generate_missing_required_field(client, ai):
-    body = {k: v for k, v in GEN_BODY.items() if k != "tone"}
+@pytest.mark.parametrize("field", ["employeeDraft", "tone"])
+def test_generate_missing_required_field(client, ai, field):
+    body = {k: v for k, v in GEN_BODY.items() if k != field}
     err = assert_error(client.post("/api/reply/generate", json=body), 422, "VALIDATION_ERROR")
-    assert err["details"] == [{"field": "tone", "message": "Field required."}]
+    assert err["details"] == [{"field": field, "message": "Field required."}]
+    assert ai.calls == []
 
 
 def test_whitespace_error_matches_contract_example(client):
@@ -60,8 +67,9 @@ def test_validation_errors_never_echo_draft(client):
     assert "SECRET-DRAFT-TEXT" not in r.text
 
 
-def test_max_length_text_is_accepted(client):
-    r = client.post("/api/reply/generate", json={**GEN_BODY, "employeeDraft": "x" * 10_000})
+@pytest.mark.parametrize("field", ["employeeDraft", "managerMessage"])
+def test_max_length_text_is_accepted(client, field):
+    r = client.post("/api/reply/generate", json={**GEN_BODY, field: "x" * 10_000})
     assert r.status_code == 200, r.text
 
 

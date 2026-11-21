@@ -1,0 +1,198 @@
+{
+  "weekStart": "2026-11-16",
+  "weekEnd": "2026-11-22",
+  "timeZone": "Australia/Brisbane",
+  "employeeId": "U08EMP001AA",
+  "managerId": "U08MGR001BB",
+  "scenarios": [
+    {
+      "id": "document-access",
+      "title": "A document link is not document access",
+      "channelId": "C08PROJECT1",
+      "managerMessageId": "slack-export:C08PROJECT1:1795047300.000001",
+      "contextMessageIds": [
+        "slack-export:C08PROJECT1:1794961800.000001",
+        "slack-export:C08PROJECT1:1794962100.000002",
+        "slack-export:C08PROJECT1:1794962400.000003",
+        "slack-export:C08PROJECT1:1794962700.000004",
+        "slack-export:C08PROJECT1:1795047000.000007"
+      ],
+      "writingPrompt": "How would you explain the access blocker and ask for what you need, without accepting blame or promising an unagreed review deadline?",
+      "evidenceStatus": "supported",
+      "evidenceExpectation": "The shared location and reported password prompt are documented. Priya independently reports the prompt; no message supplies a password. Missing proof of delivery is not proof that a password was never sent elsewhere."
+    },
+    {
+      "id": "deadline-change",
+      "title": "The deadline moved a day earlier",
+      "channelId": "C08PROJECT1",
+      "managerMessageId": "slack-export:C08PROJECT1:1794971100.000143",
+      "contextMessageIds": [
+        "slack-export:C08PROJECT1:1794785700.000108",
+        "slack-export:C08PROJECT1:1794785940.000109",
+        "slack-export:C08PROJECT1:1794786180.000110",
+        "slack-export:C08PROJECT1:1794870300.000122"
+      ],
+      "writingPrompt": "How would you respond to the earlier deadline and explain any trade-off or clarification you need?",
+      "evidenceStatus": "supported",
+      "evidenceExpectation": "Alex originally set Thursday 19 November at 15:00 and now asks for Wednesday at 16:00. History supports the change, not a promise that Sam can meet it."
+    },
+    {
+      "id": "competing-priorities",
+      "title": "Two urgent tasks and one person",
+      "channelId": "C08PROJECT1",
+      "managerMessageId": "slack-export:C08PROJECT1:1795050300.000152",
+      "contextMessageIds": [
+        "slack-export:C08PROJECT1:1794789000.000113",
+        "slack-export:C08PROJECT1:1794789240.000114",
+        "slack-export:C08PROJECT1:1794964800.000139",
+        "slack-export:C08PROJECT1:1795042800.000149",
+        "slack-export:C08PROJECT1:1795043280.000150"
+      ],
+      "writingPrompt": "How would you ask for a clear priority while giving a factual update on the support queue and slide request?",
+      "evidenceStatus": "supported",
+      "evidenceExpectation": "The original instruction puts support first until fewer than 10 tickets remain; the recorded count is still 22 when slides are requested. No later message resolves the priority conflict."
+    },
+    {
+      "id": "approved-leave",
+      "title": "A workshop conflicts with approved time away",
+      "channelId": "C08WORKSP1",
+      "managerMessageId": "slack-export:C08WORKSP1:1794971400.000144",
+      "contextMessageIds": [
+        "slack-export:C08WORKSP1:1794783900.000104",
+        "slack-export:C08WORKSP1:1794784080.000105",
+        "slack-export:C08WORKSP1:1794967500.000142"
+      ],
+      "writingPrompt": "How would you flag the workshop clash and help arrange coverage without implying that you are available during approved time away?",
+      "evidenceStatus": "supported",
+      "evidenceExpectation": "Alex explicitly approved Wednesday after 14:00 and Jordan confirms cover. The new workshop is at 14:30 on that same day."
+    },
+    {
+      "id": "weekend-availability",
+      "title": "A last-minute Saturday request",
+      "channelId": "C08WORKSP1",
+      "managerMessageId": "slack-export:C08WORKSP1:1795155600.000167",
+      "contextMessageIds": [
+        "slack-export:C08WORKSP1:1794783000.000101",
+        "slack-export:C08WORKSP1:1794783180.000102",
+        "slack-export:C08WORKSP1:1795154400.000166"
+      ],
+      "writingPrompt": "How would you answer based on your own availability and ask what arrangements are needed before anyone commits you?",
+      "evidenceStatus": "supported",
+      "evidenceExpectation": "The published rota is Monday-Friday and no weekend cover has been booked. The history does not establish whether Sam is personally available on Saturday or whether extra work is compensated."
+    },
+    {
+      "id": "work-credit",
+      "title": "Clarifying who built the dashboard",
+      "channelId": "C08PROJECT1",
+      "managerMessageId": "slack-export:C08PROJECT1:1795064400.000156",
+      "contextMessageIds": [
+        "slack-export:C08PROJECT1:1794874200.000123",
+        "slack-export:C08PROJECT1:1794874680.000124",
+        "slack-export:C08PROJECT1:1794874920.000125"
+      ],
+      "writingPrompt": "How would you correct the ownership description respectfully while recognising Priya's review contribution?",
+      "evidenceStatus": "supported",
+      "evidenceExpectation": "Sam describes implementing the calculation and drill-down; Priya independently confirms that she reviewed those and changed labels/colours. Do not turn a credit correction into a claim about anyone's motives."
+    },
+    {
+      "id": "expense-receipt",
+      "title": "A receipt is attached but finance is still waiting",
+      "channelId": "C08WORKSP1",
+      "managerMessageId": "slack-export:C08WORKSP1:1795046400.000151",
+      "contextMessageIds": [
+        "slack-export:C08WORKSP1:1794783600.000103",
+        "slack-export:C08WORKSP1:1794888120.000129",
+        "slack-export:C08WORKSP1:1794888600.000130"
+      ],
+      "writingPrompt": "How would you point Alex to the receipt and distinguish submitting it from approval or reimbursement?",
+      "evidenceStatus": "supported",
+      "evidenceExpectation": "The tracker entry and receipt location are recorded and Jordan confirms the link and amount. Finance approval and payment have not been confirmed."
+    },
+    {
+      "id": "vague-feedback",
+      "title": "More professional, but in what way?",
+      "channelId": "C08PROJECT1",
+      "managerMessageId": "slack-export:C08PROJECT1:1795057200.000154",
+      "contextMessageIds": [
+        "slack-export:C08PROJECT1:1794891600.000131",
+        "slack-export:C08PROJECT1:1794892020.000132",
+        "slack-export:C08PROJECT1:1794892260.000133"
+      ],
+      "writingPrompt": "How would you ask for a concrete example or criterion while keeping the revision moving?",
+      "evidenceStatus": "unverified",
+      "evidenceExpectation": "The three-part format is documented, but the later feedback does not identify what wording is unsuitable or what polish means. History cannot establish Alex's hidden expectations or feelings."
+    },
+    {
+      "id": "vendor-handoff",
+      "title": "A handover is blocked by an external feed",
+      "channelId": "C08PROJECT1",
+      "managerMessageId": "slack-export:C08PROJECT1:1795060800.000155",
+      "contextMessageIds": [
+        "slack-export:C08PROJECT1:1794791700.000115",
+        "slack-export:C08PROJECT1:1794791940.000116",
+        "slack-export:C08PROJECT1:1794879000.000126",
+        "slack-export:C08PROJECT1:1795054080.000153"
+      ],
+      "writingPrompt": "How would you explain the dependency, identify the next action and avoid promising a delivery time you do not control?",
+      "evidenceStatus": "supported",
+      "evidenceExpectation": "Morgan owns the vendor contact, the corrected feed missed noon and Sam cannot run final checks without it. The vendor's revised 16:00 estimate is not proof of delivery."
+    },
+    {
+      "id": "metric-definition",
+      "title": "142 and 156 can both describe the same extract",
+      "channelId": "C08PROJECT1",
+      "managerMessageId": "slack-export:C08PROJECT1:1795129500.000161",
+      "contextMessageIds": [
+        "slack-export:C08PROJECT1:1794799200.000117",
+        "slack-export:C08PROJECT1:1794799440.000118",
+        "slack-export:C08PROJECT1:1794966300.000140",
+        "slack-export:C08PROJECT1:1794966720.000141"
+      ],
+      "writingPrompt": "How would you explain the difference between gross and net orders and clarify which number belongs in the report?",
+      "evidenceStatus": "supported",
+      "evidenceExpectation": "The extract has 156 gross orders minus 8 cancellations and 6 refunds, giving 142 net. Jordan explicitly requests the net number for the board report; no arithmetic error is established."
+    },
+    {
+      "id": "scope-change",
+      "title": "CSV was agreed; PDF is now requested too",
+      "channelId": "C08PROJECT1",
+      "managerMessageId": "slack-export:C08PROJECT1:1795130700.000162",
+      "contextMessageIds": [
+        "slack-export:C08PROJECT1:1794787500.000111",
+        "slack-export:C08PROJECT1:1794787740.000112",
+        "slack-export:C08PROJECT1:1794895500.000134",
+        "slack-export:C08PROJECT1:1794971700.000145"
+      ],
+      "writingPrompt": "How would you explain the scope change and ask for a decision on time, scope or resources before committing?",
+      "evidenceStatus": "supported",
+      "evidenceExpectation": "The recorded release scope is CSV only; Morgan says PDF has not been promised. Passing CSV tests does not establish that PDF can be added in the same slot or budget."
+    },
+    {
+      "id": "missed-meeting",
+      "title": "A missed meeting with an earlier acknowledgement",
+      "channelId": "C08WORKSP1",
+      "managerMessageId": "slack-export:C08WORKSP1:1795137480.000164",
+      "contextMessageIds": [
+        "slack-export:C08WORKSP1:1794784320.000106",
+        "slack-export:C08WORKSP1:1794784440.000107"
+      ],
+      "writingPrompt": "How would you respond after missing the review? Try checking a claim that nobody told you about it against the saved conversation.",
+      "evidenceStatus": "contradicted",
+      "evidenceExpectation": "The assertion that Sam was never told about the Friday 11:00 review is contradicted by Alex's invitation and Sam's explicit acknowledgement. The history does not say why Sam missed it, so no excuse or admission should be invented."
+    },
+    {
+      "id": "verbal-approval",
+      "title": "A remembered conversation is not written approval",
+      "channelId": "C08WORKSP1",
+      "managerMessageId": "slack-export:C08WORKSP1:1795133700.000163",
+      "contextMessageIds": [
+        "slack-export:C08WORKSP1:1794884700.000127",
+        "slack-export:C08WORKSP1:1794885120.000128",
+        "slack-export:C08WORKSP1:1794972120.000146"
+      ],
+      "writingPrompt": "How would you describe your recollection and request clear confirmation before booking the course?",
+      "evidenceStatus": "unverified",
+      "evidenceExpectation": "Sam recalls a kitchen conversation but has no written approval and has not booked. Jordan's policy is not evidence of what Alex said. Whether Alex approved the spend verbally remains unverified."
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+[
+  {
+    "type": "message",
+    "user": "U08MGR001BB",
+    "text": "Sam, finance says R-1042 is waiting for a receipt. Did you submit it? Please send me the receipt location and what still needs to happen.",
+    "ts": "1795046400.000151",
+    "client_msg_id": "b624b1ab-6d97-5458-a7a6-5ecf0186da85",
+    "thread_ts": "1794888120.000129",
+    "parent_user_id": "U08EMP001AA"
+  },
+  {
+    "type": "message",
+    "user": "U08OPS001EE",
+    "text": "Kitchen notice: please label anything staying in the fridge overnight. The unlabelled boxes will be moved to the lower shelf, not thrown away.",
+    "ts": "1795069800.000158",
+    "client_msg_id": "65de8e84-f9c1-59b4-bb11-1dfeb2fc48d9"
+  }
+]

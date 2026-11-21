@@ -2,21 +2,30 @@ import PixelAnimation from "@/frontend/shared/PixelAnimation";
 import SlackImportPanel from "./SlackImportPanel";
 import { useRef, useState } from "react";
 import type { SearchMemoryResponse } from "@/frontend/api/contract";
+import { SYNTHETIC_SLACK_EXPORT_FILES } from "./sampleSlackExport";
+import { isSlackExportJsonPath, parseSlackImport } from "./slackImport";
 import {
   deleteAllMemory,
   importMemory,
   searchMemory,
-  SYNTHETIC_IMPORT,
 } from "@/frontend/api/replyApi";
 
 const pageSize = 20;
 const maxImportBytes = 1_048_576;
 
-export default function HistoryPanel() {
+type HistoryPanelProps = {
+  onHistoryChanged?: (change?: "import" | "delete") => void;
+  onParticipants?: (names: Record<string, string>) => void;
+  onConversationNames?: (names: Record<string, string>) => void;
+};
+
+export default function HistoryPanel({ onHistoryChanged, onParticipants, onConversationNames }: HistoryPanelProps) {
   const [query, setQuery] = useState("");
   const [appliedQuery, setAppliedQuery] = useState("");
   const [page, setPage] = useState<SearchMemoryResponse | null>(null);
-  const [file, setFile] = useState<File | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
+  const [preview, setPreview] = useState<ReturnType<typeof parseSlackImport> | null>(null);
+  const [participantNames, setParticipantNames] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [notice, setNotice] = useState("");
@@ -49,8 +58,53 @@ export default function HistoryPanel() {
     setAppliedQuery(search);
   }
 
-  async function importSample() {
-    const result = await importMemory(SYNTHETIC_IMPORT.messages);
+  async function previewSample() {
+    showPreview(parseSlackImport(SYNTHETIC_SLACK_EXPORT_FILES));
+    setNotice("Synthetic Slack export ready to review. Nothing has been saved yet.");
+  }
+
+  function showPreview(parsed: ReturnType<typeof parseSlackImport>) {
+    setPreview(parsed);
+    // Resolve saved sender IDs from this export's user registry without
+    // requiring another memory import just to display participant names.
+    setParticipantNames((current) => ({ ...current, ...parsed.participants }));
+    onParticipants?.(parsed.participants);
+    onConversationNames?.(parsed.conversationNames ?? {});
+  }
+
+  async function previewFolder() {
+    if (!files.length) return;
+    setPreview(null);
+    if (files.some((file) => !file.webkitRelativePath))
+      throw new Error("Your browser did not provide folder paths. Use a browser that supports folder selection.");
+    const relevantFiles = files.filter((file) => isSlackExportJsonPath(file.webkitRelativePath));
+    if (!relevantFiles.length)
+      throw new Error("Choose an extracted Slack export folder containing users.json, channels.json and channel folders with dated message JSON files.");
+    if (relevantFiles.reduce((size, file) => size + file.size, 0) > maxImportBytes)
+      throw new Error("The export's user, channel and message JSON exceeds 1 MiB. Choose a smaller export.");
+    const parsedFiles = await Promise.all(relevantFiles.map(async (file) => {
+      let data: unknown;
+      try {
+        data = JSON.parse(await file.text());
+      } catch {
+        throw new Error("A user, channel or message file in the selected folder is not valid JSON.");
+      }
+      return { name: file.name, data, relativePath: file.webkitRelativePath };
+    }));
+    showPreview(parseSlackImport(parsedFiles));
+    setNotice("Review the messages below before importing. Nothing has been saved yet.");
+  }
+
+  async function importPreview() {
+    if (!preview?.messages.length) return;
+    const result = await importMemory(preview.messages);
+    setParticipantNames((current) => ({ ...current, ...preview.participants }));
+    onParticipants?.(preview.participants);
+    onConversationNames?.(preview.conversationNames ?? {});
+    onHistoryChanged?.("import");
+    setPreview(null);
+    setFiles([]);
+    if (fileInput.current) fileInput.current.value = "";
     setNotice(
       `Imported ${result.importedCount}. Skipped ${result.skippedCount} existing messages.`,
     );
@@ -58,34 +112,9 @@ export default function HistoryPanel() {
     await load(0, "");
   }
 
-  async function importHistory() {
-    if (!file) return;
-    if (file.size > maxImportBytes)
-      throw new Error("Choose a JSON file of 1 MiB or less.");
-    const contents = await file.text();
-    let data: unknown;
-    try {
-      data = JSON.parse(contents);
-    } catch {
-      throw new Error("The file is not valid JSON.");
-    }
-    if (
-      !data ||
-      typeof data !== "object" ||
-      !("messages" in data) ||
-      Object.keys(data).length !== 1 ||
-      !Array.isArray(data.messages)
-    ) {
-      throw new Error('Use a JSON object with a "messages" array.');
-    }
-    const result = await importMemory(data.messages);
-    setFile(null);
-    if (fileInput.current) fileInput.current.value = "";
-    setNotice(
-      `Imported ${result.importedCount}. Skipped ${result.skippedCount} existing messages.`,
-    );
-    setQuery("");
-    await load(0, "");
+  function participantLabel(sender: string, names = participantNames) {
+    const name = Object.prototype.hasOwnProperty.call(names, sender) ? names[sender] : undefined;
+    return name ? `${name} (${sender})` : sender;
   }
 
   function reviewHistory() {
@@ -97,8 +126,15 @@ export default function HistoryPanel() {
     const result = await deleteAllMemory();
     setPage({ messages: [], total: 0, limit: pageSize, offset: 0 });
     setConfirmDelete(false);
+    setParticipantNames({});
+    onParticipants?.({});
+    onConversationNames?.({});
+    onHistoryChanged?.("delete");
     setNotice(`Deleted ${result.deletedCount} saved messages.`);
   }
+
+  const folderName = files[0]?.webkitRelativePath.split("/")[0] ?? "";
+  const relevantFileCount = files.filter((file) => isSlackExportJsonPath(file.webkitRelativePath)).length;
 
   return (
     <section className="history-panel" aria-labelledby="history-heading">
@@ -131,49 +167,92 @@ export default function HistoryPanel() {
               ▤
             </span>
             <div>
-              <p className="eyebrow">FROM A FILE</p>
-              <h3 id="file-import-heading">Import conversation JSON</h3>
+              <p className="eyebrow">FROM AN EXPORT FOLDER</p>
+              <h3 id="file-import-heading">Import Slack export</h3>
             </div>
           </div>
           <p className="small-text">
-            Upload an exported conversation in the supported message format.
+            Select the extracted Slack export folder. Participant names and channels
+            are read from users.json and channels.json, with dated messages grouped
+            by channel automatically.
           </p>
           <div className="history-file-field form-field">
-            <label htmlFor="history-file">Conversation file</label>
+            <label htmlFor="history-folder">Slack export folder</label>
             <input
-              id="history-file"
+              id="history-folder"
               type="file"
-              accept=".json,application/json"
+              className="sr-only"
+              tabIndex={-1}
+              {...{ webkitdirectory: "" }}
+              multiple
               ref={fileInput}
               disabled={busy}
-              aria-describedby="history-file-hint"
-              onChange={(event) => setFile(event.target.files?.[0] ?? null)}
+              aria-describedby="history-folder-hint"
+              onChange={(event) => {
+                setFiles(Array.from(event.target.files ?? []));
+                setPreview(null);
+                setError("");
+                setNotice("");
+              }}
             />
-            <p id="history-file-hint" className="small-text">
-              JSON only · Up to 1 MiB and 100 messages per import.
+            <button type="button" className="secondary-button" disabled={busy} onClick={() => fileInput.current?.click()}>
+              Choose export folder
+            </button>
+            <p id="history-folder-hint" className="small-text">
+              Choose the folder after extracting its ZIP. Up to 1 MiB of relevant JSON
+              and 100 messages per import. Attachments and unrelated export metadata are ignored.
             </p>
+            {files.length > 0 && (
+              <p className="small-text" role="status">
+                {folderName ? `Selected folder: ${folderName}. ` : "Folder paths unavailable. "}
+                {relevantFileCount} relevant JSON files; {files.length - relevantFileCount} other files ignored.
+              </p>
+            )}
           </div>
           <button
             type="button"
             className="primary-button history-import-button"
-            disabled={!file || busy}
-            onClick={() => void run(importHistory)}
+            disabled={!files.length || busy}
+            onClick={() => void run(previewFolder)}
           >
-            Import history <span aria-hidden="true">✦</span>
+            Preview folder import <span aria-hidden="true">✦</span>
           </button>
           <div className="history-sample">
-            <p>Just exploring? Start with synthetic conversations.</p>
+            <p>Try a synthetic week of Slack conversations with varied workplace situations. Choose a manager message and write your own draft.</p>
             <button
               type="button"
               className="secondary-button"
               disabled={busy}
-              onClick={() => void run(importSample)}
+              onClick={() => void run(previewSample)}
             >
-              Import sample history
+              Preview sample Slack export
             </button>
           </div>
+          {preview && (
+            <section aria-labelledby="file-preview-heading">
+              <h4 id="file-preview-heading">Review {preview.messages.length} messages</h4>
+              <p className="small-text">No participant is assumed to be your manager. You choose who is who in the reply workspace after importing.</p>
+              {preview.skippedCount > 0 && <p className="small-text">Skipped {preview.skippedCount} unsupported messages.</p>}
+              {preview.warnings.map((warning, index) => <p className="small-text" key={index}>{warning}</p>)}
+              <ul className="record-list">
+                {preview.messages.map((message) => (
+                  <li key={message.id}>
+                    <strong>{participantLabel(message.sender, preview.participants)}</strong>
+                    <p>{message.content}</p>
+                    {(message.timestamp || message.source) && <p className="small-text">{[message.timestamp, message.source].filter(Boolean).join(" · ")}</p>}
+                  </li>
+                ))}
+              </ul>
+              <div className="history-controls">
+                <button type="button" className="secondary-button" disabled={busy} onClick={() => setPreview(null)}>Cancel import</button>
+                <button type="button" className="primary-button" disabled={busy || !preview.messages.length} onClick={() => void run(importPreview)}>
+                  Import {preview.messages.length} messages
+                </button>
+              </div>
+            </section>
+          )}
         </section>
-        <SlackImportPanel onReviewHistory={reviewHistory} />
+        <SlackImportPanel onReviewHistory={reviewHistory} onImported={() => onHistoryChanged?.("import")} />
       </div>
 
       <section
@@ -259,7 +338,7 @@ export default function HistoryPanel() {
                 <li key={message.id}>
                   <div className="history-record-author">
                     <span aria-hidden="true">▤</span>
-                    <strong>{message.sender}</strong>
+                    <strong>{participantLabel(message.sender)}</strong>
                   </div>
                   <p>{message.content}</p>
                   {(message.timestamp || message.source) && (

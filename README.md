@@ -10,6 +10,7 @@ Rage-to-Reply is a Web App that turns an employee's private draft into an editab
 | [ARCHITECTURE.md](docs/ARCHITECTURE.md) | Explains the technology stack, component responsibilities, data flow and security boundaries. |
 | [API_CONTRACT.md](docs/API_CONTRACT.md) | Defines endpoint behaviour, request and response schemas, validation rules and errors. |
 | [FRONTEND_CONTRACT.md](docs/FRONTEND_CONTRACT.md) | Defines the browser workspace, input and result states, privacy handling and visual design. |
+| [TEST_SITUATION.md](TEST_SITUATION.md) | Guides manual testing of the synthetic Slack week with situations for writing your own drafts. |
 | [Hosted deployment guide](deploy/gce/README.md) | Puts the Web App on a Compute Engine VM at an HTTPS domain with invite-code sign-in. |
 | [Slack prototype tracker](docs/progress/slack-integration-tracker.md) | Historical record of the Slack modal prototype. |
 
@@ -36,6 +37,27 @@ npm run dev
 
 Open `http://localhost:3000`.
 
+Enter your draft and choose a tone to generate a reply. The manager's message is optional context; leave it blank to work from your draft and any imported history. See [reply generation](docs/API_CONTRACT.md#3-reply-generation) for the input rules.
+
+To reply without pasting a manager message, open **History**, choose an extracted Slack export folder, preview it and confirm import. Select **You** and **Your manager** in the workspace, choose a conversation and message, then click **Use selected message**. These choices last for the current page session. The app never guesses workplace roles from Slack names or administrator flags.
+
+The [synthetic Slack export folder](src/data/slack-export) mirrors an extracted workspace export: root `users.json`, `channels.json` and ancillary metadata, plus `all-new-workspace/`, `new-channel/` and `social/` folders containing dated message JSON files. Choose **Preview sample Slack export** to try it directly, or select that folder in the folder picker. Select **Sam Patel** as you and **Alex Chen** as your manager, then choose the `slack-export:C08PROJECT1` conversation for the document-access example. Names come from `users.json` (the singular `user.json` is also accepted), and channel IDs come from `channels.json`; no manual ID entry is required. Other export metadata and attachments are ignored. Extract ZIP archives before selecting the folder. See the [frontend import workflow](docs/FRONTEND_CONTRACT.md#slack-json-and-message-selection).
+
+The sample covers **16–22 November 2026** in **Australia/Brisbane**, with **91 human messages and 13 practice situations**. It mixes project updates, operational requests, thread replies and ordinary social conversation. [TEST_SITUATION.md](TEST_SITUATION.md) identifies the situations and relevant history so testers can type their own drafts instead of copying a prepared answer. The full week fits the existing import limits.
+
+### Sample user roles
+
+| User | Role in the synthetic team | How to use in the walkthrough |
+| --- | --- | --- |
+| **Sam Patel** | Operations/data analyst | Select as **You**; the scenarios are written from Sam's perspective. |
+| **Alex Chen** | Team lead and Sam's manager | Select as **Your manager** and choose one of Alex's messages. |
+| **Priya Shah** | Software engineer | Provides technical updates, review comments and corroborating context. |
+| **Jordan Lee** | Operations coordinator | Handles the rota, expenses and operational coordination. |
+| **Morgan Blake** | Account coordinator | Handles client and vendor handoffs. |
+| **Project reminder** | Automated Slack bot | Supplies routine reminders; bot posts are excluded from imported human history. |
+
+These roles describe the synthetic cast. The app still requires explicit participant selection and does not infer reporting relationships from names, profile titles or Slack administrator flags. Mock modes return synthetic output; configure Claude as described below to evaluate tailored replies to your own drafts.
+
 Both browser pages use the same frontend API client. The default browser mock works without FastAPI. To test the HTTP integration with FastAPI's mock AI on macOS or Linux, start these in separate terminals after installing the backend dependencies:
 
 ```bash
@@ -50,6 +72,7 @@ Useful commands:
 ```bash
 npm run lint
 npm run build
+node --test scripts/test-slack-import.mjs scripts/test-imported-selection.mjs scripts/test-slack-week.mjs
 ```
 
 The browser's root `.env.local` is for public frontend settings such as `NEXT_PUBLIC_R2R_MOCK` and `NEXT_PUBLIC_API_BASE_URL`. Configure Claude separately in `backend/.env` as described below. Never put API keys or Slack tokens in a `NEXT_PUBLIC_` variable.

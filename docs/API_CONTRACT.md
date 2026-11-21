@@ -8,7 +8,7 @@ This document owns endpoint behaviour, wire schemas, validation and errors. [PRO
 
 - Routes use the `/api` prefix. Request and response bodies use UTF-8 JSON and camelCase field names. POST and PUT require `Content-Type: application/json`.
 - The TypeScript interfaces below describe JSON exchanged with FastAPI; backend Pydantic models must use the same names and types.
-- Reject unknown body fields, incorrect types, missing required fields and supplied body strings containing only whitespace with `422`. Do not silently coerce types. Query parameters are parsed according to their documented types; unknown query parameters are also rejected.
+- Reject unknown body fields, incorrect types, missing required fields and supplied body strings containing only whitespace with `422`, except for the optional manager context described in section 3. Do not silently coerce types. Query parameters are parsed according to their documented types; unknown query parameters are also rejected.
 - Do not trim or rewrite stored message content. Validate that required strings contain a non-whitespace character. Identifiers must not have leading or trailing whitespace.
 - Maximum request body size is **1 MiB (1,048,576 bytes)**, including imports. Enforce this before parsing or calling Claude. Oversized bodies return `413`.
 - Identifiers (`id`, `messageId`, `conversationId`) contain 1–128 characters. Message and draft text contains 1–10,000 characters. Sender labels contain 1–200 characters; source labels, when supplied, contain 1–200 characters.
@@ -52,7 +52,7 @@ Preferences are deferred until P0 works. Until implemented, both preferences rou
 export type ReplyTone = "diplomatic" | "neutral" | "assertive";
 
 export interface GenerateReplyRequest {
-  managerMessage: string;
+  managerMessage?: string;
   employeeDraft: string;
   tone: ReplyTone;
   conversationId?: string;
@@ -77,11 +77,13 @@ export interface GenerateReplyResponse {
 }
 ```
 
-`managerMessage`, `employeeDraft` and `tone` are required. If `conversationId` is omitted, retrieve from all of the current owner's imported history. If provided, restrict retrieval to that conversation as well as the owner. Generation does not import either input.
+`employeeDraft` and `tone` are required. `managerMessage` is optional context, containing at most 10,000 characters when supplied. Omission, an empty string or a whitespace-only string means no manager message; the backend normalises these to an empty internal string. Explicit null and non-string values are rejected. Preserve non-blank manager text as supplied. If `conversationId` is omitted, retrieve from all of the current owner's imported history. If provided, restrict retrieval to that conversation as well as the owner. Generation does not import either input.
 
 Use this same endpoint to generate again from the input form with the same messages and a selected tone. Optional P1 tone controls beside the reply also reuse this request. Changing tone must preserve the underlying facts and the employee's intended meaning; the reply must not accept blame on the employee's behalf or invent facts.
 
 `managerIntent` summarises the manager's explicit requests and may describe possible actions, clearly labelled as interpretations. Use `warnings` to identify missing information and potential misunderstandings. Any interpretation beyond the words supplied must be labelled as uncertain. Neither field may claim knowledge of the manager's emotions or intentions. These existing fields carry the Manager Message Interpreter output; no separate endpoint or response fields are required.
+
+When no manager message is supplied, generate from the employee draft and any relevant authorised history. `managerIntent` must explicitly state that no manager message was provided and its request cannot be interpreted. Include a missing-manager-context warning; do not infer a current manager request from the employee draft or imported history. Evidence validation and the normal failure behaviour still apply.
 
 `evidence` contains only retrieved messages supporting the associated `supportedClaim`. The backend validates both the reference and its claimed support, then fills `content`, `sender`, `timestamp` and known `source` from the original authorised record. ID membership alone does not prove a claim. Include `source` when known; an unknown source may be omitted or null. Do not accept invented or altered source text from the model.
 
@@ -154,7 +156,7 @@ export interface ImportMemoryResponse {
 }
 ```
 
-- The MVP accepts JSON containing **1–100 messages**. The frontend may parse a JSON file into this request; multipart uploads and chat-export parsers are outside P0.
+- The API accepts JSON containing **1–100 messages**. The browser export adapter below converts supported Slack folders before sending this request; multipart uploads and server-side archive extraction are not supported.
 - IDs are unique within an owner. The same ID under a different owner neither conflicts nor grants access. Duplicate IDs within one request return `422`.
 - Import is atomic. If an existing ID for the owner has identical conversation, sender, content, timestamp and source, skip it. If those fields differ, return `409 MEMORY_ID_CONFLICT` and import nothing. Counts in a successful response sum to the submitted message count.
 - Optional timestamp and source fields preserve the existing import shape. Omit unknown metadata; explicit null is not an import string. The backend stores omitted values as null. Do not invent a sender or historical source label.
@@ -188,6 +190,16 @@ Example response for a first import:
 ```
 
 ## 5. Memory search and review
+
+### Browser Slack export adapter
+
+The browser converts an extracted Slack export folder to the existing memory import schema before sending it. No new endpoint or ownership credential is introduced. The primary input uses browser-provided relative file paths, top-level `users.json` (or `user.json`) and `channels.json`, and channel-name subfolders containing `YYYY-MM-DD.json` message arrays. Resolve names from the user registry and map each message folder to a unique channel ID using the channel registry; combine daily files for the same channel without mixing channels. Missing or ambiguous registries and unmapped message folders fail before import. Registry user IDs and names do not establish a workplace role. Ignore unrelated export metadata and attachments, and do not send raw user profiles, contact information or root metadata to the API.
+
+Read only relevant JSON, subject to the existing 1 MiB limit, and apply the 100-message and converted-body limits before import. Do not automatically split a large folder into multiple requests or silently truncate it. Top-level `.slack-manifest.json`, `canvases.json`, `file_conversations.json`, `huddle_transcripts.json`, `integration_logs.json`, and `lists.json` are ancillary files. ZIP extraction is not supported. The adapter also retains compatibility with individual channel-day arrays plus an explicit channel ID, optional companion user metadata, the older synthetic bundle, and `{ "messages": MemoryMessage[] }` inputs; the primary UI and test fixture use folders.
+
+For Slack message imports, preserve `text` verbatim as `content` and the original `user` ID as `sender`. Convert a valid string `ts` to an exact UTC RFC 3339 timestamp without floating-point rounding. Use `slack-export:<channelId>:<original-ts>` as `id`, `slack-export:<channelId>` as `conversationId` and a source label containing the known channel ID and original timestamp. Do not invent dates, users or channel IDs. Skip bot/system, changed/deleted, non-text and malformed records with explicit preview warnings. Thread replies may be imported as text when present in the uploaded JSON; this is not a thread crawler. Apply the existing 100-message and 1 MiB limits before import; no silent truncation or automatic multi-batch import.
+
+Participant role selections and optional display names stay in the current browser page state. They are not wire fields or proof of ownership. Choosing an imported manager message sends its original text as `managerMessage` and its `conversationId` through the existing generation schema. Search and generation still use server-derived ownership and evidence validation; a selected message is context, not automatically verified evidence.
 
 ### GET `/api/memory/search`
 

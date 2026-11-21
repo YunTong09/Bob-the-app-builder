@@ -1,0 +1,73 @@
+[
+  {
+    "id": "U08MGR001BB",
+    "team_id": "T08DEMO001",
+    "name": "alex.chen",
+    "real_name": "Alex Chen",
+    "is_bot": false,
+    "profile": {
+      "display_name": "Alex Chen",
+      "real_name": "Alex Chen",
+      "title": "Team lead"
+    }
+  },
+  {
+    "id": "U08EMP001AA",
+    "team_id": "T08DEMO001",
+    "name": "sam.patel",
+    "real_name": "Sam Patel",
+    "is_bot": false,
+    "profile": {
+      "display_name": "Sam Patel",
+      "real_name": "Sam Patel",
+      "title": "Operations and data analyst"
+    }
+  },
+  {
+    "id": "U08TEAM01CC",
+    "team_id": "T08DEMO001",
+    "name": "priya.shah",
+    "real_name": "Priya Shah",
+    "is_bot": false,
+    "profile": {
+      "display_name": "Priya Shah",
+      "real_name": "Priya Shah",
+      "title": "Software engineer"
+    }
+  },
+  {
+    "id": "U08BOT001DD",
+    "team_id": "T08DEMO001",
+    "name": "project-reminder",
+    "is_bot": true,
+    "profile": {
+      "display_name": "Project reminder"
+    }
+  },
+  {
+    "id": "U08OPS001EE",
+    "team_id": "T08DEMO001",
+    "name": "jordan.lee",
+    "real_name": "Jordan Lee",
+    "is_bot": false,
+    "is_app_user": false,
+    "profile": {
+      "display_name": "Jordan Lee",
+      "real_name": "Jordan Lee",
+      "title": "Operations coordinator"
+    }
+  },
+  {
+    "id": "U08ACCT01FF",
+    "team_id": "T08DEMO001",
+    "name": "morgan.blake",
+    "real_name": "Morgan Blake",
+    "is_bot": false,
+    "is_app_user": false,
+    "profile": {
+      "display_name": "Morgan Blake",
+      "real_name": "Morgan Blake",
+      "title": "Account coordinator"
+    }
+  }
+]

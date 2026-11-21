@@ -1,0 +1,27 @@
+[
+  {
+    "type": "message",
+    "user": "U08TEAM01CC",
+    "text": "Does anyone fancy a quick board game after work next week? Happy to bring something that takes less than an hour.",
+    "ts": "1795054800.000159",
+    "client_msg_id": "44c0d6a4-a42d-5bef-9ddd-38321fc2259f"
+  },
+  {
+    "type": "message",
+    "user": "U08EMP001AA",
+    "text": "Yes please. Anything with a rulebook shorter than the game itself.",
+    "ts": "1795055280.000160",
+    "client_msg_id": "ee5edeec-d10d-58db-b7d0-16c699a3700f",
+    "thread_ts": "1795054800.000159",
+    "parent_user_id": "U08TEAM01CC",
+    "reactions": [
+      {
+        "name": "smile",
+        "users": [
+          "U08TEAM01CC"
+        ],
+        "count": 1
+      }
+    ]
+  }
+]

@@ -1,0 +1,25 @@
+[
+  {
+    "type": "message",
+    "user": "U08ACCT01FF",
+    "text": "Coffee machine is making that grinding noise again. Facilities have the ticket; please do not pull it apart.",
+    "ts": "1794869700.000136",
+    "client_msg_id": "8fedb7c4-6557-510a-928c-2d4aeb389878"
+  },
+  {
+    "type": "message",
+    "user": "U08OPS001EE",
+    "text": "Kettle and instant coffee are on the counter. Temporary glamour.",
+    "ts": "1794870000.000137",
+    "client_msg_id": "71efeec0-9600-52a2-adc6-56e75bc8f4c6",
+    "thread_ts": "1794869700.000136",
+    "parent_user_id": "U08ACCT01FF"
+  },
+  {
+    "type": "message",
+    "user": "U08EMP001AA",
+    "text": "Heading out for a quick walk before the rain. Back before 13:00.",
+    "ts": "1794883500.000138",
+    "client_msg_id": "15cbec5a-a681-50e9-a471-abf77bee0567"
+  }
+]

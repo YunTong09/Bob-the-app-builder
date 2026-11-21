@@ -1,0 +1,41 @@
+[
+  {
+    "type": "message",
+    "user": "U08EMP001AA",
+    "text": "I remember discussing the $450 reporting course with Alex in the kitchen yesterday and coming away thinking it sounded okay. I cannot find written approval, so I have not booked anything.",
+    "ts": "1794884700.000127",
+    "client_msg_id": "747933fd-d12f-591a-9fe6-7c16f5940f0a"
+  },
+  {
+    "type": "message",
+    "user": "U08OPS001EE",
+    "text": "Please get written budget approval before booking external training. A conversation about an option is not the same as a confirmed booking approval.",
+    "ts": "1794885120.000128",
+    "client_msg_id": "7b22a904-ec8d-5fdf-ae10-50d84cf89195",
+    "thread_ts": "1794884700.000127",
+    "parent_user_id": "U08EMP001AA"
+  },
+  {
+    "type": "message",
+    "user": "U08EMP001AA",
+    "text": "Expense R-1042 is in the tracker under cost code OPS-12. The $84.50 courier receipt is attached here: <https://example.invalid/expenses/R-1042/receipt|R-1042 receipt>.",
+    "ts": "1794888120.000129",
+    "client_msg_id": "25bb5ff6-e045-5449-924f-c9486699fb5a"
+  },
+  {
+    "type": "message",
+    "user": "U08OPS001EE",
+    "text": "I can open the R-1042 receipt link and the amount matches $84.50. The tracker shows the receipt attached; finance has not approved reimbursement yet.",
+    "ts": "1794888600.000130",
+    "client_msg_id": "9b1b4367-2337-5082-8189-9675dfe9ea25",
+    "thread_ts": "1794888120.000129",
+    "parent_user_id": "U08EMP001AA"
+  },
+  {
+    "type": "message",
+    "user": "U08ACCT01FF",
+    "text": "I am on the client call from 16:30. If anyone needs the vendor before then, tag me in the Atlas thread rather than starting another email chain.",
+    "ts": "1794896400.000135",
+    "client_msg_id": "80fb6fc6-3337-5228-9e41-e8811ea0f2e7"
+  }
+]

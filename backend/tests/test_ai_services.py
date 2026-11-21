@@ -20,7 +20,7 @@ from backend.application.ports import (
     OwnerContext,
     ReplyDraft,
 )
-from backend.services.analysis import ClaudeAnalysisService
+from backend.services.analysis import ClaudeAnalysisService, NO_MANAGER_INTENT, NO_MANAGER_WARNING
 from backend.services.drafting import ClaudeDraftingService
 from backend.services.evidence import ClaudeEvidenceService
 from backend.services.llm import AnthropicJsonModel, ProviderError
@@ -72,6 +72,24 @@ def test_analysis_maps_and_labels_interpretations():
     assert any(w.startswith("Possible misunderstanding (interpretation):") for w in a.warnings)
     assert a.claims == CLAIMS
     assert m.calls[0][1] == {"manager_message": "Why?", "employee_draft": "draft"}
+
+
+@pytest.mark.parametrize("manager_message", ["", " \n\t"])
+def test_analysis_without_manager_ignores_invented_requests_but_keeps_draft_context(manager_message):
+    # The model's prefilled manager interpretation cannot become the missing
+    # current message, while the employee's claims still support retrieval.
+    model = Scripted(analysis=[ANALYSIS_OK])
+    result = ClaudeAnalysisService(model).analyse(
+        OWNER, manager_message=manager_message, employee_draft="The link asks for a password."
+    )
+
+    assert result.manager_intent == NO_MANAGER_INTENT
+    assert NO_MANAGER_WARNING in result.warnings
+    assert not any(w.startswith("Possible misunderstanding") for w in result.warnings)
+    assert result.employee_concern == ANALYSIS_OK["employee_concern"]
+    assert result.claims == CLAIMS
+    assert result.search_queries == tuple(ANALYSIS_OK["search_queries"])
+    assert model.calls[0][1]["manager_message"] == manager_message
 
 
 def test_analysis_rejects_emotion_attribution_then_retries():

@@ -8,7 +8,7 @@ from fastapi.testclient import TestClient
 from backend.api.app import create_app
 from backend.application.ports import Services
 from backend.memory.sqlite_store import SqliteMemoryService
-from backend.services.analysis import ClaudeAnalysisService
+from backend.services.analysis import ClaudeAnalysisService, NO_MANAGER_INTENT, NO_MANAGER_WARNING
 from backend.services.drafting import ClaudeDraftingService
 from backend.services.evidence import ClaudeEvidenceService
 from backend.services.mock import MOCK_PREFIX, MockJsonModel
@@ -67,6 +67,35 @@ def test_contract_example_end_to_end(tmp_path):
     # Retrieval was owner+conversation scoped and nothing from the request was stored.
     assert {r["message_id"] for r in model.calls[1][1]["records"]} <= {"msg_001", "msg_002"}
     assert c.get("/api/memory/search").json()["total"] == 2
+
+
+def test_draft_only_generation_still_retrieves_and_validates_evidence(tmp_path):
+    model = Scripted(
+        analysis=[ANALYSIS],
+        assessment=[ASSESSMENT],
+        assessment_review=[approved_assessment_review(1)],
+        draft=[DRAFT],
+        draft_review=[APPROVED_DRAFT_REVIEW],
+    )
+    client = make_client(tmp_path, model)
+    assert client.post("/api/memory/import", json=load_fixture("import_request.json")).status_code == 200
+    request = load_fixture("generate_request.json")
+    del request["managerMessage"]
+
+    response = client.post("/api/reply/generate", json=request)
+
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert body["managerIntent"] == NO_MANAGER_INTENT
+    assert NO_MANAGER_WARNING in body["warnings"]
+    assert body["reply"] == EXPECTED["reply"]
+    assert body["evidence"] == EXPECTED["evidence"]
+    assert body["unverifiedClaims"] == EXPECTED["unverifiedClaims"]
+    assert model.calls[0][1]["manager_message"] == ""
+    assert model.calls[-2][1]["manager_message"] == ""
+    assert model.calls[-2][1]["employee_draft"] == request["employeeDraft"]
+    assert model.calls[-1][1]["original_manager_message"] == ""
+    assert client.get("/api/memory/search").json()["total"] == 2
 
 
 def test_other_owner_history_never_reaches_claude(tmp_path):
@@ -183,3 +212,20 @@ def test_mock_mode_end_to_end(tmp_path, tone):
     # not promoted to verified evidence merely because they share keywords.
     assert body["evidence"] == []
     assert body["unverifiedClaims"] == ["I can't find the documents on the shared drive."]
+
+
+@pytest.mark.parametrize("tone", ["diplomatic", "neutral", "assertive"])
+def test_mock_mode_without_manager_reports_missing_context(tmp_path, tone):
+    client = make_client(tmp_path, MockJsonModel())
+    response = client.post("/api/reply/generate", json={
+        "employeeDraft": "I cannot open the document link because it needs a password.",
+        "tone": tone,
+    })
+
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert body["managerIntent"] == NO_MANAGER_INTENT
+    assert NO_MANAGER_WARNING in body["warnings"]
+    assert body["reply"].startswith(MOCK_PREFIX)
+    assert "thanks for following up" not in body["reply"]
+    assert body["evidence"] == []

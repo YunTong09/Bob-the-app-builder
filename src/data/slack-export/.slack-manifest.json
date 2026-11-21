@@ -1,0 +1,14 @@
+{
+  "version": "1.0",
+  "fixture": "Synthetic Slack export for Rage-to-Reply development",
+  "workspace": {
+    "id": "T08DEMO001",
+    "name": "Synthetic Demo Workspace"
+  },
+  "exported_at": "2026-11-22T23:59:59+10:00",
+  "date_range": {
+    "start": "2026-11-16",
+    "end": "2026-11-22"
+  },
+  "time_zone": "Australia/Brisbane"
+}
