@@ -101,7 +101,7 @@ def test_semantically_rejected_reply_never_reaches_the_client(tmp_path):
     review = {**APPROVED_DRAFT_REVIEW, "facts_grounded": False}
     model = Scripted(
         analysis=[ANALYSIS],
-        draft=[{"reply": invented, "cited_message_ids": []}],
+        draft=[{"reply": invented, "cited_message_ids": []}] * 2,
         draft_review=[review],
     )
     c = make_client(tmp_path, model)

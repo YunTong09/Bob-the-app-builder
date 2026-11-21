@@ -402,7 +402,7 @@ export default function HomePage() {
             <div className="panel-heading">
               <div>
                 <p className="eyebrow">THE OTHER SIDE</p>
-                <h2 id="empty-review-heading">Clarity is on the way</h2>
+                <h2 id="empty-review-heading">{withEvidence && error ? "No reply generated" : "Clarity is on the way"}</h2>
               </div>
               <span className="panel-icon" aria-hidden="true">
                 ✦
@@ -424,7 +424,9 @@ export default function HomePage() {
             <p className="small-text">
               {loading
                 ? "Checking the context and preparing your suggested reply. This animation is decorative, not a measured rage score."
-                : "Your suggested reply will appear here, with supporting evidence and anything that needs a second look."}
+                : withEvidence && error
+                  ? "Your draft is still here. Check the error above and try again when ready."
+                  : "Your suggested reply will appear here, with supporting evidence and anything that needs a second look."}
             </p>
             <div className="empty-features">
               <span>✓ Your intent, preserved</span>

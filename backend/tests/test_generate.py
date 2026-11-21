@@ -160,13 +160,44 @@ def test_unsupported_claims_are_listed(client, ai):
     assert body["unverifiedClaims"] == ["The link asks for a password."]
 
 
-def test_invented_reference_rejected_by_validator_is_502(client, ai):
+def test_invented_reference_rejected_by_validator_is_502(client, ai, caplog):
     import_fixture(client)
     ai.draft_result = ReplyDraft(reply="As you said on Monday...", evidence=(EvidenceLink("msg_999", "Invented."),))
-    ai.validated = EvidenceValidationError("unknown id")
+    ai.validated = EvidenceValidationError("private diagnostic msg_999")
     r = client.post("/api/reply/generate", json=GEN_BODY)
     assert_error(r, 502, "MODEL_ERROR")
+    assert r.json()["error"]["message"] == "The generated reply did not pass validation. Try generating again."
     assert "msg_999" not in r.text
+    assert "rejected at final validation" in caplog.text
+    assert "evidence validation failure" in caplog.text
+    assert "private diagnostic" not in caplog.text
+
+
+@pytest.mark.parametrize("approve_replacement", [True, False])
+def test_rejected_candidate_gets_one_fully_validated_replacement(client, ai, monkeypatch, approve_replacement):
+    first = ReplyDraft(reply="I finished the audit.", evidence=())
+    replacement = ReplyDraft(reply="Could you share the password?", evidence=())
+    drafts = iter((first, replacement))
+    reviewed = []
+
+    monkeypatch.setattr(ai, "draft", lambda owner, request: next(drafts))
+
+    def validate(*, draft, records):
+        reviewed.append(draft)
+        if draft == first or not approve_replacement:
+            raise EvidenceValidationError("rejected")
+        return ValidatedReply(reply=draft.reply, evidence=(), unverified_claims=())
+
+    ai.validated = validate
+    response = client.post("/api/reply/generate", json=GEN_BODY)
+    assert reviewed == [first, replacement]
+    assert ai.names().count("assess") == 1
+    if approve_replacement:
+        assert response.status_code == 200
+        assert response.json()["reply"] == replacement.reply
+    else:
+        assert_error(response, 502, "MODEL_ERROR")
+        assert first.reply not in response.text
 
 
 def test_invented_reference_passed_by_validator_still_never_returned(client, ai):

@@ -17,6 +17,7 @@ from pydantic import ValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from backend.application.errors import (
+    EvidenceValidationError,
     MemoryIdConflictError,
     ModelError,
     ModelTimeoutError,
@@ -190,6 +191,15 @@ def install_error_handlers(app: FastAPI) -> None:
     async def _timeout(_: Request, exc: ModelTimeoutError) -> JSONResponse:
         log.warning("model timeout")
         return error_response(504, "MODEL_TIMEOUT", "Reply generation timed out. Your input was not saved; try again.")
+
+    @app.exception_handler(EvidenceValidationError)
+    async def _rejected_reply(_: Request, exc: EvidenceValidationError) -> JSONResponse:
+        log.warning("reply generation ended with an evidence validation failure")
+        return error_response(
+            502,
+            "MODEL_ERROR",
+            "The generated reply did not pass validation. Try generating again.",
+        )
 
     @app.exception_handler(ModelError)
     async def _model(_: Request, exc: ModelError) -> JSONResponse:

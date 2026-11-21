@@ -16,7 +16,7 @@ import logging
 from dataclasses import dataclass
 from typing import Sequence
 
-from .errors import ModelError, OwnershipError, StorageUnavailableError
+from .errors import EvidenceValidationError, ModelError, OwnershipError, StorageUnavailableError
 from .ports import (
     DraftInput,
     MemoryRecord,
@@ -126,9 +126,18 @@ class RageToReplyApp:
             records=records,
         )
         draft: ReplyDraft = self._s.drafting.draft(owner, draft_input)
-        validated: ValidatedReply = self._s.evidence.validate(
-            owner, draft=draft, request=draft_input
-        )
+        try:
+            validated: ValidatedReply = self._s.evidence.validate(
+                owner, draft=draft, request=draft_input
+            )
+        except EvidenceValidationError:
+            log.warning("reply candidate rejected at final validation; generating one replacement")
+            replacement = self._s.drafting.draft(owner, draft_input)
+            if (replacement.reply, replacement.evidence) == (draft.reply, draft.evidence):
+                raise
+            validated = self._s.evidence.validate(
+                owner, draft=replacement, request=draft_input
+            )
 
         by_id = {r.id: r for r in records}
         evidence: list[ResolvedEvidence] = []
