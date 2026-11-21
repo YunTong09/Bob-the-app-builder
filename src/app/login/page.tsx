@@ -1,8 +1,14 @@
 "use client";
 
 import { FormEvent, useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 import { ApiError, getSession, isInviteAuth, signIn } from "@/frontend/api/replyApi";
+
+// Full page load, not router.replace: the client router may hold a prefetched
+// "/" from before sign-in, which the middleware answered with a redirect back
+// to /login. A real navigation sends the new session cookie.
+function openWorkspace() {
+  window.location.replace("/");
+}
 
 function messageFor(error: unknown): string {
   if (error instanceof ApiError) {
@@ -14,7 +20,6 @@ function messageFor(error: unknown): string {
 }
 
 export default function LoginPage() {
-  const router = useRouter();
   const [code, setCode] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -25,7 +30,7 @@ export default function LoginPage() {
     setError(null);
     try {
       await signIn(inviteCode);
-      router.replace("/");
+      openWorkspace();
     } catch (err) {
       setError(messageFor(err));
       setBusy(false);
@@ -33,30 +38,45 @@ export default function LoginPage() {
   }
 
   useEffect(() => {
-    if (!isInviteAuth || started.current) return;
-    started.current = true;
+    if (!isInviteAuth) return;
+
     // Personal sign-in links put the code in the fragment (/login#R2R-...).
     // Fragments are never sent to the server, so the code stays out of request
     // logs and Referer headers. Clear it from the address bar right away.
-    let linkCode = window.location.hash.slice(1);
-    try {
-      linkCode = decodeURIComponent(linkCode);
-    } catch {
-      // Malformed escapes: use the raw text; the server rejects bad codes.
-    }
-    linkCode = linkCode.trim().slice(0, 64);
-    if (linkCode) {
+    function signInFromLink(): boolean {
+      let linkCode = window.location.hash.slice(1);
+      try {
+        linkCode = decodeURIComponent(linkCode);
+      } catch {
+        // Malformed escapes: use the raw text; the server rejects bad codes.
+      }
+      linkCode = linkCode.trim().slice(0, 64);
+      if (!linkCode) return false;
       window.history.replaceState(null, "", window.location.pathname);
       setCode(linkCode);
       void attempt(linkCode);
-      return;
+      return true;
     }
-    getSession()
-      .then(() => router.replace("/"))
-      .catch(() => undefined);
-    // attempt is stable for this one-time check.
+
+    if (!started.current) {
+      started.current = true;
+      if (!signInFromLink()) {
+        getSession()
+          .then(openWorkspace)
+          .catch(() => undefined);
+      }
+    }
+
+    // Pasting a link while already on /login only changes the fragment, which
+    // does not reload the page.
+    const onHashChange = () => {
+      signInFromLink();
+    };
+    window.addEventListener("hashchange", onHashChange);
+    return () => window.removeEventListener("hashchange", onHashChange);
+    // attempt only uses state setters, so a single registration is enough.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [router]);
+  }, []);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
