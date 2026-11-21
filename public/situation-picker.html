@@ -1,0 +1,398 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rage-to-Reply · Pick a situation</title>
+<style>
+  :root {
+    --background: #151a2c;
+    --surface: #20283e;
+    --text: #f8efd8;
+    --muted: #a8b4c7;
+    --border: #58657d;
+    --line: #344158;
+    --primary: #64bfa8;
+    --warning: #efb957;
+    --rage: #ee8b76;
+    --calm: #8de3b6;
+    --ink: #151a2c;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    height: 100%;
+    background: #0e1220;
+    color: var(--text);
+    font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  }
+  body { display: grid; place-items: center; overflow: hidden; }
+
+  /* Fixed 16:9 stage, scaled to fit the window by the script below. */
+  .stage {
+    position: relative;
+    width: 1600px;
+    height: 900px;
+    background: var(--background);
+    border: 4px solid var(--border);
+    box-shadow: 8px 8px 0 #000;
+    padding: 28px 32px 24px;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    gap: 18px;
+    transform-origin: center;
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size: 32px 32px;
+    background-position: -1px -1px;
+  }
+  .stage::before {
+    content: "";
+    position: absolute; inset: 0;
+    background: rgba(21, 26, 44, 0.88);
+    z-index: 0;
+    pointer-events: none;
+  }
+  .stage > * { position: relative; z-index: 1; }
+
+  header { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; }
+  .kicker {
+    display: inline-block;
+    background: var(--rage);
+    color: var(--ink);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    padding: 4px 10px;
+    box-shadow: 3px 3px 0 #000;
+    text-transform: uppercase;
+  }
+  h1 {
+    font-size: 38px;
+    line-height: 1.05;
+    margin-top: 10px;
+    letter-spacing: -0.02em;
+  }
+  h1 .arrow { color: var(--calm); }
+  .sub { color: var(--muted); font-size: 15px; margin-top: 6px; }
+  .legend { display: flex; flex-direction: column; gap: 8px; align-items: flex-end; flex-shrink: 0; }
+
+  .badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    padding: 3px 8px;
+    border: 2px solid currentColor;
+  }
+  .badge::before { content: ""; width: 8px; height: 8px; background: currentColor; }
+  .supported { color: var(--calm); }
+  .unverified { color: var(--warning); }
+  .contradicted { color: var(--rage); }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap: 14px;
+    min-height: 0;
+  }
+
+  .card {
+    all: unset;
+    box-sizing: border-box;
+    cursor: pointer;
+    background: var(--surface);
+    border: 3px solid var(--border);
+    box-shadow: 5px 5px 0 #000;
+    padding: 11px 13px;
+    display: flex; flex-direction: column; gap: 6px;
+    min-height: 0;
+    transition: transform 80ms steps(2), box-shadow 80ms steps(2), border-color 80ms;
+  }
+  .card:hover, .card:focus-visible {
+    transform: translate(-2px, -2px);
+    box-shadow: 7px 7px 0 #000;
+    border-color: var(--primary);
+  }
+  .card:focus-visible { outline: 3px dashed var(--calm); outline-offset: 4px; }
+  .card.picked {
+    border-color: var(--calm);
+    box-shadow: 7px 7px 0 var(--calm);
+    animation: blink 0.5s steps(2) 3;
+  }
+  @keyframes blink { 50% { border-color: var(--warning); } }
+
+  .card-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .num {
+    font-size: 20px; font-weight: 800;
+    background: var(--text); color: var(--ink);
+    min-width: 34px; text-align: center; padding: 1px 6px;
+    box-shadow: 2px 2px 0 #000;
+  }
+  .card h2 { font-size: 15px; line-height: 1.22; }
+  .meta { font-size: 11.5px; color: var(--muted); }
+  .meta b { color: var(--primary); font-weight: 600; }
+  .asks {
+    font-size: 12px; line-height: 1.35; color: var(--text);
+    border-left: 3px solid var(--rage);
+    padding-left: 8px;
+  }
+  .asks::before { content: "Alex: "; color: var(--rage); font-weight: 700; }
+  .move {
+    margin-top: auto;
+    font-size: 11.5px; line-height: 1.35; color: var(--muted);
+  }
+  .move::before { content: "▶ "; color: var(--calm); }
+
+  .howto {
+    grid-column: span 2;
+    background: var(--primary);
+    color: var(--ink);
+    border: 3px solid #000;
+    box-shadow: 5px 5px 0 #000;
+    padding: 14px 18px;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .howto h3 { font-size: 17px; letter-spacing: 0.04em; text-transform: uppercase; }
+  .howto ol { padding-left: 22px; font-size: 12.5px; line-height: 1.45; }
+  .howto .row { margin-top: auto; display: flex; gap: 10px; align-items: center; }
+  .pick-btn {
+    all: unset; cursor: pointer;
+    background: var(--ink); color: var(--text);
+    font-weight: 700; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase;
+    padding: 8px 14px;
+    box-shadow: 3px 3px 0 #000;
+  }
+  .pick-btn:hover { background: #000; }
+  .pick-btn:focus-visible { outline: 3px dashed var(--ink); outline-offset: 3px; }
+  .pick-status { font-size: 12.5px; font-weight: 700; }
+
+  footer { display: flex; justify-content: space-between; color: var(--muted); font-size: 11.5px; }
+
+  /* Detail dialog */
+  dialog {
+    margin: auto;
+    width: min(760px, 92vw);
+    max-height: 88vh;
+    background: var(--surface); color: var(--text);
+    border: 4px solid var(--primary);
+    box-shadow: 8px 8px 0 #000;
+    padding: 24px 28px;
+    font-family: inherit;
+  }
+  dialog::backdrop { background: rgba(8, 10, 20, 0.75); }
+  dialog h2 { font-size: 22px; margin: 8px 0 4px; }
+  dialog h4 {
+    font-size: 11.5px; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--primary); margin: 16px 0 6px;
+  }
+  dialog p, dialog li { font-size: 14px; line-height: 1.5; }
+  dialog blockquote {
+    border-left: 4px solid var(--rage); padding: 6px 12px;
+    background: var(--background); font-size: 14px; line-height: 1.5;
+  }
+  dialog code { color: var(--warning); font-size: 12.5px; word-break: break-all; }
+  dialog .close {
+    all: unset; cursor: pointer; float: right;
+    border: 2px solid var(--border); padding: 2px 10px; font-weight: 700;
+  }
+  dialog .close:hover, dialog .close:focus-visible { border-color: var(--calm); color: var(--calm); }
+
+  @media print {
+    @page { size: A4 landscape; margin: 0; }
+    html, body { background: var(--background); overflow: visible; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .stage { transform: none !important; box-shadow: none; border: none; zoom: 0.7; }
+    .pick-btn, .pick-status { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .card, .card.picked { transition: none; animation: none; }
+  }
+</style>
+</head>
+<body>
+<main class="stage" id="stage">
+  <header>
+    <div>
+      <span class="kicker">Practice week · 16–22 Nov 2026 · AEST</span>
+      <h1>Pick a situation <span class="arrow">→</span> turn the rage into a reply</h1>
+      <p class="sub">13 tricky manager messages from the sample Slack export. You play <b>Sam Patel</b>; your manager is <b>Alex Chen</b>. Click a card for the full brief.</p>
+    </div>
+    <div class="legend" aria-label="Evidence legend">
+      <span class="badge supported">History supports it</span>
+      <span class="badge unverified">Can't be verified</span>
+      <span class="badge contradicted">History contradicts it</span>
+    </div>
+  </header>
+
+  <section class="grid" id="grid" aria-label="Situations"></section>
+
+  <footer>
+    <span>All people, projects, amounts and messages are fictional. Missing evidence is not proof something never happened.</span>
+    <span>Full details: TEST_SITUATION.md</span>
+  </footer>
+</main>
+
+<dialog id="detail" aria-labelledby="detail-title">
+  <button class="close" id="close" aria-label="Close">✕</button>
+  <div id="detail-body"></div>
+</dialog>
+
+<script>
+const SITUATIONS = [
+  { n: 1, title: "A document link is not document access", channel: "#new-channel", when: "Thu 19 Nov, 10:15", ev: "supported",
+    asks: "What is blocking your review of the shared docs?",
+    move: "Explain the password blocker — no blame, no promised deadline.",
+    quote: "Can you confirm what is blocking your review of the shared documents and what you need from me to move forward? Please give me a clear update before we agree on the review timeline.",
+    id: "slack-export:C08PROJECT1:1795047300.000001",
+    check: "The shared location and reported password prompt are documented. Priya independently reports the prompt; no message supplies a password. Missing proof of delivery is not proof that a password was never sent elsewhere." },
+  { n: 2, title: "The deadline moved a day earlier", channel: "#new-channel", when: "Wed 18 Nov, 13:05", ev: "supported",
+    asks: "Send the exception summary by 16:00 today instead of Thursday?",
+    move: "Respond to the earlier deadline and name any trade-off you need.",
+    quote: "Sam, the client has brought the Beacon reconciliation discussion forward. Can you send the completed exception summary by 16:00 today instead of Thursday at 15:00? Tell me what that changes for your other work.",
+    id: "slack-export:C08PROJECT1:1794971100.000143",
+    check: "Alex originally set Thursday 19 November at 15:00 and now asks for Wednesday at 16:00. History supports the change, not a promise that Sam can meet it." },
+  { n: 3, title: "Two urgent tasks and one person", channel: "#new-channel", when: "Thu 19 Nov, 11:05", ev: "supported",
+    asks: "Where are the Q4 slides, and what should I prioritise?",
+    move: "Ask for a clear priority with a factual support-queue update.",
+    quote: "Sam, I cannot see the Q4 slides ready for review yet. Can you explain where they stand and which task you need me to prioritise?",
+    id: "slack-export:C08PROJECT1:1795050300.000152",
+    check: "The original instruction puts support first until fewer than 10 tickets remain; the recorded count is still 22 when slides are requested. No later message resolves the priority conflict." },
+  { n: 4, title: "A workshop conflicts with approved time away", channel: "#all-new-workspace", when: "Wed 18 Nov, 13:10", ev: "supported",
+    asks: "Join a 14:30 client workshop today and take notes?",
+    move: "Flag the clash and help arrange cover — you're on approved leave.",
+    quote: "Sam, I have just added you to a 14:30 client workshop today. Can you join and take the action notes? Please let me know promptly if there is a clash.",
+    id: "slack-export:C08WORKSP1:1794971400.000144",
+    check: "Alex explicitly approved Wednesday after 14:00 and Jordan confirms cover. The new workshop is at 14:30 on that same day." },
+  { n: 5, title: "A last-minute Saturday request", channel: "#all-new-workspace", when: "Fri 20 Nov, 16:20", ev: "supported",
+    asks: "Can you cover the client's 09:00 launch check tomorrow?",
+    move: "Answer from your own availability and ask what must be arranged first.",
+    quote: "Sam, can you cover the client's launch check at 09:00 tomorrow? Please let me know your availability and what we would need to arrange before I commit us.",
+    id: "slack-export:C08WORKSP1:1795155600.000167",
+    check: "The published rota is Monday-Friday and no weekend cover has been booked. The history does not establish whether Sam is personally available on Saturday or whether extra work is compensated." },
+  { n: 6, title: "Clarifying who built the dashboard", channel: "#new-channel", when: "Thu 19 Nov, 15:00", ev: "supported",
+    asks: "I credited Priya for the dashboard — hand the calcs to her?",
+    move: "Correct the ownership respectfully while recognising Priya's review.",
+    quote: "I have described the Beacon dashboard as Priya's build in the client notes. Sam, can you hand the calculations over to her and confirm who should get questions about the work?",
+    id: "slack-export:C08PROJECT1:1795064400.000156",
+    check: "Sam describes implementing the calculation and drill-down; Priya independently confirms that she reviewed those and changed labels/colours. Do not turn a credit correction into a claim about anyone's motives." },
+  { n: 7, title: "A receipt is attached but finance is still waiting", channel: "#all-new-workspace", when: "Thu 19 Nov, 10:00", ev: "supported",
+    asks: "Finance is waiting on R-1042's receipt. Did you submit it?",
+    move: "Point to the receipt and separate 'submitted' from 'approved'.",
+    quote: "Sam, finance says R-1042 is waiting for a receipt. Did you submit it? Please send me the receipt location and what still needs to happen.",
+    id: "slack-export:C08WORKSP1:1795046400.000151",
+    check: "The tracker entry and receipt location are recorded and Jordan confirms the link and amount. Finance approval and payment have not been confirmed." },
+  { n: 8, title: "More professional, but in what way?", channel: "#new-channel", when: "Thu 19 Nov, 13:00", ev: "unverified",
+    asks: "The update needs more polish. What will you change?",
+    move: "Ask for a concrete example while keeping the revision moving.",
+    quote: "Sam, the project update needs to sound more professional and have a bit more polish before I share it. Can you revise it this afternoon and tell me what you will change?",
+    id: "slack-export:C08PROJECT1:1795057200.000154",
+    check: "The three-part format is documented, but the later feedback does not identify what wording is unsuitable or what polish means. History cannot establish Alex's hidden expectations or feelings." },
+  { n: 9, title: "A handover is blocked by an external feed", channel: "#new-channel", when: "Thu 19 Nov, 14:00", ev: "supported",
+    asks: "Why isn't the Atlas handover ready?",
+    move: "Explain the dependency and who acts next — don't promise the vendor's time.",
+    quote: "Sam, why is the Atlas handover not ready? Please give me a clear update on what is missing, who has the next action and when you can reassess it.",
+    id: "slack-export:C08PROJECT1:1795060800.000155",
+    check: "Morgan owns the vendor contact, the corrected feed missed noon and Sam cannot run final checks without it. The vendor's revised 16:00 estimate is not proof of delivery." },
+  { n: 10, title: "142 and 156 can both describe the same extract", channel: "#new-channel", when: "Fri 20 Nov, 09:05", ev: "supported",
+    asks: "Spreadsheet says 156, your headline says 142. Why?",
+    move: "Explain gross vs net orders and which figure goes in the report.",
+    quote: "Sam, the spreadsheet says 156 orders and your Beacon headline says 142. Why do the numbers disagree? Please check the definition and tell me which figure belongs in the board report.",
+    id: "slack-export:C08PROJECT1:1795129500.000161",
+    check: "The extract has 156 gross orders minus 8 cancellations and 6 refunds, giving 142 net. Jordan explicitly requests the net number for the board report; no arithmetic error is established." },
+  { n: 11, title: "CSV was agreed; PDF is now requested too", channel: "#new-channel", when: "Fri 20 Nov, 09:25", ev: "supported",
+    asks: "Add PDF export by 17:00 — same slot, same budget?",
+    move: "Explain the scope change and ask for a time/scope/resource decision.",
+    quote: "Sam, can you include PDF export by 17:00 today as well as the CSV release? We have the same delivery slot and budget. Please tell me the impact before I confirm anything to the client.",
+    id: "slack-export:C08PROJECT1:1795130700.000162",
+    check: "The recorded release scope is CSV only; Morgan says PDF has not been promised. Passing CSV tests does not establish that PDF can be added in the same slot or budget." },
+  { n: 12, title: "A missed meeting with an earlier acknowledgement", channel: "#all-new-workspace", when: "Fri 20 Nov, 11:18", ev: "contradicted",
+    asks: "We couldn't find you at the 11:00 release review.",
+    move: "Respond — then try claiming 'nobody told me' and see what happens.",
+    quote: "Sam, we could not find you at the 11:00 release review. Can you tell me what happened and how you will catch up on the decisions and your CSV test update?",
+    id: "slack-export:C08WORKSP1:1795137480.000164",
+    check: "The assertion that Sam was never told about the Friday 11:00 review is contradicted by Alex's invitation and Sam's explicit acknowledgement. The history does not say why Sam missed it, so no excuse or admission should be invented." },
+  { n: 13, title: "A remembered conversation is not written approval", channel: "#all-new-workspace", when: "Fri 20 Nov, 10:15", ev: "unverified",
+    asks: "Have I actually approved the $450 course?",
+    move: "Describe your recollection and ask for clear confirmation before booking.",
+    quote: "Sam, I heard you were considering the $450 reporting course. Have I actually approved that spend? Please check with me before booking; I cannot find an approval in writing.",
+    id: "slack-export:C08WORKSP1:1795133700.000163",
+    check: "Sam recalls a kitchen conversation but has no written approval and has not booked. Jordan's policy is not evidence of what Alex said. Whether Alex approved the spend verbally remains unverified." },
+];
+
+const EV_LABEL = { supported: "Supported", unverified: "Unverified", contradicted: "Contradicted" };
+const esc = (s) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+const grid = document.getElementById("grid");
+grid.innerHTML = SITUATIONS.map((s) => `
+  <button class="card" data-n="${s.n}" aria-label="Situation ${s.n}: ${esc(s.title)}">
+    <div class="card-top">
+      <span class="num">${s.n}</span>
+      <span class="badge ${s.ev}">${EV_LABEL[s.ev]}</span>
+    </div>
+    <h2>${esc(s.title)}</h2>
+    <div class="meta"><b>${s.channel}</b> · ${s.when}</div>
+    <p class="asks">${esc(s.asks)}</p>
+    <p class="move">${esc(s.move)}</p>
+  </button>`).join("") + `
+  <div class="howto">
+    <h3>How to play</h3>
+    <ol>
+      <li>History → <b>Preview sample Slack export</b>, then confirm import.</li>
+      <li>You = <b>Sam Patel</b>, manager = <b>Alex Chen</b>.</li>
+      <li>Pick the card's message, then click <b>Use selected message</b> (look for "Using the selected message…").</li>
+      <li>Type your own unfiltered draft with real details, pick a tone, generate, compare.</li>
+    </ol>
+    <div class="row">
+      <button class="pick-btn" id="pick">🎲 Pick for me</button>
+      <span class="pick-status" id="pick-status" aria-live="polite"></span>
+    </div>
+  </div>`;
+
+const dialog = document.getElementById("detail");
+const body = document.getElementById("detail-body");
+
+function openDetail(n) {
+  const s = SITUATIONS.find((x) => x.n === n);
+  body.innerHTML = `
+    <span class="badge ${s.ev}">${EV_LABEL[s.ev]}</span>
+    <h2 id="detail-title">${s.n}. ${esc(s.title)}</h2>
+    <p class="meta" style="font-size:13px"><b>${s.channel}</b> · ${s.when} AEST</p>
+    <h4>Alex's message — select this one, then "Use selected message"</h4>
+    <blockquote>${esc(s.quote)}</blockquote>
+    <h4>Your draft</h4>
+    <p>${esc(s.move)} Write what <i>you</i> want to say — the prompt isn't text to copy.</p>
+    <h4>Check the result</h4>
+    <p>${esc(s.check)}</p>
+    <h4>Message ID</h4>
+    <p><code>${s.id}</code></p>`;
+  dialog.showModal();
+}
+
+grid.addEventListener("click", (e) => {
+  const card = e.target.closest(".card");
+  if (card) openDetail(Number(card.dataset.n));
+});
+document.getElementById("close").addEventListener("click", () => dialog.close());
+dialog.addEventListener("click", (e) => { if (e.target === dialog) dialog.close(); });
+
+document.getElementById("pick").addEventListener("click", () => {
+  const cards = [...grid.querySelectorAll(".card")];
+  cards.forEach((c) => c.classList.remove("picked"));
+  const s = SITUATIONS[Math.floor(Math.random() * SITUATIONS.length)];
+  const card = cards[s.n - 1];
+  void card.offsetWidth; // restart blink animation
+  card.classList.add("picked");
+  card.focus();
+  document.getElementById("pick-status").textContent = `→ Situation ${s.n}`;
+});
+
+// Scale the fixed 1600×900 stage to fit the window.
+const stage = document.getElementById("stage");
+function fit() {
+  const scale = Math.min(window.innerWidth / 1640, window.innerHeight / 940);
+  stage.style.transform = `scale(${scale})`;
+}
+window.addEventListener("resize", fit);
+fit();
+</script>
+</body>
+</html>
