@@ -51,11 +51,15 @@ Slack 內使用 App Home 和 Block Kit Modal。網站原有的動畫、語音和
 
 - [x] 現有網站提供頻道 ID 輸入、預覽、選取和確認匯入 UI。
 - [x] 現有 FastAPI 提供單頻道 allowlist 預覽及 Memory 匯入 API。
+- [x] 新增最小權限 App manifest [deploy/slack/manifest.yaml](../../deploy/slack/manifest.yaml)（只有 `channels:history`，不發訊息、不用 Socket Mode），並在 [README](../../README.md#preview-and-import-a-slack-test-channel) 補上用 manifest 建 App、取得頻道 ID 與 bot token，以及用網站 **History → Import from Slack** 做本機驗收的步驟。
+- [ ] 用真實測試工作區在本機（`demo_local`）驗收預覽、選取與匯入。需要測試工作區管理員建立並安裝 App，提供 bot token 與頻道 ID。
 - [ ] 部署時配置 Slack 安裝的 bot token 和測試頻道 allowlist。公開頻道歷史使用 `channels:history` 且 bot 須在對應頻道。依設計所需加入驗證使用者所需的最小 scope。
 - [ ] 綁定網站登入者與已核准的 Slack 帳號。伺服器在讀取前確認頻道屬於該工作區，且使用者可以讀取。Bot 能讀取不等同該網站使用者能讀取。授權無法確認時拒絕，移除使用者或撤回授權後停止後續預覽。
 - [ ] 驗證按頁預覽、讀取失敗、Slack 限流、空結果、重試與選取。只在確認後儲存選取訊息，維持 owner 隔離，並保留原始時間和來源欄位。 [Slack 頻道歷史權限](https://docs.slack.dev/reference/methods/conversations.history/)
 
 **驗收**　兩人用各自的受邀帳號測試。授權者能預覽與匯入選取訊息，另一人無法讀取未授權頻道，也無法在自己的 Memory 或生成佐證中看到對方的匯入資料。
+
+**Blocker（部署）**　部署站目前不可只靠設定開啟預覽。`POST /api/slack/preview` 在 invite 模式只檢查登入，所以設了 `SLACK_BOT_TOKEN` 後，每個受邀帳號都能讀 allowlist 頻道，不符合上方驗收。[部署指南](../../deploy/gce/README.md#operations)因此維持不設 token。要先完成帳號綁定與讀取前的授權檢查，並更新 [API Contract](../API_CONTRACT.md#slack-channel-preview-single-user-demo-extension)（目前定義為單一使用者 demo），才能在部署站設定 token。
 
 ### SLACK-04 — 部署及交付
 
@@ -76,3 +80,4 @@ Slack 內使用 App Home 和 Block Kit Modal。網站原有的動畫、語音和
 | 日期 | 變更 |
 | --- | --- |
 | 2026-11-21 | 以已部署 Web App 的雙入口交付計畫取代舊 Socket Mode／Mock Prototype 任務。 |
+| 2026-11-21 | SLACK-03：新增 Slack App manifest 與本機真實 Slack 驗收步驟；記錄部署站需先完成帳號授權檢查。僅文件與設定檔，manifest 尚未在 Slack 實際匯入，也未做真實 Slack 驗收。 |

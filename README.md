@@ -111,8 +111,8 @@ On macOS/Linux, use `backend/.venv/bin/python` for the Python commands.
 
 ### Preview and import a Slack test channel
 
-1. Create a Slack app in a test workspace. Add the bot scope `channels:history` for a public channel or `groups:history` for a private channel, then install the app. Reinstall it after changing scopes.
-2. Invite the bot to one test channel containing synthetic messages. Copy its channel ID and use the installed app's `xoxb-` bot token. This history reader does not require an `xapp-` Socket Mode token.
+1. Create the Slack app in a test workspace from [deploy/slack/manifest.yaml](deploy/slack/manifest.yaml): at [api.slack.com/apps](https://api.slack.com/apps), choose **Create New App → From a manifest**, select the workspace and paste the file. It requests only the bot scope `channels:history` for a public channel. For a private channel, add `groups:history`. Install the app to the workspace, and reinstall it after changing scopes.
+2. Create a public test channel containing only synthetic messages and add the bot with `/invite @Rage-to-Reply`. Copy the channel ID from the channel's **View channel details** dialog (it starts with `C`). Copy the **Bot User OAuth Token** (`xoxb-`) from **OAuth & Permissions**. This history reader does not require an `xapp-` Socket Mode token.
 3. From the project root, set the FastAPI process environment and start the single-user demo in PowerShell:
 
 ```powershell
@@ -135,7 +135,9 @@ $slackPreview | ConvertTo-Json -Depth 10
 
 Previewing does not save messages. Review the returned messages and submit only the ones you choose through the existing memory-import operation. The [Slack preview contract](docs/API_CONTRACT.md#slack-channel-preview-single-user-demo-extension) documents request fields, pagination, errors and how selected messages use the existing import operation. Missing metadata stays missing, and messages become searchable only after import.
 
-This backend reader fetches parent channel messages; it does not fetch thread replies or import files, and it cannot read ordinary direct messages between other people using the bot token. It retains the existing direct-loopback demo identity and does not add a login, shared deployment or frontend integration.
+To use the web interface instead, keep the same server running and start Next.js with `NEXT_PUBLIC_R2R_MOCK=false` (see [Browser environment variables](#browser-environment-variables)). Open **History → Import from Slack**, enter the channel ID and choose **Preview messages**. Select messages, choose **Review selection** and confirm.
+
+This backend reader fetches parent channel messages; it does not fetch thread replies or import files, and it cannot read ordinary direct messages between other people using the bot token. It retains the existing direct-loopback demo identity and does not add a login or shared deployment. The hosted invite-code site keeps the preview disabled until each signed-in account's Slack access is checked; see the [deployment guide](deploy/gce/README.md#operations).
 
 ## Browser environment variables
 
