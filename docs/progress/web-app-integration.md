@@ -34,9 +34,9 @@ Rage-to-Reply is an **end-to-end AI web application**. Invited users should be a
 | Task ID | Task | Priority | Status | Dependencies | Objective |
 | --- | --- | --- | --- | --- | --- |
 | WEB-01 | Frontend & Backend Integration | P0 | DONE | None | Build a testable version with the latest frontend and backend |
-| WEB-02 | Real Claude API Integration | P0 | TODO | WEB-01 | Verify live rewriting, receipts, and error handling |
+| WEB-02 | Real Claude API Integration | P0 | IN PROGRESS | WEB-01 | Verify live rewriting, receipts, and error handling |
 | WEB-03 | Web Deployment & Hosting | P0 | IN PROGRESS | WEB-01, parallel with WEB-02 | Provide HTTPS access for invited teammates |
-| WEB-04 | End-to-End Testing & Demo Validation | P0 | TODO | WEB-02, WEB-03 | Verify on another computer and rehearse the two-minute demo |
+| WEB-04 | End-to-End Testing & Demo Validation | P0 | IN PROGRESS | WEB-02, WEB-03 | Verify on another computer and rehearse the two-minute demo |
 
 **Status values** — `TODO` Pending, `IN PROGRESS` Underway, `BLOCKED` Waiting on a specific blocker, `DONE` Acceptance criteria verified. Roadmap statuses apply to the latest combined version. Earlier Mock AI results are in the [WEB-01 local baseline](#web-01--local-integration-baseline).
 
@@ -73,13 +73,13 @@ Rage-to-Reply is an **end-to-end AI web application**. Invited users should be a
 
 ### WEB-02 — Real Claude API Integration
 
-**Status** — TODO. **Dependencies** — WEB-01.
+**Status** — IN PROGRESS. **Dependencies** — WEB-01.
 
 **Objective** — Verify that the website uses the live Claude API through FastAPI to rewrite drafts.
 
 **Checklist**
 
-- [ ] Configure server-side Claude API credentials and the model.
+- [x] Configure server-side Claude API credentials and the model.
 - [ ] Verify Diplomatic, Neutral, and Assertive tones.
 - [ ] Verify reply regeneration and editing.
 - [ ] Check that replies preserve the user's intent and important facts.
@@ -88,13 +88,16 @@ Rage-to-Reply is an **end-to-end AI web application**. Invited users should be a
 
 **Acceptance Criteria**
 
-- [ ] The browser → FastAPI → Claude API → frontend flow succeeds.
+- [x] The browser → FastAPI → Claude API → frontend flow succeeds.
 - [ ] Users can generate and regenerate with live Claude and edit the reply in the browser.
 - [ ] API failures show a clear error and keep the configured provider.
 
-**Test Results** — Live Claude verification is pending.
+**Test Results** — 2026-11-21, production at `https://ragetoreply.tech` (`main` `73479a7`).
+- Credentials and model: the Claude key is stored in Secret Manager as `anthropic-api-key` and returned HTTP 200 from the Anthropic models endpoint from the VM. The backend runs with `R2R_AI_MODE=claude` and `ANTHROPIC_MODEL=claude-opus-5-5` (`/etc/r2r/r2r.env`). In Claude mode, startup fails if the model is missing, and the backend never falls back to mock replies.
+- Live flow (reported by the team): replies were generated through the hosted site with live Claude.
+- Pending: verify all three tones, regeneration and editing, intent and fact preservation, live Memory, Receipts and Warnings, and failure handling (timeout, rate limit, API error).
 
-**Blockers** — Requires WEB-01 acceptance and confirmed server-side credentials and model configuration.
+**Blockers** — None. The remaining items need a manual browser pass with synthetic history.
 
 ### WEB-03 — Web Deployment & Hosting
 
@@ -118,25 +121,26 @@ Rage-to-Reply is an **end-to-end AI web application**. Invited users should be a
 - [x] API credentials are absent from the browser bundle and repository.
 - [ ] Invited-user access controls pass verification. The local single-user identity mechanism remains limited to the local demo. (Sign-in, rejection of an invalid code and redirect checks passed on the deployed site. Isolation between two codes is verified in automated tests but not yet on the deployed site.)
 
-**Test Results** — 2026-11-21, branch `feature/invite-auth`, deployed at `https://ragetoreply.tech` (Porkbun DNS → reserved IP `r2r-ip`, Compute Engine VM `r2r-vm` in `australia-southeast1-b`, Caddy with a Let's Encrypt certificate). See the [deployment guide](../../deploy/gce/README.md).
+**Test Results** — 2026-11-21, `main` `73479a7` (PR #3 invite sign-in, PR #5 build fix, PR #6 sign-in link fix), deployed at `https://ragetoreply.tech` (Porkbun DNS → reserved IP `r2r-ip`, Compute Engine VM `r2r-vm` in `australia-southeast1-b`, Caddy with a Let's Encrypt certificate). See the [deployment guide](../../deploy/gce/README.md).
+- The production site serves the PR #6 login page, confirmed by checking the deployed bundle for the `hashchange` handler.
 - Secret Manager holds `anthropic-api-key`, `r2r-invites` and `r2r-session-secret`. Only the VM service account has read access, and the key returned HTTP 200 from the Anthropic models endpoint.
 - External checks from another network all passed. Without a session, `/` redirected (307) to `https://ragetoreply.tech/login`. `/login` returned 200 and `/api/session` returned 401. An invalid code returned 401 without setting a cookie. HTTP redirected (308) to HTTPS, and the HSTS, `X-Frame-Options` and `nosniff` headers were present.
 - Teammates opened the site and signed in from their own computers. Live generation succeeded.
 - Passed locally: 505 backend tests, including 57 invite-session tests (cookie attributes, tampering, expiry, revocation, isolation with in-memory and SQLite stores, throttling, validation, configuration and the invite CLI). Also passed: `tsc --noEmit`, `npm run lint` and the hosted-mode `npm run build`. HTTP smoke tests covered the per-address lockout, the per-invite generation limit and unknown-host rejection.
-- Personal sign-in links (`/login#<code>`) were verified with headless Edge through a same-origin gateway. The link opened the workspace and the session persisted. A bad link showed an error, and a fresh browser without a link stayed on `/login`.
-- Pending: isolation between two invite codes on the deployed site, and redeploying from `main` after this branch merges.
+- Personal sign-in links (`/login#<code>`) were verified with Playwright on the installed Edge through a same-origin gateway: 3 consecutive runs, 8/8 checks each. The checks covered pasting a link on `/login`, opening it in a fresh browser, session persistence, `/#<code>`, a bad link, no link, and a typed code.
+- Pending: isolation between two invite codes on the deployed site. A health-check endpoint is optional; systemd restarts failed services.
 
-**Blockers** — Team agreement on the invite-code session change in [API_CONTRACT.md](../API_CONTRACT.md#hosted-invite-code-sessions) before merging.
+**Blockers** — None.
 
 ### WEB-04 — End-to-End Testing & Demo Validation
 
-**Status** — TODO. **Dependencies** — WEB-02 and WEB-03.
+**Status** — IN PROGRESS. **Dependencies** — WEB-02 and WEB-03.
 
 **Objective** — Verify that another user can complete the full rewrite workflow over HTTPS on a different computer.
 
 **Checklist**
 
-- [ ] Have a teammate open the deployed site on their own computer.
+- [x] Have a teammate open the deployed site on their own computer.
 - [ ] Enter a work message and emotional draft, and generate a reply with live Claude.
 - [ ] Verify switching tones, regenerating, editing, and confirming the final reply.
 - [ ] Verify Memory, Receipts, Warnings, and history management.
@@ -150,9 +154,9 @@ Rage-to-Reply is an **end-to-end AI web application**. Invited users should be a
 - [ ] The two-minute demo has been rehearsed successfully.
 - [ ] The environment, commit, results, and remaining limitations are recorded.
 
-**Test Results** — Cross-device testing and the demo rehearsal are pending.
+**Test Results** — 2026-11-21: teammates opened `https://ragetoreply.tech` and signed in from their own computers with invite codes. The remaining checklist items and the demo rehearsal are pending.
 
-**Blockers** — Requires WEB-02 and WEB-03 acceptance.
+**Blockers** — Full acceptance follows WEB-02 and WEB-03.
 
 ### Optional Integrations and Public Release Requirements
 
@@ -297,5 +301,8 @@ TypeScript, lint and production build passed. The backend suite passed 435 tests
 | 2026-11-21 | Tracker organization | Moved previous tasks and verification into expandable history and retained the roadmap and Change Log. | Markdown formatting checked. | Uncommitted |
 | 2026-11-21 | Handoff guide | Added branch baselines, the next task, acceptance steps, and progress update instructions. | Markdown formatting checked. | Uncommitted |
 | 2026-11-21 | WEB-05 | Added shared browser dictation to the workspace draft. | TypeScript, lint, production build and Chrome mock acceptance passed. Physical microphone pending. | Uncommitted |
-| 2026-11-21 | WEB-03 | Added invite-code sessions, personal sign-in links, per-invite generation limits, the `/login` page and Compute Engine + Caddy deployment files. Deployed at `https://ragetoreply.tech`. | 505 backend tests, tsc, lint, hosted build, HTTP smoke tests and external HTTPS checks passed. Teammates signed in from their own computers. Deployed isolation check pending. | `feature/invite-auth` |
+| 2026-11-21 | WEB-03 | Added invite-code sessions, personal sign-in links, per-invite generation limits, the `/login` page and Compute Engine + Caddy deployment files. Deployed at `https://ragetoreply.tech`. | 505 backend tests, tsc, lint, hosted build, HTTP smoke tests and external HTTPS checks passed. Teammates signed in from their own computers. Deployed isolation check pending. | PR #3 (`1c0c82b`) |
+| 2026-11-21 | Build fix | Restored the `appendDictation` import dropped by merge `4c37966`, which had broken `tsc` and `next build` on `main`. | tsc, lint and both builds passed on `main` + fix. | PR #5 (`5aa18cc`) |
+| 2026-11-21 | WEB-03 | Personal sign-in links now work when pasted on `/login`, and sign-in opens the workspace with a full page load. | Playwright on Edge: 3 runs, 8/8 checks each. Confirmed on production. | PR #6 (`73479a7`) |
 | 2026-11-21 | WEB-06 | Reused the processing mascot for interactive emotion release and synchronized it with generation. | TypeScript, lint, build and Chrome HTTP fixture acceptance passed. | Uncommitted |
+| 2026-11-21 | WEB-02, WEB-04 | Recorded the live Claude configuration and first cross-computer sign-in. Moved WEB-02 and WEB-04 to IN PROGRESS. | Documentation update based on production checks and team reports. | This branch |
