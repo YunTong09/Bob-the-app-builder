@@ -58,7 +58,7 @@ Use a clean system sans-serif for messages, small monospace labels for pixel cha
 
 The original Remotion compositions are bundled as local MP4 assets in public/animations. A shared PixelAnimation component honours live changes to prefers-reduced-motion and pauses decorative video when reduced motion is requested.
 
-- Rage meter: overall process on the dedicated processing view, for both initial generation and regeneration. Decorative only; it is not a measured emotion score or truthful completion percentage.
+- Interactive pixel face: click the angry face or focus it and press Enter or Space to feed it one decorative word. It grows after each word, then bursts into a pixel ring and flying fragments before returning as a smile. Skip, reduced motion, and automatic feeding keep interaction optional. The pixel wait meter reflects the API request separately. It shows elapsed time until a previous successful request provides an estimate, labels estimated time explicitly, and only fills completely on API success. Reveal the reply after both API success and animation completion. On API failure, return to the workspace with the draft and a retry action.
 - Magnifying glass: evidence-review panel on the processing view and empty evidence/reply review state. The existing API has no live stage events; the UI describes the workflow without marking timed stages as complete.
 - Folder/files: conversation history entry and import dialog.
 

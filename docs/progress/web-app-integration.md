@@ -181,6 +181,22 @@ Rage-to-Reply is an **end-to-end AI web application**. Invited users should be a
 
 **Browser compatibility and limitations** — Uses `SpeechRecognition` or `webkitSpeechRecognition` where available. Browser and OS support, language availability, permissions, and network requirements may vary. A browser provider may process audio remotely. The app does not capture or store raw audio. The mock verifies the browser integration and request body; it does not measure transcription accuracy or exercise a live provider. Quick Tone Rewrite retains its existing generation availability.
 
+## WEB-06 — Interactive Emotion Eating Animation
+
+**Status** — DONE for frontend acceptance with a local HTTP fixture. A live Claude run was outside this task.
+
+**States** — Generate starts at `interactive`. Each click or focused Enter/Space sends one decorative word into the angry face during `eating`. The face grows after each word. Manual taps add a brief pixel impact and squash; automatic feeding omits the hit effect. After the last word, the face swells during `inflating`, bursts into a pixel ring and flying fragments during `releasing`, and returns as a smile in `completed`. API failure exits to the workspace with Retry, preserving the draft and previous reply.
+
+**Interaction and wait meter** — The face can feed itself after the interaction window. Skip and reduced motion bypass the animation. The restored 24-block pixel bar is tied only to the API. It displays elapsed time on the first request and estimates remaining time from up to three previous successful requests in the current workspace. Late responses switch back to elapsed time. The bar is full only after success.
+
+**API synchronization** — The existing generation request starts immediately and is sent once per submission. A fast response is held until animation completion. A slow response keeps the processing status visible after the animation completes. Retry and Regenerate start a fresh animation. No backend, Claude, Slack, or speech recognition changes.
+
+**Changed files** — `src/app/page.tsx`, `src/frontend/features/reply/ReplyProcessing.tsx`, `src/frontend/features/reply/RageLoadingMeter.tsx`, `src/frontend/features/reply/ReplyWaitMeter.tsx`, `src/frontend/styles/pixel-workspace.css`, and `docs/FRONTEND_CONTRACT.md`. Restored the missing `appendDictation` import on the branch so the existing voice callback builds.
+
+**Verification** — TypeScript, lint, and production build passed in an isolated workspace. Headless Chrome verified click, Enter and Space, input focus isolation, one-word feeding, the final burst, elapsed and estimated wait behavior, one request per submission, fast and slow HTTP responses, failure and Retry, skip, automatic completion, reduced motion, regeneration, editing, switching tone, opening Memory and displaying Receipts.
+
+**Known limitations** — Remaining time is an estimate, not server progress. Chrome tests use a local HTTP fixture. Timing, visual feel and accessibility behavior on other browsers were not evaluated.
+
 ## History
 
 <details>
@@ -282,3 +298,4 @@ TypeScript, lint and production build passed. The backend suite passed 435 tests
 | 2026-11-21 | Handoff guide | Added branch baselines, the next task, acceptance steps, and progress update instructions. | Markdown formatting checked. | Uncommitted |
 | 2026-11-21 | WEB-05 | Added shared browser dictation to the workspace draft. | TypeScript, lint, production build and Chrome mock acceptance passed. Physical microphone pending. | Uncommitted |
 | 2026-11-21 | WEB-03 | Added invite-code sessions, personal sign-in links, per-invite generation limits, the `/login` page and Compute Engine + Caddy deployment files. Deployed at `https://ragetoreply.tech`. | 505 backend tests, tsc, lint, hosted build, HTTP smoke tests and external HTTPS checks passed. Teammates signed in from their own computers. Deployed isolation check pending. | `feature/invite-auth` |
+| 2026-11-21 | WEB-06 | Reused the processing mascot for interactive emotion release and synchronized it with generation. | TypeScript, lint, build and Chrome HTTP fixture acceptance passed. | Uncommitted |

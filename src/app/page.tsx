@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import ChatWindow from "@/frontend/features/reply/ChatWindow";
 import ComparePanel from "@/frontend/features/reply/ComparePanel";
 import HistoryPanel from "@/frontend/features/memory/HistoryPanel";
@@ -8,10 +8,12 @@ import PreferencesPanel, {
   readLocalPreferences,
 } from "@/frontend/features/preferences/PreferencesPanel";
 import DisplaySettings from "@/frontend/features/preferences/DisplaySettings";
+import { appendDictation } from "@/frontend/features/reply/DictationControls";
 import VentInput from "@/frontend/features/reply/VentInput";
 import { appendDictation } from "@/frontend/features/reply/DictationControls";
 import type { GenerateReplyResponse, ReplyTone } from "@/frontend/api/contract";
 import PixelAnimation from "@/frontend/shared/PixelAnimation";
+import ReplyInsights from "@/frontend/features/reply/ReplyInsights";
 import ReplyProcessing from "@/frontend/features/reply/ReplyProcessing";
 import { isMockMode, generateReply } from "@/frontend/api/replyApi";
 
@@ -35,12 +37,26 @@ export default function HomePage() {
   const [reply, setReply] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [finishing, setFinishing] = useState(false);
+  const [pendingReply, setPendingReply] = useState<typeof result>(null);
+  const [animationDone, setAnimationDone] = useState(false);
+  const finishAnimation = useCallback(() => setAnimationDone(true), []);
+
   const regeneratingRequest = useRef(false);
   const inFlight = useRef(false);
+  const requestTiming = useRef<{ startedAt: number; estimateMs: number | null }>({ startedAt: 0, estimateMs: null });
+  const successfulDurations = useRef<number[]>([]);
   const canSubmit = Boolean(managerMessage.trim() && draft.trim());
   const withEvidence = mode === "evidence";
   const showReview = withEvidence && Boolean(result);
+
+  useEffect(() => {
+    if (!animationDone || !pendingReply) return;
+    setResult(pendingReply);
+    setReply(pendingReply.data.reply);
+    setPendingReply(null);
+    inFlight.current = false;
+    setLoading(false);
+  }, [animationDone, pendingReply]);
 
   useEffect(() => {
     const preferredTone = readLocalPreferences().tone;
@@ -77,9 +93,16 @@ export default function HomePage() {
     if (!withEvidence || inFlight.current || !canSubmit) return;
     inFlight.current = true;
     regeneratingRequest.current = Boolean(result);
-    setFinishing(false);
+    setAnimationDone(false);
+    setPendingReply(null);
     setLoading(true);
     setError("");
+    const samples = successfulDurations.current;
+    const startedAt = performance.now();
+    requestTiming.current = {
+      startedAt,
+      estimateMs: samples.length ? samples.reduce((total, ms) => total + ms, 0) / samples.length : null,
+    };
 
     try {
       const data = await generateReply({
@@ -87,18 +110,14 @@ export default function HomePage() {
         employeeDraft: draft,
         tone,
       });
-      setResult({ data, tone });
-      setReply(data.reply);
-      setFinishing(true);
-      // Let the meter reach zero before revealing the completed reply.
-      await new Promise<void>((resolve) => setTimeout(resolve, 450));
+      successfulDurations.current = [...samples, performance.now() - startedAt].slice(-3);
+      setPendingReply({ data, tone });
     } catch (caught) {
       setError(
         caught instanceof Error
           ? caught.message
           : "Could not generate a reply. Try again.",
       );
-    } finally {
       inFlight.current = false;
       setLoading(false);
     }
@@ -109,7 +128,9 @@ export default function HomePage() {
       <ReplyProcessing
         regenerating={regeneratingRequest.current}
         synthetic={isMockMode}
-        complete={finishing}
+        replyReady={Boolean(pendingReply)}
+        {...requestTiming.current}
+        onAnimationComplete={finishAnimation}
       />
     );
   }
@@ -328,6 +349,7 @@ export default function HomePage() {
             <p className="error-message" role="alert">
               <span className="status-label status-label-error">Error</span>
               {error}
+              <button type="submit" className="secondary-button" disabled={!canSubmit}>Retry</button>
             </p>
           )}
         </form>
@@ -349,12 +371,7 @@ export default function HomePage() {
               tone={result.tone}
               onChange={setReply}
             />
-            <div className="review-section">
-              <h3>Manager’s request · AI interpretation</h3>
-              <p>{result.data.managerIntent}</p>
-              <h3>Your concern</h3>
-              <p>{result.data.employeeConcern}</p>
-            </div>
+            <ReplyInsights {...result.data} />
             <div className="review-section">
               <h3>Supporting evidence</h3>
               {result.data.evidence.length ? (
@@ -381,34 +398,6 @@ export default function HomePage() {
                 <p className="small-text">No supporting evidence was found.</p>
               )}
             </div>
-            {result.data.unverifiedClaims.length > 0 && (
-              <div className="review-section">
-                <h3>
-                  <span className="status-label status-label-warning">
-                    Unverified claims
-                  </span>
-                </h3>
-                <ul className="text-list">
-                  {result.data.unverifiedClaims.map((claim, index) => (
-                    <li key={index}>{claim}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-            {result.data.warnings.length > 0 && (
-              <div className="review-section">
-                <h3>
-                  <span className="status-label status-label-warning">
-                    Warnings
-                  </span>
-                </h3>
-                <ul className="text-list">
-                  {result.data.warnings.map((warning, index) => (
-                    <li key={index}>{warning}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
           </section>
         )}
         {(!withEvidence || !result) && (

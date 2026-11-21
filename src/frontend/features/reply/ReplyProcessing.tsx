@@ -3,17 +3,24 @@
 import { useEffect, useRef } from "react";
 import PixelAnimation from "@/frontend/shared/PixelAnimation";
 import RageLoadingMeter from "./RageLoadingMeter";
+import ReplyWaitMeter from "./ReplyWaitMeter";
 
 type Props = {
   regenerating: boolean;
   synthetic: boolean;
-  complete?: boolean;
+  replyReady: boolean;
+  startedAt: number;
+  estimateMs: number | null;
+  onAnimationComplete: () => void;
 };
 
 export default function ReplyProcessing({
   regenerating,
   synthetic,
-  complete = false,
+  replyReady,
+  startedAt,
+  estimateMs,
+  onAnimationComplete,
 }: Props) {
   const titleRef = useRef<HTMLHeadingElement>(null);
   useEffect(() => {
@@ -21,14 +28,14 @@ export default function ReplyProcessing({
   }, []);
 
   return (
-    <main className="page-shell processing-page" aria-busy="true">
+    <main className="page-shell processing-page">
       <div className="workspace-topbar">
         <span>
           Workspace <span className="breadcrumb-divider">/</span>{" "}
           {regenerating ? "Regenerating reply" : "Preparing your reply"}
         </span>
         <span className="connection-badge">
-          {synthetic ? "Synthetic demo" : "Reply in progress"}
+          {synthetic ? "Synthetic demo" : replyReady ? "Reply ready" : "Reply in progress"}
         </span>
       </div>
       <header className="processing-header">
@@ -39,9 +46,11 @@ export default function ReplyProcessing({
             : "A cooler head is on the way."}
         </h1>
         <p role="status">
-          {regenerating
-            ? "Preparing a new version. Your previous reply and draft are kept until this finishes."
-            : "Your request is processing. Your draft stays here while we prepare your reply."}
+          {replyReady
+            ? "Your reply is ready. Finish or skip the animation to review it."
+            : regenerating
+              ? "Preparing a new version. Your previous reply and draft are kept until this finishes."
+              : "Your draft stays here while we prepare your reply."}
         </p>
       </header>
       <section
@@ -55,15 +64,12 @@ export default function ReplyProcessing({
             Understand your message. Check the context. Shape a professional
             reply that keeps your point intact.
           </p>
-          <span className="processing-state">
-            {complete ? "Reply ready" : "Processing your request"}
+          <span className="processing-state" role="status">
+            {replyReady ? "Reply ready" : "Processing your request"}
           </span>
-          <p className="processing-disclaimer">
-            The animation is a visual cue, not a progress percentage or an
-            assessment of your emotions.
-          </p>
+          <ReplyWaitMeter startedAt={startedAt} estimateMs={estimateMs} replyReady={replyReady} />
         </div>
-        <RageLoadingMeter complete={complete} />
+        <RageLoadingMeter onComplete={onAnimationComplete} />
       </section>
       <div className="processing-details">
         <section
