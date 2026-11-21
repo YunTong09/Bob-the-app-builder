@@ -1,7 +1,9 @@
-﻿import { toneLabels, type Tone } from "@/frontend/api/web-api";
+﻿import DictationControls from "./DictationControls";
+import { toneLabels, type Tone } from "@/frontend/api/web-api";
 type Props = {
   value: string;
   onChange: (v: string) => void;
+  onDictated: (text: string) => void;
   tone: Tone;
   onToneChange: (t: Tone) => void;
   loading: boolean;
@@ -16,6 +18,7 @@ const descriptions = {
 export default function VentInput({
   value,
   onChange,
+  onDictated,
   tone,
   onToneChange,
   loading,
@@ -29,16 +32,18 @@ export default function VentInput({
           <label htmlFor="employee-draft">Your unfiltered draft</label>
           <span className="private-label">Private draft</span>
         </div>
-        <textarea
-          id="employee-draft"
-          className="plain-textarea vent-textarea"
-          placeholder="This is your space. Say what you actually want to say…"
-          aria-describedby="draft-privacy"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          required
-          maxLength={10000}
-        />
+        <DictationControls onTranscript={onDictated} disabled={loading}>
+          <textarea
+            id="employee-draft"
+            className="plain-textarea vent-textarea"
+            placeholder="This is your space. Say what you actually want to say…"
+            aria-describedby="draft-privacy"
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            required
+            maxLength={10000}
+          />
+        </DictationControls>
         <div className="field-heading">
           <p className="small-text" id="draft-privacy">
             Not saved to conversation history.

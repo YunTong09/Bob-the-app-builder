@@ -305,8 +305,10 @@ export default function HomePage() {
             </p>
           )}
           <VentInput
+            key={withEvidence ? "evidence" : "quick"}
             value={withEvidence ? draft : quickDraft}
             onChange={withEvidence ? setDraft : setQuickDraft}
+            onDictated={(text) => (withEvidence ? setDraft : setQuickDraft)((current) => appendDictation(current, text))}
             tone={withEvidence ? tone : quickTone}
             onToneChange={withEvidence ? setTone : setQuickTone}
             loading={withEvidence && loading}

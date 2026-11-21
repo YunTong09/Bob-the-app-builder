@@ -1045,6 +1045,49 @@ button.primary-button:disabled {
   }
 }
 
+.dictation-controls { display: grid; gap: 4px; }
+.dictation-input { position: relative; }
+.dictation-input textarea { display: block; width: 100%; }
+.dictation-input.has-dictation textarea { padding-right: 60px; }
+.dictation-language { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.dictation-button {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text);
+}
+.dictation-button:hover:enabled { background: var(--background); }
+.dictation-button[aria-pressed="true"] { background: var(--background); }
+.dictation-button:disabled { opacity: .6; }
+.dictation-mic {
+  position: relative;
+  width: 14px;
+  height: 12px;
+  margin-top: 2px;
+  border: 1.5px solid currentColor;
+  border-top: 0;
+  border-radius: 0 0 8px 8px;
+}
+.dictation-mic::before,
+.dictation-mic::after {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  background: currentColor;
+  content: "";
+}
+.dictation-mic::before { top: -5px; width: 6px; height: 13px; border-radius: 4px; }
+.dictation-mic::after { bottom: -5px; width: 2px; height: 5px; }
+.dictation-stop { width: 12px; height: 12px; border-radius: 2px; background: currentColor; }
+.dictation-controls [role="status"]:empty { margin: 0; }
+
 /* Communication memory follows the same panel and typography system as the workspace. */
 .workspace-dialog:has(.history-panel) {
   width: min(940px, calc(100% - 32px));
