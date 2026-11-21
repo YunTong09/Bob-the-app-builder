@@ -1,45 +1,82 @@
-import { toneLabels, type Tone } from "@/frontend/api/web-api";
-
-type VentInputProps = {
+﻿import { toneLabels, type Tone } from "@/frontend/api/web-api";
+type Props = {
   value: string;
-  onChange: (value: string) => void;
+  onChange: (v: string) => void;
   tone: Tone;
-  onToneChange: (tone: Tone) => void;
+  onToneChange: (t: Tone) => void;
   loading: boolean;
   canSubmit: boolean;
   hasReply: boolean;
 };
-
+const descriptions = {
+  diplomatic: "Keep it considerate",
+  neutral: "Clear and balanced",
+  assertive: "Firm, with respect",
+};
 export default function VentInput({
-  value, onChange, tone, onToneChange, loading, canSubmit, hasReply,
-}: VentInputProps) {
+  value,
+  onChange,
+  tone,
+  onToneChange,
+  loading,
+  canSubmit,
+  hasReply,
+}: Props) {
   return (
     <>
       <div className="form-field">
-        <label htmlFor="employee-draft">What you want to say</label>
+        <div className="field-heading">
+          <label htmlFor="employee-draft">Your unfiltered draft</label>
+          <span className="private-label">Private draft</span>
+        </div>
         <textarea
           id="employee-draft"
           className="plain-textarea vent-textarea"
-          placeholder="Write what you really think"
+          placeholder="This is your space. Say what you actually want to say…"
           aria-describedby="draft-privacy"
           value={value}
-          onChange={(event) => onChange(event.target.value)}
+          onChange={(e) => onChange(e.target.value)}
           required
-          maxLength={10_000}
+          maxLength={10000}
         />
-        <p className="small-text" id="draft-privacy">Your draft is processed for this request. It isn’t added to history.</p>
-      </div>
-      <div className="input-footer">
-        <div className="form-field">
-          <label htmlFor="reply-tone">Tone</label>
-          <select id="reply-tone" value={tone} onChange={(event) => onToneChange(event.target.value as Tone)}>
-            {Object.entries(toneLabels).map(([key, label]) => <option key={key} value={key}>{label}</option>)}
-          </select>
+        <div className="field-heading">
+          <p className="small-text" id="draft-privacy">
+            Not saved to conversation history.
+          </p>
+          <span className="character-count">
+            {value.length.toLocaleString()} / 10,000
+          </span>
         </div>
-        <button className="primary-button" type="submit" disabled={loading || !canSubmit}>
-          {loading ? "Generating…" : hasReply ? "Regenerate reply" : "Generate reply"}
-        </button>
       </div>
+      <fieldset className="tone-field">
+        <legend>How should it sound?</legend>
+        <div className="tone-options">
+          {Object.entries(toneLabels).map(([key, label]) => (
+            <label key={key} className={tone === key ? "selected" : ""}>
+              <input
+                type="radio"
+                name="reply-tone"
+                checked={tone === key}
+                onChange={() => onToneChange(key as Tone)}
+              />
+              <span>{label}</span>
+              <small>{descriptions[key as Tone]}</small>
+            </label>
+          ))}
+        </div>
+      </fieldset>
+      <button
+        className="primary-button generate-button"
+        type="submit"
+        disabled={loading || !canSubmit}
+      >
+        {loading
+          ? "Finding the right words…"
+          : hasReply
+            ? "Regenerate reply"
+            : "Find the right words"}
+        <span aria-hidden="true">✦</span>
+      </button>
     </>
   );
 }

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import SiteNav from "@/frontend/shared/SiteNav";
 import "@/frontend/styles/globals.css";
+import "@/frontend/styles/pixel-workspace.css";
 
 export const metadata: Metadata = {
   title: "Rage-to-Reply",

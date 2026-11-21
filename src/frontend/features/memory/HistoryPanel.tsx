@@ -1,3 +1,4 @@
+import PixelAnimation from "@/frontend/shared/PixelAnimation";
 import SlackImportPanel from "./SlackImportPanel";
 import { useRef, useState } from "react";
 import type { SearchMemoryResponse } from "@/frontend/api/contract";
@@ -81,6 +82,7 @@ export default function HistoryPanel() {
 
   return (
     <section className="panel history-panel" aria-labelledby="history-heading">
+      <PixelAnimation kind="folder" label="The context behind your conversations" className="history-animation"/>
       <h2 id="history-heading">Conversation history</h2>
       <p className="small-text">Import past messages you’re allowed to use as supporting context.</p>
       <SlackImportPanel onReviewHistory={reviewHistory} />
