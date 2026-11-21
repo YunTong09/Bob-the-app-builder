@@ -48,7 +48,7 @@ Use coral #EE8B76 for the draft edge, mint #8DE3B6 for supported evidence, and a
 
 ### Layout and type
 
-A persistent sidebar contains the workspace, tutorial, and appearance control. The workspace uses two columns for draft and review on desktop, collapsing to a single column below 980px. Conversation history and settings remain accessible through dialogs. The review placeholder explains the result before generation; regeneration retains the previous reply.
+A persistent sidebar contains the workspace, tutorial, and appearance control. The workspace uses two columns for draft and review on desktop, collapsing to a single column below 980px. Conversation history and settings remain accessible through dialogs. The review placeholder explains the result before generation. Both generation and regeneration display a dedicated processing view; component state retains drafts and the prior reply until completion or failure.
 
 Use a clean system sans-serif for messages, small monospace labels for pixel character, square corners, restrained offset shadows, and crisp pixel artwork. Keep text fields and body content readable and expose keyboard focus.
 
@@ -56,8 +56,8 @@ Use a clean system sans-serif for messages, small monospace labels for pixel cha
 
 The original Remotion compositions are bundled as local MP4 assets in public/animations. A shared PixelAnimation component honours live changes to prefers-reduced-motion and pauses decorative video when reduced motion is requested.
 
-- Rage meter: generation placeholder. Decorative only; it is not a measured emotion score or truthful completion percentage.
-- Magnifying glass: empty evidence/reply review state.
+- Rage meter: overall process on the dedicated processing view, for both initial generation and regeneration. Decorative only; it is not a measured emotion score or truthful completion percentage.
+- Magnifying glass: evidence-review panel on the processing view and empty evidence/reply review state. The existing API has no live stage events; the UI describes the workflow without marking timed stages as complete.
 - Folder/files: conversation history entry and import dialog.
 
 Animations do not replace processing, completion, or error text. Manager messages and emotional drafts remain in component state and are not written to browser storage by these visuals. Generation and import continue to use the existing client.

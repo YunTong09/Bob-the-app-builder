@@ -10,6 +10,7 @@ import PreferencesPanel, {
 import VentInput from "@/frontend/features/reply/VentInput";
 import type { GenerateReplyResponse, ReplyTone } from "@/frontend/api/contract";
 import PixelAnimation from "@/frontend/shared/PixelAnimation";
+import ReplyProcessing from "@/frontend/features/reply/ReplyProcessing";
 import { isMockMode, generateReply } from "@/frontend/api/replyApi";
 
 const setupKey = "rage-to-reply.workspace-setup";
@@ -92,6 +93,12 @@ export default function HomePage() {
       inFlight.current = false;
       setLoading(false);
     }
+  }
+
+  if (loading) {
+    return (
+      <ReplyProcessing regenerating={Boolean(result)} synthetic={isMockMode} />
+    );
   }
 
   return (
@@ -300,19 +307,17 @@ export default function HomePage() {
           <section
             className="panel workspace-panel workspace-review"
             aria-labelledby="review-heading"
+            aria-busy={false}
           >
             <div className="panel-heading">
               <div>
                 <p className="eyebrow">A COOLER HEAD</p>
                 <h2 id="review-heading">Your words, reworked</h2>
               </div>
-              <span className="ready-badge">Ready to review</span>
+              <span className="ready-badge">
+                Ready to review
+              </span>
             </div>
-            {loading && (
-              <p className="small-text" role="status">
-                Generating a fresh reply. Your previous version stays below.
-              </p>
-            )}
             <ComparePanel
               polishedReply={reply}
               tone={result.tone}
