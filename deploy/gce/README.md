@@ -34,29 +34,31 @@ In Porkbun, open **Domain Management → DNS** for the domain. Delete any defaul
 
 ## 2. Secrets for invites and sessions
 
-Create the session-signing secret once:
+The VM's service account can only read secrets. Create and update them from Cloud Shell.
+
+Create the session-signing secret once (Cloud Shell):
 
 ```bash
 python3 -c "import secrets; print(secrets.token_urlsafe(48), end='')" | \
   gcloud secrets create r2r-session-secret --replication-policy=automatic --data-file=-
 ```
 
-Create one invite per person on the VM. Share each code privately:
+Create one invite per person (VM, in the repository directory). Share each code privately:
 
 ```bash
 backend/.venv/bin/python -m backend.api.invite_auth organizer
 backend/.venv/bin/python -m backend.api.invite_auth judge-1
 ```
 
-Each command prints a code (`R2R-XXXX-XXXX-XXXX-XXXX`) and an `R2R_INVITES entry` line. Put every entry line into a file. Store that file as a secret and delete it:
+Each command prints a code (`R2R-XXXX-XXXX-XXXX-XXXX`) and an `R2R_INVITES entry` line. The entry lines contain only hashes. Copy them into a file in Cloud Shell, store the file as a secret and delete it:
 
 ```bash
-nano invites.txt          # one "label:hash" line per person
+nano invites.txt          # paste one "label:hash" line per person
 gcloud secrets create r2r-invites --replication-policy=automatic --data-file=invites.txt
 rm invites.txt
 ```
 
-Grant the VM's service account access to both new secrets:
+Grant the VM's service account access to both new secrets (Cloud Shell):
 
 ```bash
 for s in r2r-invites r2r-session-secret; do
@@ -66,7 +68,7 @@ for s in r2r-invites r2r-session-secret; do
 done
 ```
 
-To add or revoke an invite later, add a new version of `r2r-invites` with the updated list (`gcloud secrets versions add r2r-invites --data-file=invites.txt`), then run `sudo systemctl restart r2r-backend`. A removed or regenerated code signs out that person's existing sessions.
+To add or revoke an invite later, add a new version of `r2r-invites` with the full updated list from Cloud Shell (`gcloud secrets versions add r2r-invites --data-file=invites.txt`). Then run `sudo systemctl restart r2r-backend` on the VM. A removed or regenerated code signs out that person's existing sessions.
 
 ## 3. Configuration, Caddy and services
 
