@@ -87,3 +87,13 @@ export interface CommunicationPreferences {
 export interface ApiErrorResponse {
   error: { code: string; message: string; details?: { field: string; message: string }[] };
 }
+
+// Hosted invite-code sessions (R2R_IDENTITY_MODE=invite_code). The session
+// itself travels only as an HttpOnly cookie set by the server.
+export interface CreateSessionRequest {
+  inviteCode: string;
+}
+
+export interface SessionResponse {
+  authenticated: boolean;
+}

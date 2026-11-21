@@ -2,7 +2,7 @@
 
 **Status:** Web App target architecture  
 **Team:** 3 developers  
-**Primary stack:** Next.js + React + TypeScript + Tailwind CSS; Python 3.11+ + FastAPI + Pydantic; Anthropic Claude API; SQLite + FTS5
+**Primary stack:** Next.js + React + TypeScript + Tailwind CSS; Python 3.11+ + FastAPI + Pydantic; Anthropic Claude API; SQLite + FTS5. Hosted on a Compute Engine VM with a Caddy HTTPS gateway.
 
 ## 1. Purpose
 
@@ -33,7 +33,7 @@ flowchart TD
 
 The diagram shows the hosted target. The service implementation also assesses evidence between retrieval and drafting.
 
-**Current code.** The Next.js prototype lives in `src/app/` and `src/frontend/`, and both browser pages share the FastAPI client. FastAPI implements the contracted reply and memory routes in `backend/`. Hosted authentication is pending. The Slack module remains available as a prototype, with its history in the [Slack integration tracker](progress/slack-integration-tracker.md).
+**Current code.** The Next.js prototype lives in `src/app/` and `src/frontend/`, and both browser pages share the FastAPI client. FastAPI implements the contracted reply and memory routes in `backend/`. Hosted access uses invite-code sessions (section 8). The Slack module remains available as a prototype, with its history in the [Slack integration tracker](progress/slack-integration-tracker.md).
 
 ## 3. Components and responsibilities
 
@@ -72,7 +72,7 @@ FastAPI handles:
 
 The required reply and memory endpoints, optional P1 preferences endpoints, validation rules and error responses are defined in [API_CONTRACT.md](API_CONTRACT.md). The integration developer owns these endpoints and the orchestration that invokes the AI and memory services.
 
-**Identity:** For a single-user hackathon demo, a server-controlled demo session is acceptable if it is explicitly isolated and not exposed as multi-user security. For a multi-user deployment, use real authentication and derive identity server-side. The current loopback-only resolver rejects proxied requests. Shared hosting requires implementing authenticated identity before exposing contracted routes.
+**Identity:** The local single-user demo uses a server-controlled demo owner. The loopback-only resolver rejects proxied requests. The hosted Web App uses invite-code sessions instead (`R2R_IDENTITY_MODE=invite_code`). FastAPI verifies a hashed invite code, issues a signed HttpOnly cookie and derives a separate owner for each invite. Throttling of failed sign-ins and per-owner generation limits protect the Claude budget. The wire behaviour is defined in [API_CONTRACT.md](API_CONTRACT.md#hosted-invite-code-sessions).
 
 ### 3.3 Claude AI Service
 
@@ -175,8 +175,8 @@ The authoritative MVP scope and user acceptance criteria are in [PRODUCT_SPEC.md
 
 1. Build the web workspace from the existing Next.js components and [Frontend Contract](FRONTEND_CONTRACT.md). Use the shared fixtures for early UI testing.
 2. Both browser pages use the existing client for the [FastAPI contract](API_CONTRACT.md). In the single-user demo, the client calls the separately configured, loopback-bound FastAPI origin. FastAPI allows the explicitly configured local Web App origin through CORS. This preserves the backend's direct loopback identity rules and bypasses the legacy Next.js `/api/memory` route. See [local setup](../README.md#run-the-current-browser-prototype) and [Web App progress](progress/web-app-integration.md).
-3. Add authenticated identity and a same-origin HTTPS gateway for shared hosting. Keep FastAPI and the Claude key server-side. Reject unknown or unauthorised sessions and verify isolation with two accounts. Persist SQLite on a durable volume for the initial single-instance backend. Agree on a shared store before scaling across instances.
-4. Verify the deployed URL from a separate browser or computer, including login, generation, editable results, evidence, memory management and failure states. Use synthetic data for the demo. The hosting provider and authentication provider are pending.
+3. Host on one Compute Engine VM behind a same-origin HTTPS gateway. **Caddy** terminates TLS with automatic certificates and sends `/api/*` to FastAPI and other paths to Next.js. Both apps are bound to `127.0.0.1`. Invited users sign in with invite codes. The Claude key, invite list and session secret come from Secret Manager at start-up. SQLite stays on the VM's persistent disk; agree on a shared store before scaling beyond this single instance. See the [deployment guide](../deploy/gce/README.md).
+4. Verify the deployed URL from a separate browser or computer, including sign-in, generation, editable results, evidence, memory management, isolation between two invite codes and failure states. Use synthetic data for the demo.
 
 ## 9. Out of scope for the Web App MVP
 

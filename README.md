@@ -10,6 +10,7 @@ Rage-to-Reply is a Web App that turns an employee's private draft into an editab
 | [ARCHITECTURE.md](docs/ARCHITECTURE.md) | Explains the technology stack, component responsibilities, data flow and security boundaries. |
 | [API_CONTRACT.md](docs/API_CONTRACT.md) | Defines endpoint behaviour, request and response schemas, validation rules and errors. |
 | [FRONTEND_CONTRACT.md](docs/FRONTEND_CONTRACT.md) | Defines the browser workspace, input and result states, privacy handling and visual design. |
+| [Hosted deployment guide](deploy/gce/README.md) | Puts the Web App on a Compute Engine VM at an HTTPS domain with invite-code sign-in. |
 | [Slack prototype tracker](docs/progress/slack-integration-tracker.md) | Historical record of the Slack modal prototype. |
 
 ## Feature priorities
@@ -94,8 +95,16 @@ On macOS/Linux, use `backend/.venv/bin/python` for the Python commands.
 | `R2R_MODEL_EFFORT` | `medium` | Claude effort level |
 | `R2R_REFUSAL_FALLBACK` | `default` | Server-side refusal fallback; `off` to disable |
 | `R2R_SERVICES` | `real` | `stub` uses the in-memory development doubles |
+| `R2R_IDENTITY_MODE` | `demo_local` | `invite_code` for the hosted site (variables below) |
+| `R2R_PUBLIC_ORIGIN` | none (required for `invite_code`) | Public `https://` origin of the hosted site |
+| `R2R_INVITES` | none (required for `invite_code`) | `label:sha256` entries, one per invited person |
+| `R2R_SESSION_SECRET` | none (required for `invite_code`) | At least 32 characters; signs session cookies |
+| `R2R_SESSION_TTL_HOURS` | `168` | Session lifetime in invite mode |
+| `R2R_GENERATE_LIMIT_PER_HOUR` | `30` | Generations per invite per hour in invite mode |
+| `R2R_LOGIN_FAILURES_PER_15_MIN` | `10` | Failed sign-ins per address before a lockout in invite mode |
 
-- The only identity mode is a single-user demo owner. It accepts direct loopback connections only and rejects proxied requests. Do not bind it to `0.0.0.0` or put it behind a shared proxy. Any other `R2R_IDENTITY_MODE` refuses to start until authentication is agreed.
+- The default identity is a single-user demo owner. It accepts direct loopback connections only and rejects proxied requests. Do not bind it to `0.0.0.0` or put it behind a shared proxy.
+- `invite_code` mode is for the hosted site behind the HTTPS gateway. Each invited person signs in with their own code and gets separate history. Create codes with `backend/.venv/bin/python -m backend.api.invite_auth <label>`; this prints the code to share and its `R2R_INVITES` entry. Follow the [deployment guide](deploy/gce/README.md). Other `R2R_IDENTITY_MODE` values refuse to start.
 - Startup fails if `ANTHROPIC_MODEL` is missing in Claude mode; it never falls back to mock replies. The service interfaces are in `backend/application/ports.py`.
 - To run the API tests against SQLite instead of the in-memory double, set `R2R_TEST_MEMORY_FACTORY=backend.tests.sqlite_factory:make`.
 - Synthetic request and response fixtures are in `backend/fixtures/`.
@@ -133,7 +142,8 @@ This backend reader fetches parent channel messages; it does not fetch thread re
 | Variable | Purpose |
 | --- | --- |
 | `NEXT_PUBLIC_R2R_MOCK` | Browser mock is enabled unless set to `false`. |
-| `NEXT_PUBLIC_API_BASE_URL` | Required in HTTP mode; use `http://127.0.0.1:8000` for the local backend. |
+| `NEXT_PUBLIC_API_BASE_URL` | Required in HTTP mode; use `http://127.0.0.1:8000` for the local backend, or the site's `https://` origin when hosted. |
+| `NEXT_PUBLIC_R2R_AUTH` | Set to `invite` only for the hosted build. Visitors without a session are sent to `/login`. |
 
 For real backend replies, set `NEXT_PUBLIC_R2R_MOCK=false` and `NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:8000` in the project-root `.env.local`, then restart or rebuild Next.js. Open the browser at `http://127.0.0.1:3000` to match the backend template's allowed origin. Keep backend credentials in `backend/.env`; frontend public variables are visible to browser users.
 

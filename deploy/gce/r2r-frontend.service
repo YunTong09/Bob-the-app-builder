@@ -1,0 +1,15 @@
+# Install with: sed "s|__USER__|$USER|g; s|__APP_DIR__|$HOME/Bob-the-app-builder|g" \
+#   deploy/gce/r2r-frontend.service | sudo tee /etc/systemd/system/r2r-frontend.service
+[Unit]
+Description=Rage-to-Reply Next.js
+After=r2r-backend.service
+
+[Service]
+User=__USER__
+WorkingDirectory=__APP_DIR__
+ExecStart=__APP_DIR__/node_modules/.bin/next start -H 127.0.0.1 -p 3000
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,24 @@
+# Same-origin HTTPS gateway for the hosted demo.
+# Replace example.com with the real domain. Caddy obtains and renews the
+# certificate automatically once the domain's DNS A record points at this VM.
+example.com {
+	encode zstd gzip
+
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+
+	# Every /api route goes to FastAPI, including /api/session. The legacy
+	# Next.js /api routes are not exposed on the hosted site.
+	handle /api/* {
+		reverse_proxy 127.0.0.1:8000
+	}
+
+	handle {
+		reverse_proxy 127.0.0.1:3000
+	}
+}

@@ -1,12 +1,14 @@
 import {
   ApiErrorResponse,
   CommunicationPreferences,
+  CreateSessionRequest,
   DeleteMemoryResponse,
   GenerateReplyRequest,
   GenerateReplyResponse,
   ImportMemoryResponse,
   MemoryMessage,
   SearchMemoryResponse,
+  SessionResponse,
   SlackPreviewRequest,
   SlackPreviewResponse,
   StoredMemoryMessage,
@@ -15,9 +17,12 @@ import {
 // Frontend API client for docs/API_CONTRACT.md.
 // Mock mode (default) serves the contract's synthetic fixtures so the UI works without the backend.
 // Set NEXT_PUBLIC_R2R_MOCK=false and NEXT_PUBLIC_API_BASE_URL to use FastAPI.
+// Hosted deployments also set NEXT_PUBLIC_R2R_AUTH=invite: an expired or
+// missing session then sends the browser to /login.
 
 const USE_MOCK = process.env.NEXT_PUBLIC_R2R_MOCK !== "false";
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL?.trim().replace(/\/+$/, "");
+export const isInviteAuth = !USE_MOCK && process.env.NEXT_PUBLIC_R2R_AUTH === "invite";
 
 export class ApiError extends Error {
   constructor(public status: number, public code: string, message: string) {
@@ -48,6 +53,9 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
       envelope = await response.json();
     } catch {
       // non-JSON error body
+    }
+    if (response.status === 401 && isInviteAuth && !path.startsWith("/api/session") && typeof window !== "undefined") {
+      window.location.assign("/login");
     }
     throw new ApiError(response.status, envelope.error?.code ?? "INTERNAL_ERROR", envelope.error?.message ?? "Request failed.");
   }
@@ -93,6 +101,21 @@ function mockGenerate(req: GenerateReplyRequest): GenerateReplyResponse {
 }
 
 // ---------- Public client ----------
+
+// Invite-code sessions exist only in hosted mode; mock and local demo modes
+// never call them.
+export async function signIn(inviteCode: string): Promise<SessionResponse> {
+  const body: CreateSessionRequest = { inviteCode };
+  return request("POST", "/api/session", body);
+}
+
+export async function getSession(): Promise<SessionResponse> {
+  return request("GET", "/api/session");
+}
+
+export async function signOut(): Promise<SessionResponse> {
+  return request("DELETE", "/api/session");
+}
 
 export async function generateReply(req: GenerateReplyRequest): Promise<GenerateReplyResponse> {
   if (!USE_MOCK) return request("POST", "/api/reply/generate", req);

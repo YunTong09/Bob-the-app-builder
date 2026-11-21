@@ -35,7 +35,7 @@ Rage-to-Reply is an **end-to-end AI web application**. Invited users should be a
 | --- | --- | --- | --- | --- | --- |
 | WEB-01 | Frontend & Backend Integration | P0 | TODO | None | Build a testable version with the latest frontend and backend |
 | WEB-02 | Real Claude API Integration | P0 | TODO | WEB-01 | Verify live rewriting, receipts, and error handling |
-| WEB-03 | Web Deployment & Hosting | P0 | TODO | WEB-01, parallel with WEB-02 | Provide HTTPS access for invited teammates |
+| WEB-03 | Web Deployment & Hosting | P0 | IN PROGRESS | WEB-01, parallel with WEB-02 | Provide HTTPS access for invited teammates |
 | WEB-04 | End-to-End Testing & Demo Validation | P0 | TODO | WEB-02, WEB-03 | Verify on another computer and rehearse the two-minute demo |
 
 **Status values** — `TODO` Pending, `IN PROGRESS` Underway, `BLOCKED` Waiting on a specific blocker, `DONE` Acceptance criteria verified. Roadmap statuses apply to the latest combined version. Earlier Mock AI results are in the [WEB-01 local baseline](#web-01--local-integration-baseline).
@@ -93,7 +93,7 @@ Rage-to-Reply is an **end-to-end AI web application**. Invited users should be a
 
 ### WEB-03 — Web Deployment & Hosting
 
-**Status** — TODO. **Dependencies** — WEB-01. Can run in parallel with WEB-02.
+**Status** — IN PROGRESS. **Dependencies** — WEB-01. Can run in parallel with WEB-02.
 
 **Objective** — Provide invited teammates with HTTPS access to the web app.
 
@@ -101,7 +101,7 @@ Rage-to-Reply is an **end-to-end AI web application**. Invited users should be a
 
 - [ ] Deploy the Next.js frontend and FastAPI backend.
 - [ ] Configure HTTPS, API routing, and environment variables.
-- [ ] Store the Claude API key in server-side secret management.
+- [x] Store the Claude API key in server-side secret management.
 - [ ] Configure CORS, allowed hosts, and access controls for invited users.
 - [ ] Add basic rate limiting, API cost controls, and health checks.
 - [ ] Verify deployed API connectivity and backend availability.
@@ -113,9 +113,14 @@ Rage-to-Reply is an **end-to-end AI web application**. Invited users should be a
 - [ ] API credentials are absent from the browser bundle and repository.
 - [ ] Invited-user access controls pass verification. The local single-user identity mechanism remains limited to the local demo.
 
-**Test Results** — HTTPS deployment, access control, and network checks are pending.
+**Test Results** — 2026-11-21, branch `feature/invite-auth` (based on `origin/main` `225d5b2`).
+- Hosting chosen: one Compute Engine VM (`australia-southeast1-b`) with a Caddy HTTPS gateway and invite-code sessions. See the [deployment guide](../../deploy/gce/README.md). The domain will be registered with Porkbun.
+- Verified on the VM: the Claude key is stored in Secret Manager as `anthropic-api-key`. The VM service account reads it, and the key returned HTTP 200 from the Anthropic models endpoint. Loopback FastAPI and Next.js ran under systemd and were reached through an SSH tunnel.
+- Passed locally: 504 backend tests, including 56 invite-session tests (cookie attributes, tampering, expiry, revocation, isolation with in-memory and SQLite stores, throttling, validation and composition-root configuration). Also passed: `tsc --noEmit`, `npm run lint` and the hosted-mode `npm run build`.
+- Passed (HTTP smoke test with uvicorn `--proxy-headers` and `next start`): sign-in, sign-out, per-address lockout, per-invite generation limit, unknown-host rejection, and the redirect to the public `/login` URL for visitors without a session.
+- Pending: deployment at the HTTPS domain, verification from another device, and isolation between two invite codes on the deployed site.
 
-**Blockers** — Requires WEB-01 acceptance and a confirmed hosting and invite-access setup.
+**Blockers** — Domain registration and DNS. Team agreement on the invite-code session change in [API_CONTRACT.md](../API_CONTRACT.md#hosted-invite-code-sessions).
 
 ### WEB-04 — End-to-End Testing & Demo Validation
 
@@ -246,3 +251,4 @@ TypeScript, lint and production build passed. The backend suite passed 435 tests
 | 2026-11-21 | P0 Roadmap | Added WEB-01 through WEB-04, dependencies, and public release requirements. | Documentation update. Product testing was outside the scope. | Uncommitted |
 | 2026-11-21 | Tracker organization | Moved previous tasks and verification into expandable history and retained the roadmap and Change Log. | Markdown formatting checked. | Uncommitted |
 | 2026-11-21 | Handoff guide | Added branch baselines, the next task, acceptance steps, and progress update instructions. | Markdown formatting checked. | Uncommitted |
+| 2026-11-21 | WEB-03 | Added invite-code sessions, per-invite generation limits, the `/login` page and Compute Engine + Caddy deployment files. | 504 backend tests, tsc, lint, hosted build and HTTP smoke tests passed. HTTPS deployment pending. | `feature/invite-auth` |

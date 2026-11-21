@@ -1,0 +1,16 @@
+# Install with: sed "s|__USER__|$USER|g; s|__APP_DIR__|$HOME/Bob-the-app-builder|g" \
+#   deploy/gce/r2r-backend.service | sudo tee /etc/systemd/system/r2r-backend.service
+[Unit]
+Description=Rage-to-Reply FastAPI (invite-code mode)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=__USER__
+EnvironmentFile=/etc/r2r/r2r.env
+ExecStart=/bin/bash __APP_DIR__/deploy/gce/start-backend.sh
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

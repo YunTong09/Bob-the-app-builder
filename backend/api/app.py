@@ -44,6 +44,7 @@ from backend.services.slack import SlackHistoryService
 from .body_limit import BodyLimitMiddleware
 from .errors import ApiError, install_error_handlers, invalid_json, pydantic_details, validation_error
 from .identity import IdentityResolver
+from .invite_auth import InviteSessions, SlidingWindowLimiter, install_session_routes, rate_limited
 
 log = logging.getLogger("rage_to_reply.api")
 
@@ -129,7 +130,13 @@ def create_app(
     services: Services,
     identity: IdentityResolver,
     slack: SlackHistoryService | None = None,
+    *,
+    sessions: InviteSessions | None = None,
+    login_limiter: SlidingWindowLimiter | None = None,
+    generate_limiter: SlidingWindowLimiter | None = None,
 ) -> FastAPI:
+    """``sessions`` enables the hosted invite-code routes; ``generate_limiter``
+    caps reply generations per owner. Both are off for the local demo."""
     app_service = RageToReplyApp(services)
     app = FastAPI(
         title="Rage-to-Reply API",
@@ -146,12 +153,25 @@ def create_app(
             raise ApiError(401, "UNAUTHENTICATED", "Authentication is required.")
         return owner
 
+    if sessions is not None:
+        install_session_routes(
+            app,
+            sessions,
+            _parse_body,
+            _reject_query_params,
+            login_limiter or SlidingWindowLimiter(limit=10, window_seconds=15 * 60),
+        )
+
     # ---------------------------------------------------------- generation
     @app.post("/api/reply/generate")
     async def generate(request: Request) -> GenerateReplyResponse:
         owner = owner_of(request)
         _reject_query_params(request, set())
         body = await _parse_body(request, GenerateReplyRequest)
+        if generate_limiter is not None:
+            retry = generate_limiter.hit(owner.owner_id)
+            if retry is not None:
+                raise rate_limited("Too many reply requests. Try again later.", retry)
         result = await run_in_threadpool(
             app_service.generate_reply,
             owner,
