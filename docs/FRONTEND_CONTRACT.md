@@ -31,38 +31,54 @@ Quick Tone Rewrite requires backend support for draft-only generation without me
 
 ## Visual Design System
 
-The user-approved direction is a professional pixel-inspired workspace, using deep navy, warm ivory and muted teal. The live components remain React/Next.js and retain the existing API contract.
+The current Web App uses a **pixel-inspired editorial workspace**. Midnight is the default appearance. Daylight uses the same layout and visual hierarchy with cooler, lighter surfaces. Shared styles are loaded first, and the [pixel workspace stylesheet](../src/frontend/styles/pixel-workspace.css) supplies the active theme values.
 
-### Palette
+### Colour tokens
 
-| Role | Midnight | Daylight |
+| Role | CSS token | Midnight | Daylight |
+| --- | --- | --- | --- |
+| Page and sidebar | `--background` | `#151A2C` | `#F0F2F4` |
+| Cards and dialogs | `--surface` | `#20283E` | `#FFFFFF` |
+| Inputs | `--input` | `#181F32` | `#F7F9FA` |
+| Primary text | `--text` | `#F8EFD8` | `#20283E` |
+| Secondary text | `--muted` | `#A8B4C7` | `#526077` |
+| Input and control borders | `--border` | `#58657D` | `#79869B` |
+| Panel dividers | `--line` | `#344158` | `#D7DEE6` |
+| Primary action | `--primary` | `#64BFA8` | `#29705F` |
+| Primary action hover | `--primary-hover` | `#83D6BE` | `#225F50` |
+| Primary action pressed | `--primary-pressed` | `#52A992` | `#1C5144` |
+| Text on primary controls | `--primary-text` | `#102721` | `#FFFFFF` |
+| Keyboard focus | `--focus` | `#8DE3B6` | `#29705F` |
+| Draft edge | `--draft-accent` | `#EE8B76` | `#B65F43` |
+
+| Shared status role | CSS token | Both themes |
 | --- | --- | --- |
-| Background | #151A2C | #F0F2F4 |
-| Surface | #20283E | #FFFFFF |
-| Text | #F8EFD8 | #20283E |
-| Secondary text | #A8B4C7 | #526077 |
-| Input border | #58657D | #79869B |
-| Primary action | #64BFA8 | #29705F |
-| Primary action text | #102721 | #FFFFFF |
-| Focus | #8DE3B6 | #29705F |
+| Supported evidence | `--calm` | Mint `#8DE3B6` |
+| Warning or uncertainty | `--warning` | Amber `#EFB957` |
+| Generation error | `--rage` | Coral `#EE8B76` |
+| Text on solid status badges | `--accent-text` | Navy `#151A2C` |
 
-Use coral #EE8B76 for the draft edge, mint #8DE3B6 for supported evidence, and amber #EFB957 for warnings. Pair each status with a readable label.
+### Applying the palette
 
-### Layout and type
+- Use the page background for navigation and the surface colour for the draft and reply panels. The draft has a coral or rust top edge, and the reply panel has a teal top edge. Use dividers for grouping.
+- Use teal for Generate, Regenerate, selected states and the pixel wordmark. Primary buttons use the theme's primary text colour and a small offset shadow. Secondary buttons use a transparent background with a visible border.
+- Keep the editable **Suggested Reply** above Insights, Warnings and supporting evidence. Show one concern and one priority warning by default. Prefer a conflicting-history warning when one exists. Keep the remaining analysis and warnings in native expandable details.
+- Use mint for a labelled, source-backed claim. Use amber for warnings and coral for failed generation. Keep evidence excerpts readable in normal text and place available sender, timestamp and source beside the record.
 
-A persistent sidebar contains the workspace, tutorial, and appearance control. The workspace uses two columns for draft and review on desktop, collapsing to a single column below 980px. Conversation history and settings remain accessible through dialogs. The review placeholder explains the result before generation. Both generation and regeneration display a dedicated processing view; component state retains drafts and the prior reply until completion or failure.
+Measured text contrast on the card surface is 12.78:1 in Midnight and 14.64:1 in Daylight. The lowest checked contrast across the primary button states is 5.58:1 in Midnight and 5.87:1 in Daylight. Keep status labels readable with navy text on their solid fills. The current mint outline badge on white measures 1.52:1 for text, and the Midnight input border measures 2.79:1 against the input fill. These existing pairings still need accessibility review.
 
-Use a clean system sans-serif for messages, small monospace labels for pixel character, square corners, restrained offset shadows, and crisp pixel artwork. Keep text fields and body content readable and expose keyboard focus.
+### Layout and typography
 
-### Animation integration
+The sidebar contains **Reply workspace**, **How it works**, and the **Appearance** selector. At 980px and below, the two-column workspace stacks into one column. At 680px and below, the fixed sidebar becomes top navigation. History and settings open in dialogs.
 
-The original Remotion compositions are bundled as local MP4 assets in public/animations. A shared PixelAnimation component honours live changes to prefers-reduced-motion and pauses decorative video when reduced motion is requested.
+Use system sans-serif for draft and reply text, and monospace for compact pixel-style labels. At the default text setting, body text is `1rem`, workspace panel titles are `1.25rem`, and labels and input text are `0.875rem`. Use rem units so **Small**, **Default**, **Large**, and **Extra large** scale the workspace together. Use near-square corners, fine borders and restrained offset shadows.
 
-- Interactive pixel face: click the angry face or focus it and press Enter or Space to feed it one decorative word. It grows after each word, then bursts into a pixel ring and flying fragments before returning as a smile. Skip, reduced motion, and automatic feeding keep interaction optional. The pixel wait meter reflects the API request separately. It shows elapsed time until a previous successful request provides an estimate, labels estimated time explicitly, and only fills completely on API success. Reveal the reply after both API success and animation completion. On API failure, return to the workspace with the draft and a retry action.
-- Magnifying glass: evidence-review panel on the processing view and empty evidence/reply review state. The existing API has no live stage events; the UI describes the workflow without marking timed stages as complete.
-- Folder/files: conversation history entry and import dialog.
+### Animation and waiting states
 
-Animations do not replace processing, completion, or error text. Manager messages and emotional drafts remain in component state and are not written to browser storage by these visuals. Generation and import continue to use the existing client.
+- The angry pixel face eats one decorative word per click or focused Enter or Space. It swells, bursts into pixel fragments, and returns as a smile. Automatic feeding, Skip, and reduced-motion support keep the interaction optional.
+- The 24-block pixel wait meter tracks the API request independently of the face. It initially shows elapsed time. When previous successful requests provide a basis, it shows labelled estimated time. It reaches full only after API success.
+- The **Suggested Reply** appears after API success and animation completion. On failure, show a message and Retry and retain the draft and any previous reply.
+- The shared [PixelAnimation component](../src/frontend/shared/PixelAnimation.tsx) uses transparent animated PNG assets for the folder and evidence graphics. A picture media query chooses a still image for reduced motion. Keep waiting states and errors readable as text.
 
 ### Availability and accessibility
 
