@@ -103,7 +103,8 @@ Then open the domain from a phone or a computer that is not on the team's networ
 
 ## Operations
 
-- **Update:** `bash deploy/gce/update.sh` pulls the checked-out branch, rebuilds and restarts.
+- **Update:** `bash deploy/gce/update.sh` pulls the checked-out branch, rebuilds and restarts. Python syntax is checked before the backend restarts. If the pull, the checks or the build fail, the script restores the previous commit and build and exits with an error, and the site keeps running the previous version. Fix the problem on `main`, then run the script again.
+- **Roll back manually:** `git checkout <good commit>`, then build and restart with the commands in `update.sh` (skip `git pull`). Return with `git checkout main` before the next update.
 - **Logs:** `journalctl -u r2r-backend -n 50 --no-pager` (also `r2r-frontend` and `caddy`). The logs contain no codes, cookies or drafts.
 - **Cost controls:** each invite can generate at most `R2R_GENERATE_LIMIT_PER_HOUR` replies (default 30). An address is locked out after `R2R_LOGIN_FAILURES_PER_15_MIN` failed sign-ins. The Claude Console spend limit caps the total.
 - **Slack preview:** leave `SLACK_BOT_TOKEN` unset on the hosted VM. The preview is a local-demo extension. With a token set, every signed-in invite could read the allowlisted channel, because the server checks the session but not the person's Slack access. Hosted import awaits the Slack account binding in [SLACK-03](../../docs/progress/slack-integration-tracker.md#slack-03--website-import-by-channel-id). Test it locally with the [README steps](../../README.md#preview-and-import-a-slack-test-channel).
