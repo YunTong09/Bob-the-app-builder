@@ -23,7 +23,7 @@ Quick Tone Rewrite requires backend support for draft-only generation without me
 
 ## Data Handling and Acceptance Criteria
 
-- The reply workflow uses explicit form input and runs in a normal browser tab without system or Slack permissions.
+- The typed reply workflow runs in a normal browser tab without microphone or Slack permissions. Optional dictation starts only on user request, discloses possible browser-provider processing, and appends final text to the editable draft. The app stores no audio and generation still requires the primary action.
 - Keep the emotional draft in page state for the current interaction. Keep draft content out of browser storage and logs. Save conversation history only through explicit import.
 - Show field errors, timeouts and retry actions with readable text. Guard against duplicate submissions while a request is pending.
 - Verify generation and regeneration in all three tones, editable results, loading and retry in both modes. In Rewrite with Evidence, verify separate evidence and uncertainty states, empty history, and history import, review and deletion. In Quick Tone Rewrite, verify that previously imported history is excluded from generation.

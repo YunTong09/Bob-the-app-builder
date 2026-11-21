@@ -33,7 +33,7 @@ Rage-to-Reply is an **end-to-end AI web application**. Invited users should be a
 
 | Task ID | Task | Priority | Status | Dependencies | Objective |
 | --- | --- | --- | --- | --- | --- |
-| WEB-01 | Frontend & Backend Integration | P0 | TODO | None | Build a testable version with the latest frontend and backend |
+| WEB-01 | Frontend & Backend Integration | P0 | DONE | None | Build a testable version with the latest frontend and backend |
 | WEB-02 | Real Claude API Integration | P0 | TODO | WEB-01 | Verify live rewriting, receipts, and error handling |
 | WEB-03 | Web Deployment & Hosting | P0 | IN PROGRESS | WEB-01, parallel with WEB-02 | Provide HTTPS access for invited teammates |
 | WEB-04 | End-to-End Testing & Demo Validation | P0 | TODO | WEB-02, WEB-03 | Verify on another computer and rehearse the two-minute demo |
@@ -44,25 +44,30 @@ Rage-to-Reply is an **end-to-end AI web application**. Invited users should be a
 
 ### WEB-01 — Frontend & Backend Integration
 
-**Status** — TODO. **Dependencies** — None.
+**Status** — DONE. **Dependencies** — None.
 
 **Objective** — Integrate the latest `irene/frontend` and `origin/main` code into one testable version.
 
 **Checklist**
 
-- [ ] Integrate the Next.js frontend and FastAPI backend.
-- [ ] Verify compatibility between the API contract, shared API client, and backend routes.
-- [ ] Preserve reply generation, Memory, Receipts, and existing Slack import.
-- [ ] Resolve Git conflicts while preserving team changes.
-- [ ] Run the frontend build, lint, TypeScript, backend tests, and browser E2E on the same version.
+- [x] Integrate the Next.js frontend and FastAPI backend.
+- [x] Verify compatibility between the API contract, shared API client, and backend routes.
+- [x] Preserve reply generation, Memory, Receipts, and existing Slack import. (Receipts display and live Slack import not exercised: Mock AI returns no evidence and no Slack token is configured.)
+- [x] Resolve Git conflicts while preserving team changes.
+- [x] Run the frontend build, lint, TypeScript, backend tests, and browser E2E on the same version.
 
 **Acceptance Criteria**
 
-- [ ] Frontend and backend work together on the integrated version.
-- [ ] The core web workflow passes browser E2E.
-- [ ] No known critical regressions remain.
+- [x] Frontend and backend work together on the integrated version.
+- [x] The core web workflow passes browser E2E.
+- [x] No known critical regressions remain.
 
-**Test Results** — The latest combined version is pending. The 435 backend tests and Mock AI browser E2E apply to the earlier local baseline.
+**Test Results** — 2026-11-21, branch `feature/bob` at merge `6b522ce` (includes `origin/main` `e35e563`), Windows, FastAPI with `R2R_AI_MODE=mock`, frontend with `NEXT_PUBLIC_R2R_MOCK=false`.
+- Passed: 435 backend tests, `tsc --noEmit`, `npm run lint`, `npm run build`.
+- Passed (API smoke): import, search, delete, three-tone generate, empty-input 422, preferences 501, CORS preflight.
+- Passed (browser, manual): history JSON import (3 imported), Review history, three-tone generate, regenerate, reply editing, search (`blocked`), delete history, empty-input error display.
+- Note: search matches whole words only, per the API contract (`block` does not match `blocked`). Prefix matching is a possible follow-up for the backend owner.
+- Mock AI returns no evidence, so evidence display is deferred to WEB-02.
 
 **Blockers** — None confirmed. First verify the latest commits and changes on both branches.
 
@@ -99,28 +104,29 @@ Rage-to-Reply is an **end-to-end AI web application**. Invited users should be a
 
 **Checklist**
 
-- [ ] Deploy the Next.js frontend and FastAPI backend.
-- [ ] Configure HTTPS, API routing, and environment variables.
+- [x] Deploy the Next.js frontend and FastAPI backend.
+- [x] Configure HTTPS, API routing, and environment variables.
 - [x] Store the Claude API key in server-side secret management.
-- [ ] Configure CORS, allowed hosts, and access controls for invited users.
-- [ ] Add basic rate limiting, API cost controls, and health checks.
-- [ ] Verify deployed API connectivity and backend availability.
+- [x] Configure CORS, allowed hosts, and access controls for invited users.
+- [ ] Add basic rate limiting, API cost controls, and health checks. (Rate limits and cost controls are done. No dedicated health-check endpoint exists; systemd restarts failed services.)
+- [x] Verify deployed API connectivity and backend availability.
 
 **Acceptance Criteria**
 
-- [ ] Invited teammates can open the site without installing Python or Node.js or starting a local server.
-- [ ] The deployed frontend and backend communicate successfully.
-- [ ] API credentials are absent from the browser bundle and repository.
-- [ ] Invited-user access controls pass verification. The local single-user identity mechanism remains limited to the local demo.
+- [x] Invited teammates can open the site without installing Python or Node.js or starting a local server.
+- [x] The deployed frontend and backend communicate successfully.
+- [x] API credentials are absent from the browser bundle and repository.
+- [ ] Invited-user access controls pass verification. The local single-user identity mechanism remains limited to the local demo. (Sign-in, rejection of an invalid code and redirect checks passed on the deployed site. Isolation between two codes is verified in automated tests but not yet on the deployed site.)
 
-**Test Results** — 2026-11-21, branch `feature/invite-auth` (based on `origin/main` `225d5b2`).
-- Hosting chosen: one Compute Engine VM (`australia-southeast1-b`) with a Caddy HTTPS gateway and invite-code sessions. See the [deployment guide](../../deploy/gce/README.md). The domain will be registered with Porkbun.
-- Verified on the VM: the Claude key is stored in Secret Manager as `anthropic-api-key`. The VM service account reads it, and the key returned HTTP 200 from the Anthropic models endpoint. Loopback FastAPI and Next.js ran under systemd and were reached through an SSH tunnel.
-- Passed locally: 504 backend tests, including 56 invite-session tests (cookie attributes, tampering, expiry, revocation, isolation with in-memory and SQLite stores, throttling, validation and composition-root configuration). Also passed: `tsc --noEmit`, `npm run lint` and the hosted-mode `npm run build`.
-- Passed (HTTP smoke test with uvicorn `--proxy-headers` and `next start`): sign-in, sign-out, per-address lockout, per-invite generation limit, unknown-host rejection, and the redirect to the public `/login` URL for visitors without a session.
-- Pending: deployment at the HTTPS domain, verification from another device, and isolation between two invite codes on the deployed site.
+**Test Results** — 2026-11-21, branch `feature/invite-auth`, deployed at `https://ragetoreply.tech` (Porkbun DNS → reserved IP `r2r-ip`, Compute Engine VM `r2r-vm` in `australia-southeast1-b`, Caddy with a Let's Encrypt certificate). See the [deployment guide](../../deploy/gce/README.md).
+- Secret Manager holds `anthropic-api-key`, `r2r-invites` and `r2r-session-secret`. Only the VM service account has read access, and the key returned HTTP 200 from the Anthropic models endpoint.
+- External checks from another network all passed. Without a session, `/` redirected (307) to `https://ragetoreply.tech/login`. `/login` returned 200 and `/api/session` returned 401. An invalid code returned 401 without setting a cookie. HTTP redirected (308) to HTTPS, and the HSTS, `X-Frame-Options` and `nosniff` headers were present.
+- Teammates opened the site and signed in from their own computers. Live generation succeeded.
+- Passed locally: 505 backend tests, including 57 invite-session tests (cookie attributes, tampering, expiry, revocation, isolation with in-memory and SQLite stores, throttling, validation, configuration and the invite CLI). Also passed: `tsc --noEmit`, `npm run lint` and the hosted-mode `npm run build`. HTTP smoke tests covered the per-address lockout, the per-invite generation limit and unknown-host rejection.
+- Personal sign-in links (`/login#<code>`) were verified with headless Edge through a same-origin gateway. The link opened the workspace and the session persisted. A bad link showed an error, and a fresh browser without a link stayed on `/login`.
+- Pending: isolation between two invite codes on the deployed site, and redeploying from `main` after this branch merges.
 
-**Blockers** — Domain registration and DNS. Team agreement on the invite-code session change in [API_CONTRACT.md](../API_CONTRACT.md#hosted-invite-code-sessions).
+**Blockers** — Team agreement on the invite-code session change in [API_CONTRACT.md](../API_CONTRACT.md#hosted-invite-code-sessions) before merging.
 
 ### WEB-04 — End-to-End Testing & Demo Validation
 
@@ -152,6 +158,28 @@ Rage-to-Reply is an **end-to-end AI web application**. Invited users should be a
 
 - Slack Import remains an optional data source. Keep the Slack Modal and Desktop Companion research and history. All three are outside the core web P0 roadmap.
 - **Public multi-user registration requires** authentication, per-user data isolation, and security acceptance. Verify rejection of unauthorized API access, isolation for Memory imports, searches, deletions, and receipts, and safe handling of sensitive data.
+
+## WEB-05 — Voice-to-Text Input
+
+**Status** — IN PROGRESS. Implementation and Chrome mock acceptance passed. Live microphone acceptance is pending.
+
+**Changes**
+
+- `src/frontend/features/reply/DictationControls.tsx` extracts the earlier prototype into one typed component. It handles language selection, listening and stop states, final results, cleanup, and privacy guidance.
+- `VentInput.tsx` adds the controls beside the editable draft. `src/app/page.tsx` appends final transcripts to the current mode's draft, preserves typed text, and keeps the existing Generate flow. Mode changes cancel an active session.
+- `ReplyPanel.tsx` reuses the shared controls and preserves the legacy panel. `src/frontend/styles/pixel-workspace.css` styles the controls and active state. `docs/FRONTEND_CONTRACT.md` records dictation's optional permissions and data handling.
+
+**Verification**
+
+- [x] TypeScript (`tsc --noEmit --incremental false`), `npm run lint`, and `npm run build` passed in an isolated workspace. The build emitted dependency-path cache warnings and exited successfully.
+- [x] Headless Chrome with a mocked `webkitSpeechRecognition` verified keyboard start, listening status, `en-US` and `zh-TW`, multiple Start/Stop cycles, append to existing text, duplicate final and interim handling, and editable results.
+- [x] Chrome mock verified denied permission, no speech, unavailable microphone, interruption, service and generic failures, unsupported browsers, and cancellation on mode and route changes. Existing text and typed fallback worked.
+- [x] A local HTTP fixture captured the existing reply-generation request. It received the complete edited text after Generate, with zero requests caused by dictation alone.
+- [x] Chrome confirmed the monochrome microphone sits inside the draft field at 1280px and 375px widths. Keyboard and mocked dictation flows passed after the layout change.
+- [x] Chrome mock verified automatic stop after 1.5 seconds following the speech-end event, cancellation when speaking resumes, continued availability of manual stop, and no automatic Generate request.
+- [ ] Verify real English and Traditional Chinese speech, permissions and stop behavior with a physical microphone on the target Chrome setup.
+
+**Browser compatibility and limitations** — Uses `SpeechRecognition` or `webkitSpeechRecognition` where available. Browser and OS support, language availability, permissions, and network requirements may vary. A browser provider may process audio remotely. The app does not capture or store raw audio. The mock verifies the browser integration and request body; it does not measure transcription accuracy or exercise a live provider. Quick Tone Rewrite retains its existing generation availability.
 
 ## History
 
@@ -249,6 +277,8 @@ TypeScript, lint and production build passed. The backend suite passed 435 tests
 | 2026-11-21 | WEB-01 | Established the local frontend and team backend integration baseline. | 435 backend tests and local Chrome HTTP passed with FastAPI Mock AI. | `ff6ad6f`, `cfd2484`; tracker `4136ed5` |
 | 2026-11-21 | Frontend follow-up | Centered the Workspace, moved Settings and History into dialogs, added sample inputs and history search, and replaced Assistant with Tutorial. | TypeScript, lint, build and local page checks passed. Browser interaction and combined backend verification pending. | Uncommitted |
 | 2026-11-21 | P0 Roadmap | Added WEB-01 through WEB-04, dependencies, and public release requirements. | Documentation update. Product testing was outside the scope. | Uncommitted |
+| 2026-11-21 | WEB-01 | Verified the combined `feature/bob` version (main `e35e563` merged) with FastAPI Mock AI. | 435 backend tests, tsc, lint and build passed; core browser workflow passed manually. | `6b522ce` |
 | 2026-11-21 | Tracker organization | Moved previous tasks and verification into expandable history and retained the roadmap and Change Log. | Markdown formatting checked. | Uncommitted |
 | 2026-11-21 | Handoff guide | Added branch baselines, the next task, acceptance steps, and progress update instructions. | Markdown formatting checked. | Uncommitted |
-| 2026-11-21 | WEB-03 | Added invite-code sessions, per-invite generation limits, the `/login` page and Compute Engine + Caddy deployment files. | 504 backend tests, tsc, lint, hosted build and HTTP smoke tests passed. HTTPS deployment pending. | `feature/invite-auth` |
+| 2026-11-21 | WEB-05 | Added shared browser dictation to the workspace draft. | TypeScript, lint, production build and Chrome mock acceptance passed. Physical microphone pending. | Uncommitted |
+| 2026-11-21 | WEB-03 | Added invite-code sessions, personal sign-in links, per-invite generation limits, the `/login` page and Compute Engine + Caddy deployment files. Deployed at `https://ragetoreply.tech`. | 505 backend tests, tsc, lint, hosted build, HTTP smoke tests and external HTTPS checks passed. Teammates signed in from their own computers. Deployed isolation check pending. | `feature/invite-auth` |

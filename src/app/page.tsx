@@ -7,7 +7,9 @@ import HistoryPanel from "@/frontend/features/memory/HistoryPanel";
 import PreferencesPanel, {
   readLocalPreferences,
 } from "@/frontend/features/preferences/PreferencesPanel";
+import DisplaySettings from "@/frontend/features/preferences/DisplaySettings";
 import VentInput from "@/frontend/features/reply/VentInput";
+import { appendDictation } from "@/frontend/features/reply/DictationControls";
 import type { GenerateReplyResponse, ReplyTone } from "@/frontend/api/contract";
 import PixelAnimation from "@/frontend/shared/PixelAnimation";
 import ReplyProcessing from "@/frontend/features/reply/ReplyProcessing";
@@ -225,6 +227,7 @@ export default function HomePage() {
             {firstVisit ? "Skip for now" : "Close"}
           </button>
         </header>
+        {dialog === "settings" && <DisplaySettings />}
         {dialog === "settings" && (
           <PreferencesPanel
             allowBrowserStorage
@@ -303,8 +306,10 @@ export default function HomePage() {
             </p>
           )}
           <VentInput
+            key={withEvidence ? "evidence" : "quick"}
             value={withEvidence ? draft : quickDraft}
             onChange={withEvidence ? setDraft : setQuickDraft}
+            onDictated={(text) => (withEvidence ? setDraft : setQuickDraft)((current) => appendDictation(current, text))}
             tone={withEvidence ? tone : quickTone}
             onToneChange={withEvidence ? setTone : setQuickTone}
             loading={withEvidence && loading}

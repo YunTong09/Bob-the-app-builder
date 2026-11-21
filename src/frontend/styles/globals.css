@@ -24,9 +24,14 @@
 :root[data-theme="light"] { color-scheme: light; }
 :root[data-theme="dark"] { color-scheme: dark; }
 
+/* Text size setting: font sizes are in rem, so scaling the root scales all text. */
+:root[data-font-size="small"] { font-size: 87.5%; }
+:root[data-font-size="large"] { font-size: 112.5%; }
+:root[data-font-size="x-large"] { font-size: 125%; }
+
 body { margin: 0; background: var(--background); color: var(--text); font-family: system-ui, sans-serif; line-height: 1.5; }
 p, blockquote { margin: 0; }
-label { font-size: 14px; font-weight: 650; }
+label { font-size: 0.875rem; font-weight: 650; }
 button, input, select, textarea { font: inherit; }
 button { cursor: pointer; }
 button:disabled { cursor: not-allowed; }
@@ -60,10 +65,10 @@ a { color: var(--focus); text-decoration: underline; }
 .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; }
 .workspace-panel, .history-panel { display: grid; gap: 16px; min-width: 0; }
 .history-panel { margin-top: 24px; }
-.panel h2 { margin: 0; font-size: 20px; font-weight: 700; }
+.panel h2 { margin: 0; font-size: 1.25rem; font-weight: 700; }
 .workspace-draft { border-inline-start: 4px solid var(--draft-accent); }
 .workspace-review { border-inline-start: 4px solid var(--focus); }
-.panel h3 { margin: 0; font-size: 16px; font-weight: 700; }
+.panel h3 { margin: 0; font-size: 1rem; font-weight: 700; }
 
 .form-field { display: grid; gap: 8px; min-width: 0; }
 .plain-textarea, select { width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; color: var(--text); background: var(--surface); }
@@ -88,14 +93,14 @@ button.primary-button:disabled, button.secondary-button:disabled, .r2r button.bt
   justify-self: start;
   border-radius: 999px;
   padding: 4px 8px;
-  font-size: 14px;
+  font-size: 0.875rem;
   color: var(--accent-text);
 }
 .tone-badge { background: var(--primary); color: var(--primary-text); }
 .status-label-supported { background: var(--calm); }
 .status-label-warning { background: var(--warning); }
 .status-label-error { background: var(--rage); }
-.small-text { font-size: 14px; color: var(--muted); }
+.small-text { font-size: 0.875rem; color: var(--muted); }
 .error-message { border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; background: var(--surface); color: var(--text); }
 .error-message .status-label { margin-right: 8px; }
 .review-section { display: grid; gap: 8px; border-top: 1px solid var(--border); padding-top: 16px; }
@@ -115,7 +120,7 @@ button.primary-button:disabled, button.secondary-button:disabled, .r2r button.bt
 }
 
 .mode-switch { margin: 0 0 16px; padding: 0; border: 0; }
-.mode-switch legend { margin: 0 auto 8px; font-size: 14px; font-weight: 650; }
+.mode-switch legend { margin: 0 auto 8px; font-size: 0.875rem; font-weight: 650; }
 .mode-options {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -169,12 +174,13 @@ button.primary-button:disabled, button.secondary-button:disabled, .r2r button.bt
   gap: 12px;
   margin-bottom: 12px;
 }
-.workspace-dialog > header h2 { margin: 0; font-size: 20px; }
+.workspace-dialog > header h2 { margin: 0; font-size: 1.25rem; }
 .workspace-dialog .history-panel { margin-top: 0; }
 .preferences-panel { display: grid; gap: 12px; }
 .pref-grid { display: grid; gap: 12px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .pref-item { display: grid; gap: 4px; }
 .preferences-actions { display: flex; justify-content: flex-end; }
+.display-settings { margin-bottom: 12px; }
 @media (max-width: 380px) {
   .pref-grid { grid-template-columns: 1fr; }
 }

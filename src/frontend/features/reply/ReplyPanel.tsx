@@ -1,8 +1,9 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { Evidence, GenerateReplyResponse, ReplyTone } from "@/frontend/api/contract";
 import { ApiError, generateReply } from "@/frontend/api/replyApi";
+import DictationControls, { appendDictation } from "./DictationControls";
 import { formatTimestamp } from "@/frontend/shared/formatTimestamp";
 
 export const TONES: { value: ReplyTone; label: string }[] = [
@@ -56,8 +57,7 @@ export default function ReplyPanel({ initialManagerMessage }: { initialManagerMe
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [listening, setListening] = useState(false);
-  const [voiceNote, setVoiceNote] = useState("");
-  const recognition = useRef<any>(null);
+  const [copyNote, setCopyNote] = useState("");
 
   const canGenerate = managerMessage.trim() !== "" && draft.trim() !== "" && !loading;
 
@@ -81,30 +81,6 @@ export default function ReplyPanel({ initialManagerMessage }: { initialManagerMe
     }
   }
 
-  function toggleVoice() {
-    if (listening) {
-      recognition.current?.stop();
-      return;
-    }
-    const Ctor = (window as any).SpeechRecognition ?? (window as any).webkitSpeechRecognition;
-    if (!Ctor) {
-      setVoiceNote("Voice input is not supported in this browser. You can keep typing.");
-      return;
-    }
-    const rec = new Ctor();
-    rec.interimResults = false;
-    rec.onresult = (event: any) => {
-      const text = Array.from(event.results as ArrayLike<any>).map((r) => r[0].transcript).join(" ");
-      setDraft((current) => (current ? `${current} ${text}` : text));
-    };
-    rec.onerror = () => setVoiceNote("Voice input failed or was denied. You can keep typing.");
-    rec.onend = () => setListening(false);
-    recognition.current = rec;
-    setVoiceNote("");
-    setListening(true);
-    rec.start();
-  }
-
   function applyReceipt(item: Evidence) {
     const when = formatTimestamp(item.timestamp);
     const ref = `\n\n(Ref: "${item.content}" — ${item.sender}${when ? `, ${when}` : ""})`;
@@ -117,7 +93,7 @@ export default function ReplyPanel({ initialManagerMessage }: { initialManagerMe
       await navigator.clipboard.writeText(reply);
       setCopied(true);
     } catch {
-      setVoiceNote("Could not copy automatically. Select the text and copy it manually.");
+      setCopyNote("Could not copy automatically. Select the text and copy it manually.");
     }
   }
 
@@ -129,14 +105,10 @@ export default function ReplyPanel({ initialManagerMessage }: { initialManagerMe
         <label className="field-label" htmlFor="manager-message">Manager&apos;s message (read from chat)</label>
         <textarea id="manager-message" className="textarea textarea-sm" value={managerMessage} onChange={(e) => setManagerMessage(e.target.value)} maxLength={10000} />
         <label className="field-label" htmlFor="your-words">Your words</label>
-        <textarea id="your-words" className="textarea" value={draft} onChange={(e) => setDraft(e.target.value)} maxLength={10000} placeholder="Say what you really think. This stays private and isn't saved." />
-        <div className="row">
-          <button type="button" className="btn btn-secondary" onClick={toggleVoice} aria-pressed={listening}>
-            {listening ? "Stop recording" : "Voice insert"}
-          </button>
-          {listening && <span className="badge badge-rage" role="status">● Recording</span>}
-        </div>
-        {voiceNote && <p className="meta" role="status">{voiceNote}</p>}
+        <DictationControls onTranscript={(text) => setDraft((current) => appendDictation(current, text))} disabled={loading}>
+          <textarea id="your-words" className="textarea" value={draft} onChange={(e) => setDraft(e.target.value)} maxLength={10000} placeholder="Say what you really think. This stays private and isn't saved." />
+        </DictationControls>
+        {copyNote && <p className="meta" role="status">{copyNote}</p>}
         <div className="row tone-row">
           <span className="field-label inline">Tone</span>
           <ToneRadios name="tone-input" value={tone} onChange={setTone} disabled={loading} />

@@ -1,22 +1,22 @@
 /* Corporate Chaos design system — see docs/FRONTEND_CONTRACT.md. Scoped to .r2r. */
 .r2r {
   padding: 32px 24px;
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; font-size: 16px; line-height: 1.5;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; font-size: 1rem; line-height: 1.5;
 }
 .r2r *, .r2r *::before, .r2r *::after { box-sizing: border-box; }
 .r2r :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
-.r2r h1 { font-size: 20px; letter-spacing: 0; line-height: 1.3; margin: 0; }
+.r2r h1 { font-size: 1.25rem; letter-spacing: 0; line-height: 1.3; margin: 0; }
 .r2r-layout { display: grid; gap: 24px; grid-template-columns: minmax(0, 1fr) 400px; margin: 0 auto; max-width: 1072px; }
 
 /* Chat preview */
 .slack-mock { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; display: grid; grid-template-columns: minmax(0, 120px) minmax(0, 1fr); min-height: 420px; }
 .slack-sidebar { border-right: 1px solid var(--border); display: flex; flex-direction: column; justify-content: space-between; padding: 16px; }
-.slack-title { font-size: 20px; font-weight: 700; margin: 0; }
+.slack-title { font-size: 1.25rem; font-weight: 700; margin: 0; }
 .slack-user { color: var(--muted); margin: 0; }
 .slack-main { display: flex; flex-direction: column; justify-content: space-between; min-width: 0; overflow-wrap: anywhere; padding: 16px; }
 .slack-message { margin: 0; }
 .slack-composer { border: 1px solid var(--border); border-radius: 8px; display: grid; gap: 8px; padding: 12px; }
-.slack-composer label { color: var(--muted); font-size: 14px; }
+.slack-composer label { color: var(--muted); font-size: 0.875rem; }
 .slack-composer textarea { background: transparent; border: 0; color: var(--text); font: inherit; min-height: 64px; resize: none; }
 .slack-composer .btn { justify-self: end; }
 
@@ -24,15 +24,15 @@
 .popup { align-self: start; background: var(--background); border: 1px solid var(--border); border-radius: 12px; display: grid; gap: 16px; padding: 16px; }
 .popup-header { align-items: center; display: flex; justify-content: space-between; }
 .tabs { border-bottom: 1px solid var(--border); display: flex; gap: 4px; }
-.tab { background: transparent; border: 0; border-bottom: 2px solid transparent; color: var(--muted); cursor: pointer; font: inherit; font-size: 14px; padding: 8px 12px; transition: color 150ms, border-color 150ms; }
+.tab { background: transparent; border: 0; border-bottom: 2px solid transparent; color: var(--muted); cursor: pointer; font: inherit; font-size: 0.875rem; padding: 8px 12px; transition: color 150ms, border-color 150ms; }
 .tab[aria-selected="true"] { border-bottom-color: var(--primary); color: var(--text); font-weight: 600; }
 .stack { display: grid; gap: 12px; }
 .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; display: grid; gap: 8px; padding: 16px; }
-.card-title { font-size: 16px; font-weight: 600; margin: 0; }
-.field-label { color: var(--muted); font-size: 14px; }
+.card-title { font-size: 1rem; font-weight: 600; margin: 0; }
+.field-label { color: var(--muted); font-size: 0.875rem; }
 .field-label.inline { align-self: center; }
 .sr-only { border: 0; clip: rect(0 0 0 0); height: 1px; margin: -1px; overflow: hidden; padding: 0; position: absolute; width: 1px; }
-.meta { color: var(--muted); font-size: 14px; margin: 0; overflow-wrap: anywhere; }
+.meta { color: var(--muted); font-size: 0.875rem; margin: 0; overflow-wrap: anywhere; }
 .text-error { color: var(--text); font-weight: 600; }
 .memory-text { margin: 0; overflow-wrap: anywhere; }
 .r2r p { margin: 0; }
@@ -46,7 +46,7 @@
 .row-end { display: flex; justify-content: flex-end; }
 .tone-row { align-items: flex-start; }
 
-.btn { border: 1px solid var(--border); border-radius: 8px; cursor: pointer; font: inherit; font-size: 14px; font-weight: 600; padding: 8px 16px; transition: background-color 150ms; }
+.btn { border: 1px solid var(--border); border-radius: 8px; cursor: pointer; font: inherit; font-size: 0.875rem; font-weight: 600; padding: 8px 16px; transition: background-color 150ms; }
 .btn-primary { background: var(--primary); color: var(--accent-text); }
 .btn-secondary { background: var(--surface); color: var(--text); }
 .btn-danger { background: var(--rage); color: var(--accent-text); }
@@ -56,11 +56,11 @@
 .file-btn input { border: 0; clip: rect(0 0 0 0); height: 1px; overflow: hidden; position: absolute; width: 1px; }
 .file-btn:focus-within { outline: 2px solid var(--focus); outline-offset: 2px; }
 
-.badge { background: var(--surface); border: 1px solid var(--border); border-radius: 999px; font-size: 14px; padding: 0 12px; }
+.badge { background: var(--surface); border: 1px solid var(--border); border-radius: 999px; font-size: 0.875rem; padding: 0 12px; }
 .badge-rage { background: var(--rage); color: var(--accent-text); }
 
 .tone-group { border: 1px solid var(--border); border-radius: 8px; display: grid; min-width: 160px; }
-.tone-option { align-items: center; background: var(--surface); cursor: pointer; display: flex; font-size: 14px; justify-content: space-between; padding: 4px 12px; }
+.tone-option { align-items: center; background: var(--surface); cursor: pointer; display: flex; font-size: 0.875rem; justify-content: space-between; padding: 4px 12px; }
 .tone-option + .tone-option { border-top: 1px solid var(--border); }
 .tone-option:has(input:checked) { box-shadow: inset 3px 0 0 var(--primary); font-weight: 600; }
 .tone-option input { accent-color: var(--primary); }
