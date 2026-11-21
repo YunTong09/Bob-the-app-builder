@@ -7,6 +7,7 @@ import HistoryPanel from "@/frontend/features/memory/HistoryPanel";
 import PreferencesPanel, {
   readLocalPreferences,
 } from "@/frontend/features/preferences/PreferencesPanel";
+import DisplaySettings from "@/frontend/features/preferences/DisplaySettings";
 import VentInput from "@/frontend/features/reply/VentInput";
 import type { GenerateReplyResponse, ReplyTone } from "@/frontend/api/contract";
 import PixelAnimation from "@/frontend/shared/PixelAnimation";
@@ -225,6 +226,7 @@ export default function HomePage() {
             {firstVisit ? "Skip for now" : "Close"}
           </button>
         </header>
+        {dialog === "settings" && <DisplaySettings />}
         {dialog === "settings" && (
           <PreferencesPanel
             allowBrowserStorage
