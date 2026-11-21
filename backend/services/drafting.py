@@ -43,14 +43,10 @@ Rules:
 - Do not apologise or accept blame unless the employee's draft clearly does so. Do not
   speculate about the manager's emotions or intentions.
 - Do not mention message IDs, "records", "the system" or this application.
-<<<<<<< Updated upstream
-- Write in the language of the manager's message. Aim for 1-3 short sentences of ready-to-send
-  prose. Lead with the main point or request. Preserve any material condition, fact, or
-  next step even if it takes another sentence. Omit headings, bullets and filler.
-=======
 - Write in the language of the manager's message when present; otherwise use the
-  employee's draft. Keep it short (usually 2-5 sentences).
->>>>>>> Stashed changes
+  employee's draft. Keep it short (usually 2-5 sentences) of ready-to-send prose. Lead with
+  the main point or request. Preserve any material condition, fact, or next step. Omit
+  headings, bullets and filler.
 - cited_message_ids: IDs from allowed_evidence that the reply actually relies on (may be empty).
   Only IDs listed in allowed_evidence are permitted."""
 

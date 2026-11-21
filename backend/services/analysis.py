@@ -44,13 +44,9 @@ Rules:
 - Never state or guess the manager's emotions, tone, motives or hidden intentions
   (e.g. do not say the manager is angry, frustrated, disappointed or testing the employee).
 - Do not invent facts, names, dates or history.
-<<<<<<< Updated upstream
-- Use the language of the manager's message.
+- Use the language of the manager's message when present; otherwise use the employee's draft.
 - Write one concise idea per array item. The interface can present items as points;
   omit Markdown markers, headings, repeated context and filler.
-=======
-- Use the language of the manager's message when present; otherwise use the employee's draft.
->>>>>>> Stashed changes
 - Use empty arrays when nothing applies."""
 
 _STR_ARRAY = {"type": "array", "items": {"type": "string"}}

@@ -224,7 +224,7 @@ export function parseSlackImport(files: ImportJsonFile[], channelId?: string): P
 
   // Keep the registry's complete ID-to-name lookup, including people whose
   // names are needed for history imported earlier in this workspace.
-  for (const [id, name] of names) participants.set(id, name);
+  names.forEach((name, id) => participants.set(id, name));
 
   function addMessage(message: MemoryMessage) {
     const existing = messages.get(message.id);
