@@ -191,6 +191,21 @@
     background: var(--background); font-size: 14px; line-height: 1.5;
   }
   dialog code { color: var(--warning); font-size: 12.5px; word-break: break-all; }
+  dialog .example {
+    display: flex; gap: 12px; align-items: flex-start;
+    background: var(--background);
+    border: 2px dashed var(--calm);
+    padding: 10px 12px;
+  }
+  dialog .example p { flex: 1; font-style: italic; }
+  dialog .copy-btn {
+    all: unset; cursor: pointer; flex-shrink: 0;
+    background: var(--calm); color: var(--ink);
+    font-size: 12px; font-weight: 700; padding: 4px 10px;
+    box-shadow: 2px 2px 0 #000;
+  }
+  dialog .copy-btn:focus-visible { outline: 3px dashed var(--calm); outline-offset: 3px; }
+  dialog .hint { font-size: 12.5px; color: var(--muted); margin-top: 6px; }
   dialog .close {
     all: unset; cursor: pointer; float: right;
     border: 2px solid var(--border); padding: 2px 10px; font-weight: 700;
@@ -214,7 +229,7 @@
     <div>
       <span class="kicker">Practice week · 16–22 Nov 2026 · AEST</span>
       <h1>Pick a situation <span class="arrow">→</span> turn the rage into a reply</h1>
-      <p class="sub">13 tricky manager messages from the sample Slack export. You play <b>Sam Patel</b>; your manager is <b>Alex Chen</b>. Click a card for the full brief.</p>
+      <p class="sub">13 tricky manager messages from the sample Slack export. You play <b>Sam Patel</b>; your manager is <b>Alex Chen</b>. Click a card for the full brief and an example draft.</p>
     </div>
     <div class="legend" aria-label="Evidence legend">
       <span class="badge supported">History supports it</span>
@@ -318,6 +333,24 @@ const SITUATIONS = [
     check: "Sam recalls a kitchen conversation but has no written approval and has not booked. Jordan's policy is not evidence of what Alex said. Whether Alex approved the spend verbally remains unverified." },
 ];
 
+// Example unfiltered drafts: messy and emotional on purpose, but each carries
+// the facts and the ask the app needs to work with.
+const EXAMPLES = {
+  1: "Ugh, I've been blocked since Wednesday. The link works but the document asks for a password and I still don't have it. Priya gets the same prompt. I can't review what I can't open. Send me the password and then we can talk about a timeline, not before.",
+  2: "Seriously? It was Thursday 15:00 and now it's 16:00 today?? I can get the exception list done from the final ledger extract, but the explanation of the big differences will be thin. If this comes first, what else do you want me to drop?",
+  3: "I'm doing exactly what you told me: support first until it's under 10. It's still at 22. I can't do both by 11:00. Do you want me to stop support and do the slides, or keep going on support?",
+  4: "You approved my appointment, I'm off from 14:00 today and Jordan is covering. I can't do a 14:30 workshop. Can someone else take the notes? Jordan has my handover.",
+  5: "Saturday at 09:00?! The rota is Monday to Friday and I never signed up for weekend cover. I haven't said I'm free. Before anyone commits me, is this optional and how is the extra time handled?",
+  6: "Wait, Priya didn't build that. I built the net-order calculation and the drill-down; she reviewed them and changed the labels and colours, which helped. The change log shows who did what. Questions about the calculations should come to me.",
+  7: "I already did this! R-1042 is in the tracker under OPS-12 with the $84.50 receipt attached, and Jordan checked the link. Finance just hasn't approved it yet. What else do they actually need from me?",
+  8: "'More professional' how?? I used the exact progress / blocker / next step format you asked for. Tell me which parts are wrong or show me an example and I'll fix it this afternoon.",
+  9: "It's not ready because the vendor's corrected feed hasn't arrived. Morgan is the vendor contact; they missed 12:00 and now say 16:00. My validator has been ready since Monday. I'll run the checks once Morgan posts the file, but I can't promise when that is.",
+  10: "The numbers don't disagree. 156 is gross orders, 142 is net after 8 cancellations and 6 refunds. It's labelled on the dashboard. Jordan already said finance wants 142 on the board report with 156 in the supporting table.",
+  11: "We agreed CSV only for this release. PDF isn't in the checklist and Morgan hasn't promised it to the client. I can't bolt PDF on by 17:00 with the same budget. Either move the date, drop something, or get me help.",
+  12: "Nobody told me about the 11:00 review! How was I supposed to know? Anyway, what did I miss? I can send my CSV test results now.",
+  13: "I'm pretty sure you said the course sounded fine when we chatted in the kitchen, but I haven't booked anything. Can you just confirm yes or no on the $450 in writing so I can book before the place goes?",
+};
+
 const EV_LABEL = { supported: "Supported", unverified: "Unverified", contradicted: "Contradicted" };
 const esc = (s) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
@@ -359,11 +392,31 @@ function openDetail(n) {
     <h4>Alex's message — select this one, then "Use selected message"</h4>
     <blockquote>${esc(s.quote)}</blockquote>
     <h4>Your draft</h4>
-    <p>${esc(s.move)} Write what <i>you</i> want to say — the prompt isn't text to copy.</p>
+    <p>${esc(s.move)}</p>
+    <h4>Example draft — for inspiration</h4>
+    <div class="example">
+      <p id="example-text">${esc(EXAMPLES[s.n])}</p>
+      <button class="copy-btn" id="copy">Copy</button>
+    </div>
+    <p class="hint">Best results come from your own words. Change the details, vent a little, keep the facts.${s.n === 12 ? " This one deliberately tests a claim the history contradicts." : ""}</p>
     <h4>Check the result</h4>
     <p>${esc(s.check)}</p>
     <h4>Message ID</h4>
     <p><code>${s.id}</code></p>`;
+  document.getElementById("copy").addEventListener("click", async (e) => {
+    const btn = e.currentTarget;
+    try {
+      await navigator.clipboard.writeText(EXAMPLES[s.n]);
+      btn.textContent = "Copied ✓";
+    } catch {
+      // Clipboard API can be blocked (e.g. file:// in some browsers): select the text instead.
+      const range = document.createRange();
+      range.selectNodeContents(document.getElementById("example-text"));
+      getSelection().removeAllRanges();
+      getSelection().addRange(range);
+      btn.textContent = "Press Ctrl+C";
+    }
+  });
   dialog.showModal();
 }
 
