@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ApiError, getSession, isInviteAuth, signIn } from "@/frontend/api/replyApi";
 
@@ -18,26 +18,50 @@ export default function LoginPage() {
   const [code, setCode] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const started = useRef(false);
 
-  useEffect(() => {
-    if (!isInviteAuth) return;
-    getSession()
-      .then(() => router.replace("/"))
-      .catch(() => undefined);
-  }, [router]);
-
-  async function onSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (busy) return;
+  async function attempt(inviteCode: string) {
     setBusy(true);
     setError(null);
     try {
-      await signIn(code);
+      await signIn(inviteCode);
       router.replace("/");
     } catch (err) {
       setError(messageFor(err));
       setBusy(false);
     }
+  }
+
+  useEffect(() => {
+    if (!isInviteAuth || started.current) return;
+    started.current = true;
+    // Personal sign-in links put the code in the fragment (/login#R2R-...).
+    // Fragments are never sent to the server, so the code stays out of request
+    // logs and Referer headers. Clear it from the address bar right away.
+    let linkCode = window.location.hash.slice(1);
+    try {
+      linkCode = decodeURIComponent(linkCode);
+    } catch {
+      // Malformed escapes: use the raw text; the server rejects bad codes.
+    }
+    linkCode = linkCode.trim().slice(0, 64);
+    if (linkCode) {
+      window.history.replaceState(null, "", window.location.pathname);
+      setCode(linkCode);
+      void attempt(linkCode);
+      return;
+    }
+    getSession()
+      .then(() => router.replace("/"))
+      .catch(() => undefined);
+    // attempt is stable for this one-time check.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [router]);
+
+  async function onSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (busy) return;
+    await attempt(code);
   }
 
   return (

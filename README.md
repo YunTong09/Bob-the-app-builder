@@ -104,7 +104,7 @@ On macOS/Linux, use `backend/.venv/bin/python` for the Python commands.
 | `R2R_LOGIN_FAILURES_PER_15_MIN` | `10` | Failed sign-ins per address before a lockout in invite mode |
 
 - The default identity is a single-user demo owner. It accepts direct loopback connections only and rejects proxied requests. Do not bind it to `0.0.0.0` or put it behind a shared proxy.
-- `invite_code` mode is for the hosted site behind the HTTPS gateway. Each invited person signs in with their own code and gets separate history. Create codes with `backend/.venv/bin/python -m backend.api.invite_auth <label>`; this prints the code to share and its `R2R_INVITES` entry. Follow the [deployment guide](deploy/gce/README.md). Other `R2R_IDENTITY_MODE` values refuse to start.
+- `invite_code` mode is for the hosted site behind the HTTPS gateway. Each invited person signs in with their own code and gets separate history. Create codes with `backend/.venv/bin/python -m backend.api.invite_auth <label>`; this prints the code to share and its `R2R_INVITES` entry. A personal link, `https://<domain>/login#<code>`, signs the person in with one click. Follow the [deployment guide](deploy/gce/README.md). Other `R2R_IDENTITY_MODE` values refuse to start.
 - Startup fails if `ANTHROPIC_MODEL` is missing in Claude mode; it never falls back to mock replies. The service interfaces are in `backend/application/ports.py`.
 - To run the API tests against SQLite instead of the in-memory double, set `R2R_TEST_MEMORY_FACTORY=backend.tests.sqlite_factory:make`.
 - Synthetic request and response fixtures are in `backend/fixtures/`.

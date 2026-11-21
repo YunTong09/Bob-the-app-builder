@@ -50,7 +50,7 @@ backend/.venv/bin/python -m backend.api.invite_auth organizer
 backend/.venv/bin/python -m backend.api.invite_auth judge-1
 ```
 
-Each command prints a code (`R2R-XXXX-XXXX-XXXX-XXXX`) and an `R2R_INVITES entry` line. The entry lines contain only hashes. Copy them into a file in Cloud Shell, store the file as a secret and delete it:
+Each command prints a code (`R2R-XXXX-XXXX-XXXX-XXXX`) and an `R2R_INVITES entry` line. When `R2R_PUBLIC_ORIGIN` is set, the command also prints a personal sign-in link, `https://<your domain>/login#<code>`, which signs the person in without typing. You can also build the link yourself from an existing code. Treat each link like a password: anyone with it can use that person's workspace. The entry lines contain only hashes. Copy them into a file in Cloud Shell, store the file as a secret and delete it:
 
 ```bash
 nano invites.txt          # paste one "label:hash" line per person

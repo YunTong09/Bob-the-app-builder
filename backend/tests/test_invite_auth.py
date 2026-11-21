@@ -109,12 +109,23 @@ def test_short_session_secret_refuses_to_start():
         InviteSessions(INVITES, "too-short")
 
 
-def test_cli_prints_code_and_matching_entry(capsys):
+def test_cli_prints_code_and_matching_entry(capsys, monkeypatch):
+    monkeypatch.delenv("R2R_PUBLIC_ORIGIN", raising=False)
     assert _main(["judge-1"]) == 0
     out = capsys.readouterr().out
     code = re.search(r"R2R(-[A-Z0-9]{4}){4}", out).group(0)
     assert f"judge-1:{hash_code(code)}" in out
+    assert "/login#" not in out
     assert _main(["Bad Label"]) == 2
+
+
+def test_cli_prints_personal_link_for_https_origin(capsys, monkeypatch):
+    monkeypatch.setenv("R2R_PUBLIC_ORIGIN", "https://ragetoreply.example/")
+    assert _main(["team"]) == 0
+    out = capsys.readouterr().out
+    code = re.search(r"R2R(-[A-Z0-9]{4}){4}", out).group(0)
+    assert f"https://ragetoreply.example/login#{code}" in out
+    assert f"team:{hash_code(code)}" in out
 
 
 # ------------------------------------------------------------------ sign-in

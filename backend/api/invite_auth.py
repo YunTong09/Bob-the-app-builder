@@ -20,6 +20,7 @@ import base64
 import hashlib
 import hmac
 import math
+import os
 import re
 import secrets
 import sys
@@ -275,6 +276,9 @@ def _main(argv: list[str]) -> int:
         return 2
     code = generate_code()
     print(f"Invite code for {argv[0]} (share privately): {code}")
+    origin = os.environ.get("R2R_PUBLIC_ORIGIN", "").strip().rstrip("/")
+    if origin.startswith("https://"):
+        print(f"Personal sign-in link (share privately): {origin}/login#{code}")
     print(f"R2R_INVITES entry: {argv[0]}:{hash_code(code)}")
     return 0
 
