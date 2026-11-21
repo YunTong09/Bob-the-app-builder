@@ -142,6 +142,26 @@ export default function HomePage() {
           </p>
         </div>
       </header>
+      {withEvidence && (
+        <button
+          type="button"
+          className="history-banner history-banner-top"
+          aria-haspopup="dialog"
+          onClick={() => {
+            setHistoryOpened(true);
+            setDialog("history");
+          }}
+        >
+          <PixelAnimation kind="folder" label="Conversation memory" />
+          <span>
+            <strong>Good replies have a little history.</strong>
+            <span>
+              Import conversations to find the facts behind your reply.
+            </span>
+          </span>
+          <span className="history-banner-action">Open history</span>
+        </button>
+      )}
       <fieldset className="mode-switch">
         <legend className="sr-only">Rewrite mode</legend>
         <div className="mode-options">
@@ -169,25 +189,17 @@ export default function HomePage() {
       <div className="workspace-actions">
         <button
           type="button"
-          className="secondary-button"
+          className="secondary-button settings-icon-button"
+          aria-label="Settings"
+          title="Settings"
           aria-haspopup="dialog"
           onClick={() => setDialog("settings")}
         >
-          Settings
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
+            <path d="M9 2h6v3h3v3h3v8h-3v3h-3v3H9v-3H6v-3H3V8h3V5h3V2Z" />
+            <circle cx="12" cy="12" r="3.5" />
+          </svg>
         </button>
-        {withEvidence && (
-          <button
-            type="button"
-            className="secondary-button"
-            aria-haspopup="dialog"
-            onClick={() => {
-              setHistoryOpened(true);
-              setDialog("history");
-            }}
-          >
-            Conversation history
-          </button>
-        )}
       </div>
       <dialog
         ref={dialogRef}
@@ -439,26 +451,6 @@ export default function HomePage() {
           </section>
         )}
       </div>
-      {withEvidence && (
-        <button
-          type="button"
-          className="history-banner"
-          aria-haspopup="dialog"
-          onClick={() => {
-            setHistoryOpened(true);
-            setDialog("history");
-          }}
-        >
-          <PixelAnimation kind="folder" label="Conversation memory" />
-          <span>
-            <strong>Good replies have a little history.</strong>
-            <span>
-              Import conversations to find the facts behind your reply.
-            </span>
-          </span>
-          <span className="history-banner-action">Open history</span>
-        </button>
-      )}
       <footer className="workspace-footer">
         <span>
           Draft freely. Review carefully. You decide what happens next.
