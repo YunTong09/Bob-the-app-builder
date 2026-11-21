@@ -24,6 +24,7 @@ from backend.services.slack import build_slack_service
 
 from .app import create_app
 from .identity import resolver_from_env
+from .invite_auth import InviteSessions, SlidingWindowLimiter, parse_invites
 
 
 def _build_services() -> Services:
@@ -45,8 +46,51 @@ def _build_services() -> Services:
     return build_services()
 
 
+def _positive_int(name: str, default: int) -> int:
+    raw = os.environ.get(name, "").strip()
+    if not raw:
+        return default
+    if not raw.isascii() or not raw.isdigit() or int(raw) < 1:
+        raise RuntimeError(f"{name} must be a positive integer.")
+    return int(raw)
+
+
+def _build_invite_app() -> FastAPI:
+    """Hosted mode behind a same-origin HTTPS gateway (see deploy/gce/).
+
+    Start uvicorn with ``--proxy-headers --forwarded-allow-ips 127.0.0.1`` so
+    sign-in throttling sees the visitor's address rather than the gateway's.
+    """
+    if os.environ.get("R2R_WEB_ORIGIN", "").strip():
+        raise RuntimeError("R2R_WEB_ORIGIN is for the local demo only; unset it in invite_code mode.")
+    public_origin = os.environ.get("R2R_PUBLIC_ORIGIN", "").strip()
+    match = re.fullmatch(r"https://([a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+)", public_origin)
+    if not match:
+        raise RuntimeError("R2R_PUBLIC_ORIGIN must be the site's https:// origin, such as https://example.com.")
+
+    sessions = InviteSessions(
+        parse_invites(os.environ.get("R2R_INVITES", "")),
+        os.environ.get("R2R_SESSION_SECRET", "").strip(),
+        ttl_seconds=_positive_int("R2R_SESSION_TTL_HOURS", 168) * 3600,
+    )
+    app = create_app(
+        _build_services(),
+        sessions.resolve,
+        slack=build_slack_service(),
+        sessions=sessions,
+        login_limiter=SlidingWindowLimiter(limit=_positive_int("R2R_LOGIN_FAILURES_PER_15_MIN", 10), window_seconds=15 * 60),
+        generate_limiter=SlidingWindowLimiter(limit=_positive_int("R2R_GENERATE_LIMIT_PER_HOUR", 30), window_seconds=3600),
+    )
+    # Same-origin gateway: no CORS. Loopback hosts allow on-VM health checks.
+    app.add_middleware(TrustedHostMiddleware, allowed_hosts=[match.group(1), "127.0.0.1", "localhost"])
+    return app
+
+
 def build_app() -> FastAPI:
     load_backend_env()
+    mode = os.environ.get("R2R_IDENTITY_MODE", "demo_local")
+    if mode == "invite_code":
+        return _build_invite_app()
     web_origin = os.environ.get("R2R_WEB_ORIGIN", "").strip()
     if web_origin and not re.fullmatch(r"http://(?:127\.0\.0\.1|localhost):[1-9][0-9]{0,4}", web_origin):
         raise RuntimeError("R2R_WEB_ORIGIN must be an explicit HTTP loopback origin with a port.")

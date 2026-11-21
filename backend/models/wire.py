@@ -235,6 +235,19 @@ class SlackPreviewResponse(_Response):
     warnings: list[str]
 
 
+# ------------------------------------------------- invite-code sessions
+
+INVITE_CODE_MAX = 64
+
+
+class CreateSessionRequest(_Request):
+    invite_code: Annotated[str, Field(min_length=1, max_length=INVITE_CODE_MAX), AfterValidator(_non_blank)]
+
+
+class SessionResponse(_Response):
+    authenticated: bool
+
+
 # ---------------------------------------------------------------- errors
 
 

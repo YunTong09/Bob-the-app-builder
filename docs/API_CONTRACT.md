@@ -21,7 +21,9 @@ This document owns endpoint behaviour, wire schemas, validation and errors. [PRO
 
 The server derives the owner from an authenticated session. The restricted MVP demo may instead use one server-controlled demo owner only when run locally for one user, bound to loopback and inaccessible to other users. Do not expose that shared demo identity as a public multi-user deployment.
 
-Requests never accept `userId` or `sessionId` as proof of ownership. In authenticated mode, a missing or invalid session returns `401`. The authentication provider and session mechanism must be agreed before shared Web App deployment. The current demo resolver supports direct loopback access only.
+Requests never accept `userId` or `sessionId` as proof of ownership. In authenticated mode, a missing or invalid session returns `401`. The local demo resolver supports direct loopback access only.
+
+The hosted Web App uses **invite-code sessions** (`R2R_IDENTITY_MODE=invite_code`). See [Hosted invite-code sessions](#hosted-invite-code-sessions). Each invited person receives a distinct code. The server stores only a hash of each code and its label. After sign-in, the server derives the owner `invite:<label>` from a signed, HttpOnly session cookie. The cookie is the only credential. Each invite code has isolated history, and the shared demo owner is never available in this mode.
 
 Apply ownership and any `conversationId` restriction within database queries **before ranking, counting or limiting results**. Import, search, generation, deletion and optional preferences all use the same owner. A conversation with no records visible to that owner behaves like an empty conversation; do not reveal another user's records or their existence. Failure to establish or enforce ownership is an error, never a reason to search globally.
 
@@ -34,6 +36,9 @@ Apply ownership and any `conversationId` restriction within database queries **b
 | P0 | GET | `/api/memory/search` | `200 SearchMemoryResponse` |
 | P0 | DELETE | `/api/memory` | `200 DeleteMemoryResponse` |
 | Demo extension | POST | `/api/slack/preview` | `200 SlackPreviewResponse` |
+| Hosted mode | POST | `/api/session` | `200 SessionResponse` and session cookie |
+| Hosted mode | GET | `/api/session` | `200 SessionResponse` |
+| Hosted mode | DELETE | `/api/session` | `200 SessionResponse` and cleared cookie |
 | P1, optional | GET | `/api/preferences` | `200 CommunicationPreferences` |
 | P1, optional | PUT | `/api/preferences` | `200 CommunicationPreferences` |
 
@@ -275,6 +280,29 @@ Synthetic preview request (the server allowlist must contain `CDEMO123`):
 
 The frontend presents the preview and retains only the selected records for explicit import. Slack installation needs the appropriate history scope and channel membership; setup is documented in [README.md](../README.md). This extension leaves the existing manual JSON import available.
 
+## Hosted invite-code sessions
+
+These routes exist only in hosted mode (`R2R_IDENTITY_MODE=invite_code`). In the local demo they return `404 NOT_FOUND`. The site and API share one HTTPS origin behind a gateway, so the browser sends the cookie automatically. No CORS is configured in this mode.
+
+```ts
+export interface CreateSessionRequest {
+  inviteCode: string;
+}
+
+export interface SessionResponse {
+  authenticated: boolean;
+}
+```
+
+- **POST `/api/session`** exchanges an invite code for a session. `inviteCode` contains 1–64 characters with a non-whitespace character. Matching ignores case, spaces and dashes. Success returns `{ "authenticated": true }` and sets `__Host-r2r_session` with `HttpOnly`, `Secure`, `SameSite=Strict`, `Path=/` and a `Max-Age` equal to the session lifetime (default 7 days). An unknown code returns `401 UNAUTHENTICATED` without setting a cookie. Body validation follows section 1.
+- **GET `/api/session`** returns `{ "authenticated": true }` for a valid session, otherwise `401 UNAUTHENTICATED`.
+- **DELETE `/api/session`** always returns `{ "authenticated": false }` and clears the cookie.
+- No session route accepts query parameters.
+
+**Session validity.** A session is valid while it is unexpired and its invite still exists with the same code. Removing or regenerating an invite ends that invite's existing sessions. Responses and logs never include invite codes or cookie values.
+
+**Throttling.** Failed sign-ins are counted per client address. After 10 failures within 15 minutes (configurable), `POST /api/session` returns `429 RATE_LIMITED` until the window passes, even for a valid code. Valid generation requests are limited per owner, by default 30 per hour, whether or not the model call succeeds. Requests that fail authentication or validation do not count. Over the limit, `POST /api/reply/generate` returns `429 RATE_LIMITED`. Both include a `Retry-After` header with an integer from 1 to 3,600 seconds. The local demo applies neither limit.
+
 ## 7. Optional communication preferences (P1)
 
 ### GET and PUT `/api/preferences`
@@ -323,6 +351,7 @@ export interface ApiErrorResponse {
 | 403 | `SLACK_PERMISSION_DENIED` | Slack app lacks history permissions or membership. |
 | 404 | `SLACK_CHANNEL_NOT_FOUND` | The configured Slack channel is unavailable. |
 | 429 | `SLACK_RATE_LIMITED` | Slack throttled the request; return a bounded `Retry-After` header. |
+| 429 | `RATE_LIMITED` | Hosted mode only: too many failed sign-ins from this address, or too many generations for this owner; return a bounded `Retry-After` header. |
 | 502 | `SLACK_AUTH_FAILED` | Slack rejected the configured bot credentials. |
 | 502 | `SLACK_UPSTREAM_ERROR` | Slack returned an unusable response or another upstream error. |
 | 503 | `SLACK_NOT_CONFIGURED` | Slack preview configuration is missing or invalid. |

@@ -35,7 +35,7 @@ Rage-to-Reply is an **end-to-end AI web application**. Invited users should be a
 | --- | --- | --- | --- | --- | --- |
 | WEB-01 | Frontend & Backend Integration | P0 | DONE | None | Build a testable version with the latest frontend and backend |
 | WEB-02 | Real Claude API Integration | P0 | TODO | WEB-01 | Verify live rewriting, receipts, and error handling |
-| WEB-03 | Web Deployment & Hosting | P0 | TODO | WEB-01, parallel with WEB-02 | Provide HTTPS access for invited teammates |
+| WEB-03 | Web Deployment & Hosting | P0 | IN PROGRESS | WEB-01, parallel with WEB-02 | Provide HTTPS access for invited teammates |
 | WEB-04 | End-to-End Testing & Demo Validation | P0 | TODO | WEB-02, WEB-03 | Verify on another computer and rehearse the two-minute demo |
 
 **Status values** — `TODO` Pending, `IN PROGRESS` Underway, `BLOCKED` Waiting on a specific blocker, `DONE` Acceptance criteria verified. Roadmap statuses apply to the latest combined version. Earlier Mock AI results are in the [WEB-01 local baseline](#web-01--local-integration-baseline).
@@ -98,29 +98,35 @@ Rage-to-Reply is an **end-to-end AI web application**. Invited users should be a
 
 ### WEB-03 — Web Deployment & Hosting
 
-**Status** — TODO. **Dependencies** — WEB-01. Can run in parallel with WEB-02.
+**Status** — IN PROGRESS. **Dependencies** — WEB-01. Can run in parallel with WEB-02.
 
 **Objective** — Provide invited teammates with HTTPS access to the web app.
 
 **Checklist**
 
-- [ ] Deploy the Next.js frontend and FastAPI backend.
-- [ ] Configure HTTPS, API routing, and environment variables.
-- [ ] Store the Claude API key in server-side secret management.
-- [ ] Configure CORS, allowed hosts, and access controls for invited users.
-- [ ] Add basic rate limiting, API cost controls, and health checks.
-- [ ] Verify deployed API connectivity and backend availability.
+- [x] Deploy the Next.js frontend and FastAPI backend.
+- [x] Configure HTTPS, API routing, and environment variables.
+- [x] Store the Claude API key in server-side secret management.
+- [x] Configure CORS, allowed hosts, and access controls for invited users.
+- [ ] Add basic rate limiting, API cost controls, and health checks. (Rate limits and cost controls are done. No dedicated health-check endpoint exists; systemd restarts failed services.)
+- [x] Verify deployed API connectivity and backend availability.
 
 **Acceptance Criteria**
 
-- [ ] Invited teammates can open the site without installing Python or Node.js or starting a local server.
-- [ ] The deployed frontend and backend communicate successfully.
-- [ ] API credentials are absent from the browser bundle and repository.
-- [ ] Invited-user access controls pass verification. The local single-user identity mechanism remains limited to the local demo.
+- [x] Invited teammates can open the site without installing Python or Node.js or starting a local server.
+- [x] The deployed frontend and backend communicate successfully.
+- [x] API credentials are absent from the browser bundle and repository.
+- [ ] Invited-user access controls pass verification. The local single-user identity mechanism remains limited to the local demo. (Sign-in, rejection of an invalid code and redirect checks passed on the deployed site. Isolation between two codes is verified in automated tests but not yet on the deployed site.)
 
-**Test Results** — HTTPS deployment, access control, and network checks are pending.
+**Test Results** — 2026-11-21, branch `feature/invite-auth`, deployed at `https://ragetoreply.tech` (Porkbun DNS → reserved IP `r2r-ip`, Compute Engine VM `r2r-vm` in `australia-southeast1-b`, Caddy with a Let's Encrypt certificate). See the [deployment guide](../../deploy/gce/README.md).
+- Secret Manager holds `anthropic-api-key`, `r2r-invites` and `r2r-session-secret`. Only the VM service account has read access, and the key returned HTTP 200 from the Anthropic models endpoint.
+- External checks from another network all passed. Without a session, `/` redirected (307) to `https://ragetoreply.tech/login`. `/login` returned 200 and `/api/session` returned 401. An invalid code returned 401 without setting a cookie. HTTP redirected (308) to HTTPS, and the HSTS, `X-Frame-Options` and `nosniff` headers were present.
+- Teammates opened the site and signed in from their own computers. Live generation succeeded.
+- Passed locally: 505 backend tests, including 57 invite-session tests (cookie attributes, tampering, expiry, revocation, isolation with in-memory and SQLite stores, throttling, validation, configuration and the invite CLI). Also passed: `tsc --noEmit`, `npm run lint` and the hosted-mode `npm run build`. HTTP smoke tests covered the per-address lockout, the per-invite generation limit and unknown-host rejection.
+- Personal sign-in links (`/login#<code>`) were verified with headless Edge through a same-origin gateway. The link opened the workspace and the session persisted. A bad link showed an error, and a fresh browser without a link stayed on `/login`.
+- Pending: isolation between two invite codes on the deployed site, and redeploying from `main` after this branch merges.
 
-**Blockers** — Requires WEB-01 acceptance and a confirmed hosting and invite-access setup.
+**Blockers** — Team agreement on the invite-code session change in [API_CONTRACT.md](../API_CONTRACT.md#hosted-invite-code-sessions) before merging.
 
 ### WEB-04 — End-to-End Testing & Demo Validation
 
@@ -275,3 +281,4 @@ TypeScript, lint and production build passed. The backend suite passed 435 tests
 | 2026-11-21 | Tracker organization | Moved previous tasks and verification into expandable history and retained the roadmap and Change Log. | Markdown formatting checked. | Uncommitted |
 | 2026-11-21 | Handoff guide | Added branch baselines, the next task, acceptance steps, and progress update instructions. | Markdown formatting checked. | Uncommitted |
 | 2026-11-21 | WEB-05 | Added shared browser dictation to the workspace draft. | TypeScript, lint, production build and Chrome mock acceptance passed. Physical microphone pending. | Uncommitted |
+| 2026-11-21 | WEB-03 | Added invite-code sessions, personal sign-in links, per-invite generation limits, the `/login` page and Compute Engine + Caddy deployment files. Deployed at `https://ragetoreply.tech`. | 505 backend tests, tsc, lint, hosted build, HTTP smoke tests and external HTTPS checks passed. Teammates signed in from their own computers. Deployed isolation check pending. | `feature/invite-auth` |

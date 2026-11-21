@@ -17,6 +17,8 @@ Rage-to-Reply is a browser-based workplace reply assistant with two modes. See [
 4. **Review and edit.** Keep the previous reply visible until regeneration succeeds. In Rewrite with Evidence, display source-backed claims, unverified claims and warnings separately.
 5. **Finish in the web workspace.** Users review and edit the final text in the browser.
 
+**Hosted sign-in.** In the hosted build (`NEXT_PUBLIC_R2R_AUTH=invite`), visitors without a session open `/login`. There they enter their invite code, then return to the workspace. A personal sign-in link (`/login#<invite code>`) signs in without typing. The code stays in the URL fragment, which is never sent to the server, and the page removes it from the address bar immediately. If the API reports an expired session, the browser returns to `/login`. Show readable errors for an invalid code and for too many attempts. The local demo and the browser mock never show sign-in. See [Hosted invite-code sessions](API_CONTRACT.md#hosted-invite-code-sessions).
+
 Quick Tone Rewrite requires backend support for draft-only generation without memory retrieval. The existing evidence endpoint requires a manager message and searches imported history. Confirm the draft-only API with the backend owner before connecting the mode.
 
 ## Data Handling and Acceptance Criteria

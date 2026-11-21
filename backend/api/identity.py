@@ -1,9 +1,9 @@
-"""Server-side owner derivation.
+"""Server-side owner derivation for the local demo.
 
-Only the restricted, loopback-only single-user demo identity is implemented.
-Authenticated multi-user mode is outside the MVP contract and must be agreed
-before enabling shared (web or Slack) access -- until then the server refuses
-to start in any other mode.
+This module implements the restricted, loopback-only single-user demo
+identity. The hosted invite-code mode (``R2R_IDENTITY_MODE=invite_code``) lives
+in ``invite_auth.py`` and is selected in ``main.py``; any other mode refuses to
+start.
 
 Client-supplied ``userId`` / ``sessionId`` values are never read: the wire
 models reject them as unknown fields, and nothing here inspects them.
@@ -57,8 +57,5 @@ def demo_local_resolver(request: Request) -> OwnerContext:
 def resolver_from_env() -> IdentityResolver:
     mode = os.environ.get("R2R_IDENTITY_MODE", "demo_local")
     if mode != "demo_local":
-        raise RuntimeError(
-            "Only R2R_IDENTITY_MODE=demo_local is implemented. Authenticated "
-            "multi-user mode must be agreed and built before shared deployment."
-        )
+        raise RuntimeError("R2R_IDENTITY_MODE must be 'demo_local' or 'invite_code'.")
     return demo_local_resolver
