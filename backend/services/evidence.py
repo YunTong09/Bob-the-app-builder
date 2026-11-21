@@ -57,9 +57,12 @@ For every record you rely on, give:
 - message_id: exactly as provided.
 - quote: an exact, contiguous excerpt copied character-for-character from that record's
   content (at least a few words) that shows the support or conflict.
-- statement: one neutral sentence saying only what the record itself establishes. It may be
-  narrower than the claim (e.g. a record saying a link was shared does not establish that a
-  password was shared).
+- statement: one short neutral sentence saying only what the record itself establishes.
+  Use the specific topic words from the record (for example folder access or delivery
+  deadline) so the supporting point is easy to scan. Keep it narrower than the claim when
+  needed: a record saying a link was shared does not establish that a password was shared.
+  The app displays record timestamps separately. Never infer a date or repeat timestamp
+  metadata in the statement.
 
 An "unverified" claim may still list records that establish a related, narrower fact.
 For "contradicted", add a short neutral note explaining the conflict without blaming anyone.
