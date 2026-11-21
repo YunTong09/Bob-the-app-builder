@@ -13,12 +13,8 @@ import PreferencesPanel, {
 } from "@/frontend/features/preferences/PreferencesPanel";
 import DisplaySettings from "@/frontend/features/preferences/DisplaySettings";
 import { appendDictation } from "@/frontend/features/reply/DictationControls";
-<<<<<<< Updated upstream
 import VentInput from "@/frontend/features/reply/VentInput";
-import type { GenerateReplyResponse, ReplyTone } from "@/frontend/api/contract";
-=======
 import type { GenerateReplyResponse, ReplyTone, StoredMemoryMessage } from "@/frontend/api/contract";
->>>>>>> Stashed changes
 import PixelAnimation from "@/frontend/shared/PixelAnimation";
 import ReplyInsights from "@/frontend/features/reply/ReplyInsights";
 import ReplyProcessing from "@/frontend/features/reply/ReplyProcessing";
@@ -57,13 +53,9 @@ export default function HomePage() {
 
   const regeneratingRequest = useRef(false);
   const inFlight = useRef(false);
-<<<<<<< Updated upstream
   const requestTiming = useRef<{ startedAt: number; estimateMs: number | null }>({ startedAt: 0, estimateMs: null });
   const successfulDurations = useRef<number[]>([]);
-  const canSubmit = Boolean(managerMessage.trim() && draft.trim());
-=======
   const canSubmit = Boolean(draft.trim());
->>>>>>> Stashed changes
   const withEvidence = mode === "evidence";
   const showReview = withEvidence && Boolean(result);
 
